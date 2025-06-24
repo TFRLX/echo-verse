@@ -21,7 +21,7 @@ body {
     background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); /* Dégradé de base */
     background-size: 400% 400%; /* Permet une animation de dégradé */
     animation: gradientShift 15s ease infinite; /* Anime le dégradé */
-    z-index: -1; /* Place le fond derrière le contenu */
+    /* Ancien z-index: -1; a été retiré */
 }
 
 @keyframes gradientShift {
@@ -39,14 +39,14 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    pointer-events: none;
+    pointer-events: none; /* Ceci est correct et nécessaire pour les pseudo-éléments */
     opacity: 0.3;
     animation: pulseGlow 20s infinite alternate; /* Animation de lumière subtile */
 }
 
 .background-container::before {
     background: radial-gradient(circle at 20% 80%, rgba(139, 233, 253, 0.2), transparent 70%),
-                radial-gradient(circle at 80% 20%, rgba(255, 121, 198, 0.2), transparent 70%);
+                        radial-gradient(circle at 80% 20%, rgba(255, 121, 198, 0.2), transparent 70%);
 }
 
 .background-container::after {
@@ -407,4 +407,15 @@ button:hover {
     .nav-links li { margin-left: 15px; }
     .content-wrapper { padding: 10px; }
     #game-area, .sidebar { padding: 15px; }
+}
+
+/* Règle pour forcer la réactivité des éléments interactifs */
+input, select, button, textarea {
+    pointer-events: auto !important;
+}
+
+/* Assurer que le conteneur principal des éléments interactifs n'est pas bloqué */
+#game-area, #start-screen, #story-screen {
+    pointer-events: auto !important;
+    z-index: 1; /* Assurer qu'il est au-dessus du fond */
 }
