@@ -3,19 +3,33 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const admin = require('firebase-admin');
 
-// Initialisation de Firebase Admin SDK.
-// Les credentials proviennent de la variable d'environnement Netlify 'FIREBASE_SERVICE_ACCOUNT_KEY'
+// Parse la clé du compte de service une seule fois au démarrage de la fonction.
+// Il est crucial que FIREBASE_SERVICE_ACCOUNT_KEY soit un JSON valide et stringifié.
+let serviceAccount;
 try {
+    serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
+} catch (error) {
+    console.error("Erreur de parsing de la variable d'environnement FIREBASE_SERVICE_ACCOUNT_KEY:", error);
+    // En cas d'échec du parsing, il est préférable d'arrêter l'initialisation ici
+    // car Firebase ne pourra pas être initialisé correctement.
+    // Pour les fonctions Netlify, un `throw` ou un `process.exit(1)` est courant pour les erreurs critiques d'initialisation.
+    // Cependant, pour ne pas bloquer le démarrage de la lambda pour d'autres diagnostics, nous allons juste logguer.
+    // La fonction échouera de toute façon à l'initialisation de Firebase Admin.
+}
+
+// Initialisation de Firebase Admin SDK.
+// Cette logique est à l'extérieur du handler pour n'être exécutée qu'une seule fois
+// lors du "cold start" de la fonction, et non à chaque appel.
+try {
+    // Vérifie si une application Firebase est déjà initialisée pour éviter les erreurs de réinitialisation.
     if (!admin.apps.length) {
         admin.initializeApp({
-            credential: admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY))
+            credential: admin.credential.cert(serviceAccount) // Passe l'objet JavaScript déjà parsé
         });
     }
 } catch (error) {
     console.error("Erreur d'initialisation Firebase Admin:", error);
-    // Retourner une erreur qui peut être gérée par Netlify
-    // Attention: Ne pas bloquer l'exécution ici pendant le build, mais lors de l'appel de la fonction.
-    // Pour le moment, nous allons juste logger l'erreur.
+    // Si l'initialisation Firebase échoue, les tentatives d'accès à Firestore entraîneront l'erreur 'app/no-app'.
 }
 
 const db = admin.firestore();
@@ -29,6 +43,12 @@ const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
 exports.handler = async function(event, context) {
+    // Si Firebase Admin n'a pas pu être initialisé, on retourne une erreur immédiate.
+    if (!admin.apps.length || !db) {
+        console.error("Firebase Admin non initialisé. Impossible de traiter la requête.");
+        return { statusCode: 500, body: 'Erreur interne du serveur: Service de base de données non disponible.' };
+    }
+
     if (event.httpMethod !== 'POST') {
         return { statusCode: 405, body: 'Méthode non autorisée.' };
     }
@@ -311,7 +331,7 @@ ${historyContext}
             prompt += `
 **Contexte :** Le joueur est un agent travaillant pour deux factions opposées.
 **Ton :** Tendu, moralement ambigu, stratégique.
-**Défis :** Maintenir sa couverture, mentir et manipuler les deux camps, choisir des loyautés, gérer les risques de détection, prendre des décisions difficiles avec des conséquences.
+**Défis :** Maintenir sa couverture, mentir et manipuler les deux camps, choisir des loyautés, gérer les risques de détection, faire des décisions difficiles avec des conséquences.
 **Attributs :** Influence pour la tromperie et la négociation. Adaptation pour gérer le stress et les situations imprévues. Ingéniosité pour la planification complexe.
 `;
             break;
@@ -454,6 +474,7 @@ function parseGeminiResponse(responseText) {
             }
         });
     }
+    return stateUpdates; // Retourne stateUpdates
 }
 
 function applyStateUpdates(currentState, inventoryChanges, stateUpdates) {
@@ -480,6 +501,7 @@ function applyStateUpdates(currentState, inventoryChanges, stateUpdates) {
             } else if (key === 'factionRelations') {
                 for (const factionKey in value) {
                     if (value.hasOwnProperty(factionKey) && currentState.factionRelations[factionKey]) {
+                        // Gérer les relations numériques ou textuelles
                         currentState.factionRelations[factionKey].relation = value[factionKey];
                     }
                 }
@@ -493,7 +515,7 @@ function applyStateUpdates(currentState, inventoryChanges, stateUpdates) {
                         const existingNpcIndex = currentState.npcsMet.findIndex(n => n.name === npcChange.name);
                         if (existingNpcIndex !== -1) {
                             currentState.npcsMet[existingNpcIndex].relation = npcChange.relation;
-                            currentState.npcsMet[existingNpcIndex].lastInteraction = npcChange.lastInteraction;
+                            if(npcChange.lastInteraction) currentState.npcsMet[existingNpcIndex].lastInteraction = npcChange.lastInteraction;
                         } else {
                             currentState.npcsMet.push({ name: npcChange.name, relation: npcChange.relation, lastInteraction: npcChange.lastInteraction });
                         }
@@ -529,9 +551,13 @@ function applyStateUpdates(currentState, inventoryChanges, stateUpdates) {
                 });
             } else if (key === 'location') {
                 currentState.location = value;
-            } else if (key === 'playerArchetype' || key === 'gameMode' || key === 'playerName') {
-                currentState[key] = value; // Assurez-vous que ces valeurs sont aussi mises à jour
             }
+            // Ces valeurs sont déjà dans l'état de base et ne devraient pas être écrasées si elles sont 'undefined'
+            // Elles sont mises à jour au début de la fonction 'handler' si 'isStart' est true,
+            // ou chargées depuis Firestore si 'isStart' est false.
+            // La logique 'currentState[key] = value' dans parseGeminiResponse pourrait être problématique si value est 'undefined' ou 'null'
+            // et écraserait des données importantes.
+            // On s'assure que seuls les attributs et collections listés sont mis à jour par le parseur.
         }
     }
 }
