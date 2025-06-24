@@ -10,6 +10,8 @@ let playerNameInput, playerArchetypeSelect, gameModeSelect, startAdventureButton
     gardeChroniqueRelation, fluxLibresRelation, resonancesObscuresRelation,
     npcsList, questsList, eventsList;
 
+console.log("Script.js chargé : Début de l'exécution du fichier.");
+
 
 // Fonction utilitaire pour gérer les mises à jour des listes UI (inventaire, PNJ, quêtes, événements)
 function updateListDisplay(element, items, displayFunc) {
@@ -178,6 +180,8 @@ async function sendToBackend(action, isStart = false) {
 // --- Événements du Démarrage (Déplacés à l'intérieur de window.onload) ---
 // Charger une session existante au chargement de la page (si ID de session existe)
 window.onload = async () => {
+    console.log("window.onload exécuté : Tentative d'initialisation des éléments DOM et des écouteurs d'événements.");
+
     // Initialiser les variables en accédant aux éléments du DOM après le chargement complet de la page
     playerNameInput = document.getElementById('player-name-input');
     playerArchetypeSelect = document.getElementById('player-archetype-select');
@@ -203,10 +207,20 @@ window.onload = async () => {
     questsList = document.getElementById('quests-list');
     eventsList = document.getElementById('events-list');
 
+    // Vérification de la présence des éléments critiques
+    if (!playerNameInput) console.error("Erreur: playerNameInput non trouvé!");
+    if (!playerArchetypeSelect) console.error("Erreur: playerArchetypeSelect non trouvé!");
+    if (!gameModeSelect) console.error("Erreur: gameModeSelect non trouvé!");
+    if (!startAdventureButton) console.error("Erreur: startAdventureButton non trouvé!");
+    if (!startScreen) console.error("Erreur: startScreen non trouvé!");
+    if (!storyScreen) console.error("Erreur: storyScreen non trouvé!");
+
 
     // Attach event listeners here to ensure DOM elements are fully loaded
     if (startAdventureButton) { // S'assurer que le bouton existe avant d'ajouter l'écouteur
+        console.log("Attaching click listener to startAdventureButton.");
         startAdventureButton.addEventListener('click', () => {
+            console.log("startAdventureButton cliqué!");
             const playerName = playerNameInput.value.trim();
             const playerArchetype = playerArchetypeSelect.value;
             const gameMode = gameModeSelect.value; // Récupérer le mode de jeu sélectionné
@@ -239,7 +253,9 @@ window.onload = async () => {
 
 
     if (submitActionButton) { // S'assurer que le bouton existe avant d'ajouter l'écouteur
+        console.log("Attaching click listener to submitActionButton.");
         submitActionButton.addEventListener('click', () => {
+            console.log("submitActionButton cliqué!");
             const action = actionInputField.value.trim();
             if (action) {
                 sendToBackend(action);
@@ -254,6 +270,7 @@ window.onload = async () => {
 
     // Permettre d'envoyer l'action avec "Entrée"
     if (actionInputField) { // S'assurer que le champ existe avant d'ajouter l'écouteur
+        console.log("Attaching keypress listener to actionInputField.");
         actionInputField.addEventListener('keypress', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) { // Shift+Enter pour un saut de ligne
                 e.preventDefault(); // Empêche le saut de ligne par défaut du textarea
@@ -267,6 +284,7 @@ window.onload = async () => {
 
     // Existing session loading logic
     if (currentSessionId) {
+        console.log("Session ID existante détectée, tentant de charger la session.");
         // Tente de charger l'état depuis le backend. Si la session n'est pas trouvée (par ex. première visite après avoir vidé la DB),
         // le backend renverra 404, et le frontend basculera sur l'écran de démarrage.
         try {
@@ -313,6 +331,7 @@ window.onload = async () => {
             if (storyScreen) storyScreen.classList.remove('active');
         }
     } else {
+        console.log("Aucune session ID existante, affichage de l'écran de démarrage.");
         // Si pas de session, afficher l'écran de démarrage
         if (startScreen) startScreen.classList.add('active');
         if (storyScreen) storyScreen.classList.remove('active');
