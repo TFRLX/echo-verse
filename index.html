@@ -46,29 +46,58 @@
                         <input type="text" id="player-name-input" placeholder="Quel est votre nom ?">
                         <select id="player-archetype-select">
                             <option value="">Choisissez votre archétype</option>
-                            <option value="Éclaireur des Fragments">Éclaireur des Fragments</option>
-                            <option value="Synchroniste">Synchroniste</option>
-                            <option value="Citadin">Citadin</option>
-                            <option value="Aventurier">Aventurier</option>
-                            <option value="Détective">Détective</option>
-                            <option value="Romantique">Romantique</option>
+                            <optgroup label="Les Protecteurs de l'Ordre">
+                                <option value="Sentinelle Chronique">Sentinelle Chronique (Vigueur & Influence)</option>
+                                <option value="Garde Fractale">Garde Fractale (Vigueur & Adaptation)</option>
+                                <option value="Diplomate Éthéré">Diplomate Éthéré (Influence & Ingéniosité)</option>
+                            </optgroup>
+                            <optgroup label="Les Chercheurs de Vérité">
+                                <option value="Archiviste des Échos">Archiviste des Échos (Ingéniosité & Influence)</option>
+                                <option value="Décodeur de Réalités">Décodeur de Réalités (Ingéniosité & Adaptation)</option>
+                                <option value="Agent Discret">Agent Discret (Adaptation & Ingéniosité)</option>
+                            </optgroup>
+                            <optgroup label="Les Voyageurs Indépendants">
+                                <option value="Nomade Dimensionnel">Nomade Dimensionnel (Adaptation & Vigueur)</option>
+                                <option value="Marchand Inter-Échos">Marchand Inter-Échos (Influence & Adaptation)</option>
+                                <option value="Explorateur Solitaire">Explorateur Solitaire (Vigueur & Ingéniosité)</option>
+                            </optgroup>
+                            <optgroup label="Les Adaptes de l'Ombre">
+                                <option value="Ombre Silencieuse">Ombre Silencieuse (Adaptation & Influence)</option>
+                                <option value="Manipulateur d'Échos">Manipulateur d'Échos (Influence & Vigueur)</option>
+                                <option value="Prophète des Ruines">Prophète des Ruines (Ingéniosité & Vigueur)</option>
+                            </optgroup>
                         </select>
                         <select id="game-mode-select"> <!-- NOUVEL ÉLÉMENT -->
                             <option value="">Choisissez votre Mode de Jeu</option>
-                            <optgroup label="Les Mondes Fragmentés">
-                                <option value="Echo de la Fracture">Écho de la Fracture (Fantastique, Survie, SF)</option>
-                                <option value="Chronique Urbaine Fracturee">Chronique Urbaine Fracturée (Cyberpunk, Mystère)</option>
-                                <option value="Frontiere Sauvage Fracturee">Frontière Sauvage Fracturée (Exploration, Nature)</option>
+                            <optgroup label="Les Mondes Fracturés (Science-Fiction/Fantastique)">
+                                <option value="Écho de la Fracture">Écho de la Fracture (Fantastique, Survie, SF) - La réalité se brise, des créatures étranges émergent.</option>
+                                <option value="Chronique Urbaine Fracturée">Chronique Urbaine Fracturée (Cyberpunk, Mystère) - La ville est un labyrinthe de technologies et de secrets paranormaux.</option>
+                                <option value="Frontière Sauvage Fracturée">Frontière Sauvage Fracturée (Exploration, Nature) - La nature mutée et les anomalies sont vos seuls compagnons.</option>
+                                <option value="Odyssée Stellaire Fracturée">Odyssée Stellaire Fracturée (Space Opera, Intrigue) - Voyagez entre les étoiles, mais la Fracture suit.</option>
+                                <option value="Apocalypse Temporelle">Apocalypse Temporelle (Survie, Dystopie) - Le temps lui-même se déchire, survivrez-vous au chaos ?</option>
                             </optgroup>
-                            <optgroup label="Les Récits du Quotidien">
-                                <option value="Recit de Vie / Drame Personnel">Récit de Vie / Drame Personnel (Humain, Émotionnel)</option>
-                                <option value="Romance Inattendue">Romance Inattendue (Amour, Relations)</option>
-                                <option value="Tour du Monde a Ma Maniere">Tour du Monde à Ma Manière (Voyage, Découverte)</option>
+                            <optgroup label="Les Récits du Quotidien (Réalisme/Drame)">
+                                <option value="Récit de Vie / Drame Personnel">Récit de Vie / Drame Personnel (Humain, Émotionnel) - Gérez les défis et les relations d'une vie ordinaire.</option>
+                                <option value="Romance Inattendue">Romance Inattendue (Amour, Relations) - Plongez dans une histoire d'amour complexe et imprévue.</option>
+                                <option value="Tour du Monde à Ma Manière">Tour du Monde à Ma Manière (Voyage, Découverte) - Explorez le globe, rencontrez des cultures et vivez l'aventure.</option>
+                                <option value="Carrière Ambitieuse">Carrière Ambitieuse (Compétition, Stratégie) - Grimpez les échelons, déjouez les rivaux et atteignez le sommet.</option>
+                                <option value="Défis Familiaux">Défis Familiaux (Relations, Conflits) - Naviguez dans la complexité des liens familiaux et des drames quotidiens.</option>
                             </optgroup>
-                            <optgroup label="Les Escapades Spécialisées">
-                                <option value="Enquete Mysterieuse">Enquête Mystérieuse (Déduction, Suspens)</option>
-                                <option value="Le Pacte de l'Ombre">Le Pacte de l'Ombre (Horreur Psychologique)</option>
-                                <option value="Gestionnaire de Micro-Monde">Gestionnaire de Micro-Monde (Stratégie, Gestion)</option>
+                            <optgroup label="Les Escapades Spécialisées (Mystère/Horreur/Gestion)">
+                                <option value="Enquête Mystérieuse">Enquête Mystérieuse (Déduction, Suspens) - Résolvez un crime, démêlez un complot ou découvrez une vérité cachée.</option>
+                                <option value="Le Pacte de l'Ombre">Le Pacte de l'Ombre (Horreur Psychologique) - Affrontez vos peurs les plus profondes et la folie croissante.</option>
+                                <option value="Gestionnaire de Micro-Monde">Gestionnaire de Micro-Monde (Stratégie, Gestion) - Construisez et gérez votre propre petite entreprise ou communauté.</option>
+                                <option value="Survie en Milieu Hostile">Survie en Milieu Hostile (Nature, Ressources) - Testez vos limites dans des environnements extrêmes.</option>
+                                <option value="Course Contre la Montre">Course Contre la Montre (Action, Urgence) - Le temps presse, chaque seconde compte pour atteindre votre objectif.</option>
+                            </optgroup>
+                            <optgroup label="Les Fantastiques et Mythologiques">
+                                <option value="Légendes Oubliées">Légendes Oubliées (Fantasy, Magie) - Plongez dans un monde de mythes, de magie et de créatures légendaires.</option>
+                                <option value="Chroniques Vampiriques">Chroniques Vampiriques (Horreur Gothique, Romance) - Naviguez dans un monde de ténèbres et de désirs immortels.</option>
+                                <option value="Quête des Dieux Anciens">Quête des Dieux Anciens (Mythologie, Épopée) - Interagissez avec les divinités et façonnez le destin des mondes.</option>
+                            </optgroup>
+                            <optgroup label="Les Thrillers et Espionnage">
+                                <option value="Conspiration Mondiale">Conspiration Mondiale (Espionnage, Thriller) - Déjouez des complots, infiltrez des organisations secrètes et sauvez le monde.</option>
+                                <option value="Agent Double">Agent Double (Loyauté, Trahison) - Menez une double vie, prenez des décisions complexes et faites confiance à la bonne personne.</option>
                             </optgroup>
                         </select>
                         <button id="start-adventure-button">Commencer l'Aventure</button>
