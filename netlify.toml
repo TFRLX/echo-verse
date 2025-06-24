@@ -1,0 +1,16 @@
+# netlify.toml
+# Ce fichier configure le déploiement sur Netlify.
+
+# Section des fonctions Netlify
+[functions]
+  # Spécifie le répertoire où se trouvent vos fonctions serverless.
+  # Assurez-vous que ce chemin correspond à l'endroit où vous avez placé vos fonctions.
+  directory = "netlify/functions"
+  # Spécifie le gestionnaire de packages à utiliser pour les dépendances des fonctions.
+  # Par défaut, Netlify peut tenter de détecter, mais c'est mieux de le spécifier.
+  node_bundler = "zisi"
+
+# Active un plugin Netlify pour installer automatiquement les dépendances
+# des fonctions se trouvant dans le répertoire spécifié.
+[[plugins]]
+  package = "@netlify/plugin-functions-install-core"
