@@ -180,54 +180,57 @@ async function sendToBackend(action, isStart = false) {
 }
 
 
-// --- Événements du Démarrage ---
-startAdventureButton.addEventListener('click', () => {
-    const playerName = playerNameInput.value.trim();
-    const playerArchetype = playerArchetypeSelect.value;
-    const gameMode = gameModeSelect.value; // Récupérer le mode de jeu sélectionné
-
-    if (!playerName || !playerArchetype || !gameMode) {
-        alert("Veuillez entrer votre nom, choisir un archétype et un mode de jeu.");
-        return;
-    }
-
-    // Initialiser ou charger la session ID
-    if (!currentSessionId) {
-        currentSessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-        localStorage.setItem('echoVerseSessionId', currentSessionId);
-    }
-
-    // Mettre à jour l'état local avec le nom, l'archétype ET LE MODE DE JEU
-    currentStoryState.playerName = playerName;
-    currentStoryState.playerArchetype = playerArchetype;
-    currentStoryState.gameMode = gameMode;
-
-    startScreen.classList.remove('active');
-    storyScreen.classList.add('active');
-
-    // Envoyer la requête de démarrage au backend
-    sendToBackend(`Démarrer l'aventure en tant que ${playerArchetype} en mode ${gameMode}`, true);
-});
-
-submitActionButton.addEventListener('click', () => {
-    const action = actionInputField.value.trim();
-    if (action) {
-        sendToBackend(action);
-    } else {
-        alert("Veuillez décrire votre action.");
-    }
-});
-
-// Permettre d'envoyer l'action avec "Entrée"
-actionInputField.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) { // Shift+Enter pour un saut de ligne
-        e.preventDefault(); // Empêche le saut de ligne par défaut du textarea
-        submitActionButton.click();
-    }
-});
-
+// --- Événements du Démarrage (Déplacés à l'intérieur de window.onload) ---
 // Charger une session existante au chargement de la page (si ID de session existe)
 window.onload = async () => {
+    // Attach event listeners here to ensure DOM elements are fully loaded
+    startAdventureButton.addEventListener('click', () => {
+        const playerName = playerNameInput.value.trim();
+        const playerArchetype = playerArchetypeSelect.value;
+        const gameMode = gameModeSelect.value; // Récupérer le mode de jeu sélectionné
+
+        if (!playerName || !playerArchetype || !gameMode) {
+            alert("Veuillez entrer votre nom, choisir un archétype et un mode de jeu.");
+            return;
+        }
+
+        // Initialiser ou charger la session ID
+        if (!currentSessionId) {
+            currentSessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('echoVerseSessionId', currentSessionId);
+        }
+
+        // Mettre à jour l'état local avec le nom, l'archétype ET LE MODE DE JEU
+        currentStoryState.playerName = playerName;
+        currentStoryState.playerArchetype = playerArchetype;
+        currentStoryState.gameMode = gameMode;
+
+        startScreen.classList.remove('active');
+        storyScreen.classList.add('active');
+
+        // Envoyer la requête de démarrage au backend
+        sendToBackend(`Démarrer l'aventure en tant que ${playerArchetype} en mode ${gameMode}`, true);
+    });
+
+    submitActionButton.addEventListener('click', () => {
+        const action = actionInputField.value.trim();
+        if (action) {
+            sendToBackend(action);
+        } else {
+            alert("Veuillez décrire votre action.");
+        }
+    });
+
+    // Permettre d'envoyer l'action avec "Entrée"
+    actionInputField.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) { // Shift+Enter pour un saut de ligne
+            e.preventDefault(); // Empêche le saut de ligne par défaut du textarea
+            submitActionButton.click();
+        }
+    });
+
+
+    // Existing session loading logic
     if (currentSessionId) {
         // Tente de charger l'état depuis le backend. Si la session n'est pas trouvée (par ex. première visite après avoir vidé la DB),
         // le backend renverra 404, et le frontend basculera sur l'écran de démarrage.
