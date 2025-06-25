@@ -51,7 +51,6 @@
                 <div id="auth-screen" class="screen">
                     <h2>Connectez-vous ou jouez anonymement</h2>
                     <button id="sign-in-anon-button" class="mt-4">Jouer en Anonyme</button>
-                    <!-- Futurement, des champs pour email/mdp ou Google Login -->
                     <p class="mt-4 text-sm text-gray-400">
                         Votre progression sera sauvegardée via Firebase.
                         Si vous avez déjà joué, votre dernière session sera chargée.
@@ -91,6 +90,10 @@
                             <option value="Survivant">Survivant (Résilience, Déni de danger)</option>
                         </optgroup>
                     </select>
+                    <!-- Nouveaux champs pour la description du personnage et le background -->
+                    <textarea id="player-description-input" placeholder="Décrivez l'apparence de votre personnage (ex: homme, jeune, grand, charismatique, avec une cicatrice...)" rows="3"></textarea>
+                    <textarea id="player-background-input" placeholder="Racontez une brève histoire de votre personnage (son passé, motivations, un secret...)" rows="5"></textarea>
+
                     <select id="game-mode-select">
                         <option value="">Choisissez votre Mode de Jeu</option>
                         <optgroup label="Aventures Épiques et Fantastiques">
@@ -275,7 +278,7 @@
                     if (window.currentStoryState) window.currentStoryState = {}; // Réinitialiser l'état local du jeu
                     showScreen('auth-screen'); // Retour à l'écran d'authentification
                 } catch (error) {
-                    console.error("Erreur de déconnexion:", error);
+                    console.error("Erreur lors de la déconnexion:", error);
                     window.showAlert("Erreur lors de la déconnexion. Veuillez réessayer.", "error");
                 }
             });

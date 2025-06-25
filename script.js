@@ -1,6 +1,8 @@
 // Déclaration des éléments UI
 const playerNameInput = document.getElementById('player-name-input');
 const playerArchetypeSelect = document.getElementById('player-archetype-select');
+const playerDescriptionInput = document.getElementById('player-description-input'); // Nouveau
+const playerBackgroundInput = document.getElementById('player-background-input');   // Nouveau
 const gameModeSelect = document.getElementById('game-mode-select');
 const startAdventureButton = document.getElementById('start-adventure-button');
 const startScreen = document.getElementById('start-screen');
@@ -28,6 +30,8 @@ const eventsList = document.getElementById('events-list');
 // UI pour la page de profil (s'ils existent)
 const profilePlayerName = document.getElementById('profile-player-name');
 const profilePlayerArchetype = document.getElementById('profile-player-archetype');
+const profilePlayerDescription = document.getElementById('profile-player-description'); // Nouveau
+const profilePlayerBackground = document.getElementById('profile-player-background');   // Nouveau
 const profileGameMode = document.getElementById('profile-game-mode');
 const profileVigorValue = document.getElementById('profile-vigor-value');
 const profileIngenuityValue = document.getElementById('profile-ingenuity-value');
@@ -167,6 +171,8 @@ function updateGameUI() {
 function updateProfileUI() {
     if (profilePlayerName) profilePlayerName.textContent = currentStoryState.playerName || 'N/A';
     if (profilePlayerArchetype) profilePlayerArchetype.textContent = currentStoryState.playerArchetype || 'N/A';
+    if (profilePlayerDescription) profilePlayerDescription.textContent = currentStoryState.playerDescription || 'N/A'; // Nouveau
+    if (profilePlayerBackground) profilePlayerBackground.textContent = currentStoryState.playerBackground || 'N/A';   // Nouveau
     if (profileGameMode) profileGameMode.textContent = currentStoryState.gameMode || 'N/A';
 
     if (profileVigorValue) profileVigorValue.textContent = currentStoryState.attributes ? currentStoryState.attributes.vigor : 'N/A';
@@ -224,6 +230,8 @@ async function sendToBackend(action, isStart = false) {
         userId: currentUserId, // ENVOYER L'ID UTILISATEUR DE FIREBASE
         playerName: currentStoryState.playerName,
         playerArchetype: currentStoryState.playerArchetype,
+        playerDescription: currentStoryState.playerDescription, // Nouveau
+        playerBackground: currentStoryState.playerBackground,   // Nouveau
         gameMode: currentStoryState.gameMode,
         playerAction: action,
         isStart: isStart,
@@ -277,7 +285,9 @@ window.loadGameSession = async (userId) => {
     currentUserId = userId; // S'assurer que l'ID utilisateur est défini
     const path = window.location.pathname;
 
-    if (userIdDisplay) userIdDisplay.textContent = currentUserId; // Afficher l'ID utilisateur dans la sidebar
+    // Assurez-vous que userIdDisplay existe avant de tenter de modifier son contenu
+    const userIdDisplay = document.getElementById('user-id-display');
+    if (userIdDisplay) userIdDisplay.textContent = currentUserId;
 
     // Logique de chargement pour la page principale (index.html)
     if (path === '/' || path.includes('index.html')) {
@@ -334,6 +344,8 @@ window.loadGameSession = async (userId) => {
             }
         } else {
             if (profilePlayerName) profilePlayerName.textContent = 'Veuillez vous connecter pour voir votre profil.';
+            if (profilePlayerDescription) profilePlayerDescription.textContent = 'Non disponible';
+            if (profilePlayerBackground) profilePlayerBackground.textContent = 'Non disponible';
         }
     } else if (path.includes('history.html')) {
         // Logique pour la page d'historique
@@ -372,10 +384,20 @@ window.loadGameSession = async (userId) => {
 startAdventureButton.addEventListener('click', () => {
     const playerName = playerNameInput.value.trim();
     const playerArchetype = playerArchetypeSelect.value;
+    const playerDescription = playerDescriptionInput.value.trim(); // Nouveau
+    const playerBackground = playerBackgroundInput.value.trim();   // Nouveau
     const gameMode = gameModeSelect.value;
 
     if (!playerName || !playerArchetype || !gameMode) {
         showAlert("Veuillez entrer votre nom, choisir une classe et un mode de jeu.", "info");
+        return;
+    }
+    if (!playerDescription) {
+        showAlert("Veuillez décrire l'apparence de votre personnage.", "info");
+        return;
+    }
+    if (!playerBackground) {
+        showAlert("Veuillez donner un aperçu du passé de votre personnage.", "info");
         return;
     }
 
@@ -383,6 +405,8 @@ startAdventureButton.addEventListener('click', () => {
     currentStoryState = {
         playerName: playerName,
         playerArchetype: playerArchetype,
+        playerDescription: playerDescription, // Nouveau
+        playerBackground: playerBackground,   // Nouveau
         gameMode: gameMode,
         history: [],
         inventory: [],
@@ -406,7 +430,7 @@ startAdventureButton.addEventListener('click', () => {
     showScreen('story-screen'); // Afficher l'écran de jeu
 
     // Envoyer la requête de démarrage au backend
-    sendToBackend(`Démarrer l'aventure en tant que ${playerArchetype} en mode ${gameMode}`, true);
+    sendToBackend(`Démarrer l'aventure en tant que ${playerArchetype} : "${playerDescription}", avec un background "${playerBackground}" en mode ${gameMode}`, true);
 });
 
 submitActionButton.addEventListener('click', () => {
