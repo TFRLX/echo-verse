@@ -4,28 +4,22 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 const admin = require('firebase-admin');
 
 // Parse la clé du compte de service une seule fois au démarrage de la fonction.
-// Il est crucial que FIREBASE_SERVICE_ACCOUNT_KEY soit un JSON valide et stringifié.
 let serviceAccount;
 try {
     serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
 } catch (error) {
     console.error("Erreur de parsing de la variable d'environnement FIREBASE_SERVICE_ACCOUNT_KEY:", error);
-    // En cas d'échec du parsing, la fonction s'arrêtera à l'initialisation de Firebase Admin.
 }
 
 // Initialisation de Firebase Admin SDK.
-// Cette logique est à l'extérieur du handler pour n'être exécutée qu'une seule fois
-// lors du "cold start" de la fonction, et non à chaque appel.
-// On s'assure qu'elle n'est initialisée qu'une seule fois.
 if (!admin.apps.length) {
     try {
         admin.initializeApp({
-            credential: admin.credential.cert(serviceAccount) // Passe l'objet JavaScript déjà parsé
+            credential: admin.credential.cert(serviceAccount)
         });
         console.log("Firebase Admin SDK initialisé avec succès.");
     } catch (error) {
         console.error("Erreur d'initialisation Firebase Admin:", error);
-        // Si l'initialisation Firebase échoue, les tentatives d'accès à Firestore entraîneront l'erreur 'app/no-app'.
     }
 }
 
@@ -39,7 +33,6 @@ const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
 exports.handler = async function(event, context) {
-    // Si Firebase Admin n'a pas pu être initialisé, on retourne une erreur immédiate.
     if (!admin.apps.length || !db) {
         console.error("Firebase Admin non initialisé. Impossible de traiter la requête.");
         return { statusCode: 500, body: 'Erreur interne du serveur: Service de base de données non disponible.' };
@@ -50,24 +43,46 @@ exports.handler = async function(event, context) {
     }
 
     try {
-        const { userId, playerName, playerArchetype, gameMode, playerAction, isStart } = JSON.parse(event.body);
+        const { userId, playerName, playerArchetype, playerDescription, playerBackground, gameMode, playerAction, isStart, displayName } = JSON.parse(event.body);
 
         if (!userId) {
             console.error("UserID est manquant dans la requête.");
             return { statusCode: 400, body: 'ID Utilisateur (userId) manquant.' };
         }
 
-        // Utilise la structure Firestore recommandée: /artifacts/{appId}/users/{userId}/sessions/current
-        const appId = process.env.APP_ID || 'default-app-id'; // Définissez APP_ID dans Netlify ENV ou utilisez un défaut
+        const appId = process.env.APP_ID || 'default-app-id';
         const userSessionRef = db.collection('artifacts').doc(appId).collection('users').doc(userId).collection('sessions').doc('current');
-        
+        const userProfileRef = db.collection('artifacts').doc(appId).collection('users').doc(userId); // Référence pour le profil utilisateur
+
         let currentStoryState;
+        let userProfileData = {};
+
+        // Récupérer le profil utilisateur (pour le nom d'affichage)
+        const userProfileSnap = await userProfileRef.get();
+        if (userProfileSnap.exists()) {
+            userProfileData = userProfileSnap.data();
+        } else {
+            // Créer un profil de base si inexistant, notamment pour le displayName
+            await userProfileRef.set({
+                displayName: displayName || 'Voyageur Anonyme', // Utiliser le displayName fourni ou un défaut
+                firstLogin: admin.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+            userProfileData = { displayName: displayName || 'Voyageur Anonyme' };
+        }
+
+        // Si un displayName est fourni dans la requête et qu'il n'est pas déjà défini dans le profil, le mettre à jour
+        if (displayName && (!userProfileData.displayName || userProfileData.displayName === 'Voyageur Anonyme')) {
+            await userProfileRef.update({ displayName: displayName });
+            userProfileData.displayName = displayName; // Mettre à jour localement
+        }
+
 
         if (isStart) {
-            // Création d'une nouvelle session
             currentStoryState = {
-                playerName: playerName,
+                playerName: displayName || playerName, // Le nom du personnage dans l'histoire est le nom d'affichage
                 playerArchetype: playerArchetype,
+                playerDescription: playerDescription, // Nouveau
+                playerBackground: playerBackground,   // Nouveau
                 gameMode: gameMode,
                 history: [],
                 inventory: [],
@@ -88,7 +103,6 @@ exports.handler = async function(event, context) {
                 majorWorldEvents: [],
             };
         } else {
-            // Chargement de la session existante
             const doc = await userSessionRef.get();
             if (!doc.exists) {
                 console.warn(`Session non trouvée pour l'utilisateur ${userId}.`);
@@ -111,7 +125,6 @@ exports.handler = async function(event, context) {
 
         currentStoryState.history.push({ type: 'gemini', text: narration });
 
-        // Sauvegarde de l'état mis à jour dans Firestore
         await userSessionRef.set(currentStoryState);
 
         return {
@@ -161,6 +174,8 @@ function buildGeminiPrompt(storyState, playerAction, isStart) {
 
 * Nom du Joueur : ${storyState.playerName}
 * Archétype du Joueur : ${storyState.playerArchetype}
+* Description Physique du Joueur : ${storyState.playerDescription || 'Non définie'}
+* Background du Joueur : ${storyState.playerBackground || 'Non défini'}
 * Mode de Jeu : ${storyState.gameMode}
 * Attributs du Joueur : Vigueur ${storyState.attributes.vigor}, Ingéniosité ${storyState.attributes.ingenuity}, Adaptation ${storyState.attributes.adaptation}, Influence ${storyState.attributes.influence}.
 * Lieu Actuel : ${storyState.location}
@@ -177,7 +192,7 @@ ${historyContext}
 **Directives Spécifiques au Mode de Jeu "${storyState.gameMode}" :**
 `;
     switch (storyState.gameMode) {
-        case "Fracture Dimensionnelle": // Ancien "Echo de la Fracture"
+        case "Fracture Dimensionnelle":
             prompt += `
 **Contexte :** La Grande Fracture a fusionné des réalités. Attendez-vous à l'imprévisible : anomalies temporelles, créatures mutées, et les factions en guerre. C'est un mélange de science-fiction, de fantastique et de survie.
 **Ton :** Épique, mystérieux, parfois sombre.
@@ -185,7 +200,7 @@ ${historyContext}
 **Attributs :** Vigueur pour les combats/efforts physiques. Ingéniosité pour comprendre les anomalies/technologies. Adaptation pour la survie et la discrétion. Influence pour les interactions avec PNJ/factions.
 `;
             break;
-        case "Chronique Cyberpunk": // Ancien "Chronique Urbaine Fracturée"
+        case "Chronique Cyberpunk":
             prompt += `
 **Contexte :** L'Echo Verse a envahi des villes modernes. Métropoles où les gratte-ciel côtoient ruines antiques ou vaisseaux spatiaux. Thriller cyberpunk teinté de surnaturel ou drame de survie urbaine.
 **Ton :** Sombre, nerveux, mystérieux, urbain.
@@ -193,7 +208,7 @@ ${historyContext}
 **Attributs :** Ingéniosité pour la technologie/résolution d'énigmes. Adaptation pour la furtivité urbaine. Influence pour les interactions sociales/négociations. Vigueur pour les affrontements sporadiques.
 `;
             break;
-        case "Terres Sauvages": // Ancien "Frontière Sauvage Fracturée"
+        case "Terres Sauvages":
             prompt += `
 **Contexte :** Explorez des étendues sauvages déchirées par la Fracture : forêts spectrales, déserts cristallins, océans de brume éthérée. Mode axé sur l'exploration et la survie.
 **Ton :** Aventureux, contemplatif, parfois dangereux.
@@ -201,7 +216,7 @@ ${historyContext}
 **Attributs :** Adaptation pour la survie et la navigation. Vigueur pour les longs trajets. Ingéniosité pour la fabrication/l'interprétation des signes.
 `;
             break;
-        case "Drame Quotidien": // Ancien "Récit de Vie / Drame Personnel"
+        case "Drame Quotidien":
             prompt += `
 **Contexte :** Un monde réaliste contemporain. Pas de magie, pas de monstres, pas de fracture temporelle. Les défis sont humains : relations, travail, émotions, dilemmes personnels.
 **Ton :** Réaliste, émotionnel, psychologique, intime.
@@ -210,7 +225,7 @@ ${historyContext}
 **Note :** Les factions sont des groupes sociaux (famille, amis, collègues), les PNJ sont des personnes normales, les quêtes sont des objectifs de vie, les événements mondiaux sont des actualités/événements locaux.
 `;
             break;
-        case "Romance et Passion": // Ancien "Romance Inattendue"
+        case "Romance et Passion":
             prompt += `
 **Contexte :** Un monde réaliste contemporain. L'histoire est centrée sur le développement d'une relation amoureuse.
 **Ton :** Romantique, léger, passionné, parfois dramatique.
@@ -219,7 +234,7 @@ ${historyContext}
 **Note :** Focus sur les PNJ liés à la romance (le partenaire potentiel, ses amis, sa famille).
 `;
             break;
-        case "Tour du Monde": // Ancien "Tour du Monde à Ma Manière"
+        case "Tour du Monde":
             prompt += `
 **Contexte :** Un monde réaliste contemporain. Le joueur voyage autour du globe.
 **Ton :** Aventureux, découverte, parfois humoristique ou contemplatif.
@@ -228,7 +243,7 @@ ${historyContext}
 **Note :** Le "Lieu" doit décrire des villes, pays, monuments. L'inventaire peut inclure des objets de voyage.
 `;
             break;
-        case "Enquête Criminelle": // Ancien "Enquête Mystérieuse"
+        case "Enquête Criminelle":
             prompt += `
 **Contexte :** Un monde réaliste ou légèrement fantastique, axé sur la résolution d'une enquête. Crime, disparition, secret.
 **Ton :** Suspens, déduction, atmosphère sombre ou intrigante.
@@ -237,7 +252,7 @@ ${historyContext}
 **Note :** PNJ sont des suspects, témoins, victimes. Les quêtes sont les étapes de l'enquête. L'inventaire contient les preuves.
 `;
             break;
-        case "Horreur Psychologique": // Ancien "Le Pacte de l'Ombre"
+        case "Horreur Psychologique":
             prompt += `
 **Contexte :** Un environnement où l'horreur psychologique prédomine. Le surnaturel peut être réel ou perçu. Le danger est souvent interne ou suggéré.
 **Ton :** Horreur, oppressant, psychologique, angoissant, mystérieux.
@@ -246,7 +261,7 @@ ${historyContext}
 **Note :** Le "Lieu" est souvent isolé ou hanté. Les "Événements Mondiaux" peuvent être des phénomènes paranormaux croissants.
 `;
             break;
-        case "Micro-Gestion": // Ancien "Gestionnaire de Micro-Monde"
+        case "Micro-Gestion":
             prompt += `
 **Contexte :** Un monde réaliste. Le joueur gère une petite entité (entreprise, ferme, communauté, magasin).
 **Ton :** Stratégique, économique, axé sur les défis quotidiens de gestion.
@@ -255,7 +270,7 @@ ${historyContext}
 **Note :** Les "factions" sont des concurrents, des fournisseurs, des syndicats. Les "PNJ" sont des employés, des clients. L'inventaire sont des ressources ou produits.
 `;
             break;
-        case "Odyssée Stellaire": // Ancien "Odyssée Stellaire Fracturée"
+        case "Odyssée Stellaire":
             prompt += `
 **Contexte :** La Fracture a étendu son influence aux confins de l'espace. Voyagez entre des planètes altérées, des stations spatiales à la dérive et des anomalies cosmiques. Science-fiction épique avec des touches de fantastique.
 **Ton :** Grandiose, aventureux, parfois claustrophobe ou existentiel.
@@ -271,7 +286,7 @@ ${historyContext}
 **Attributs :** Adaptation pour les changements soudains d'environnement. Ingéniosité pour comprendre les anomalies temporelles.
 `;
             break;
-        case "Carrière Professionnelle": // Ancien "Carrière Ambitieuse"
+        case "Carrière Professionnelle":
             prompt += `
 **Contexte :** Le monde moderne, l'ascension sociale et professionnelle.
 **Ton :** Compétitif, stratégique, parfois cynique.
@@ -287,7 +302,7 @@ ${historyContext}
 **Attributs :** Influence pour la médiation et la communication. Adaptation pour les changements au sein de la famille.
 `;
             break;
-        case "Survie Extrême": // Ancien "Survie en Milieu Hostile"
+        case "Survie Extrême":
             prompt += `
 **Contexte :** Un environnement naturel sauvage et impitoyable, sans éléments surnaturels.
 **Ton :** Tendu, réaliste, aventureux.
@@ -303,7 +318,7 @@ ${historyContext}
 **Attributs :** Adaptation pour la gestion du stress et la rapidité d'exécution. Ingéniosité pour trouver des solutions créatives sous contrainte.
 `;
             break;
-        case "Légendes Anciennes": // Ancien "Légendes Oubliées"
+        case "Légendes Anciennes":
             prompt += `
 **Contexte :** Un monde de pure fantasy, inspiré par les mythes et les contes de fées. Magie, créatures mythiques, royaumes anciens.
 **Ton :** Épique, merveilleux, parfois sombre et dangereux.
@@ -319,7 +334,7 @@ ${historyContext}
 **Attributs :** Influence pour la manipulation et la séduction. Adaptation pour la discrétion et la survie nocturne.
 `;
             break;
-        case "Quête Divine": // Ancien "Quête des Dieux Anciens"
+        case "Quête Divine":
             prompt += `
 **Contexte :** La mythologie prend vie. Les dieux de panthéons oubliés ou nouveaux interviennent directement dans le monde, demandant des faveurs ou déclenchant leur colère.
 **Ton :** Épique, divin, dramatique.
@@ -327,7 +342,7 @@ ${historyContext}
 **Attributs :** Influence pour interagir avec les dieux et leurs prêtres. Vigueur pour les défis héroïques. Ingéniosité pour comprendre les énigmes divines.
 `;
             break;
-        case "Complot Mondial": // Ancien "Conspiration Mondiale"
+        case "Complot Mondial":
             prompt += `
 **Contexte :** Un thriller d'espionnage moderne où des organisations secrètes tirent les ficelles du monde.
 **Ton :** Paranoïaque, haletant, stratégique.
@@ -343,7 +358,7 @@ ${historyContext}
 **Attributs :** Influence pour la tromperie et la négociation. Adaptation pour gérer le stress et les situations imprévues. Ingéniosité pour la planification complexe.
 `;
             break;
-        default: // Fallback si le mode n'est pas reconnu (ou pour le mode par défaut si non géré ailleurs)
+        default:
             prompt += `
 **Contexte :** Tu es dans un univers généraliste, sans règles spécifiques. Concentre-toi sur une narration cohérente basée sur l'action du joueur.
 **Ton :** Neutre, adaptable.
@@ -476,91 +491,10 @@ function parseGeminiResponse(responseText) {
                     });
                 } else if (key === 'Lieu') {
                     stateUpdates.location = value;
-                } else {
-                    stateUpdates[key.toLowerCase().replace(/\s/g, '')] = value;
+                } else if (key === 'playerArchetype' || key === 'gameMode' || key === 'playerName' || key === 'playerDescription' || key === 'playerBackground') {
+                    currentState[key] = value;
                 }
             }
         });
-    }
-    return { narration, options, inventoryChanges, stateUpdates };
-}
-
-function applyStateUpdates(currentState, inventoryChanges, stateUpdates) {
-    inventoryChanges.forEach(change => {
-        if (change.type === 'ADD') {
-            if (!currentState.inventory.some(item => item.name === change.name)) {
-                currentState.inventory.push({ name: change.name, description: change.description });
-            }
-        } else if (change.type === 'REMOVE') {
-            currentState.inventory = currentState.inventory.filter(item => item.name !== change.name);
-        }
-    });
-
-    for (const key in stateUpdates) {
-        if (stateUpdates.hasOwnProperty(key)) {
-            const value = stateUpdates[key];
-
-            if (['vigor', 'ingenuity', 'adaptation', 'influence'].includes(key)) {
-                if (typeof value === 'object' && value.hasOwnProperty('change')) {
-                    currentState.attributes[key] = Math.max(0, Math.min(100, currentState.attributes[key] + value.change));
-                } else {
-                    currentState.attributes[key] = Math.max(0, Math.min(100, value));
-                }
-            } else if (key === 'factionRelations') {
-                for (const factionKey in value) {
-                    if (value.hasOwnProperty(factionKey) && currentState.factionRelations[factionKey]) {
-                        currentState.factionRelations[factionKey].relation = value[factionKey];
-                    }
-                }
-            } else if (key === 'npcsMet') {
-                value.forEach(npcChange => {
-                    if (npcChange.type === 'ADD') {
-                        if (!currentState.npcsMet.some(n => n.name === npcChange.name)) {
-                            currentState.npcsMet.push({ name: npcChange.name, relation: npcChange.relation, lastInteraction: npcChange.lastInteraction });
-                        }
-                    } else if (npcChange.type === 'UPDATE') {
-                        const existingNpcIndex = currentState.npcsMet.findIndex(n => n.name === npcChange.name);
-                        if (existingNpcIndex !== -1) {
-                            currentState.npcsMet[existingNpcIndex].relation = npcChange.relation;
-                            currentState.npcsMet[existingNpcIndex].lastInteraction = npcChange.lastInteraction;
-                        } else {
-                            currentState.npcsMet.push({ name: npcChange.name, relation: npcChange.relation, lastInteraction: npcChange.lastInteraction });
-                        }
-                    } else if (npcChange.type === 'REMOVE') {
-                        currentState.npcsMet = currentState.npcsMet.filter(n => n.name !== npcChange.name);
-                    }
-                });
-            } else if (key === 'activeQuests') {
-                value.forEach(questChange => {
-                    if (questChange.type === 'ADD') {
-                        if (!currentState.activeQuests.some(q => q.id === questChange.id)) {
-                            currentState.activeQuests.push({ id: questChange.id, name: questChange.name, status: questChange.status, details: questChange.details });
-                        }
-                    } else if (questChange.type === 'UPDATE') {
-                        const existingQuestIndex = currentState.activeQuests.findIndex(q => q.id === questChange.id);
-                        if (existingQuestIndex !== -1) {
-                            currentState.activeQuests[existingQuestIndex].status = questChange.status;
-                            if(questChange.details) currentState.activeQuests[existingQuestIndex].details = questChange.details;
-                        }
-                    } else if (questChange.type === 'REMOVE') {
-                        currentState.activeQuests = currentState.activeQuests.filter(q => q.id !== questChange.id);
-                    }
-                });
-            } else if (key === 'majorWorldEvents') {
-                value.forEach(eventChange => {
-                    if (eventChange.type === 'ADD') {
-                        if (!currentState.majorWorldEvents.some(e => e.id === eventChange.id)) {
-                            currentState.majorWorldEvents.push({ id: eventChange.id, description: eventChange.description });
-                        }
-                    } else if (eventChange.type === 'REMOVE') {
-                        currentState.majorWorldEvents = currentState.majorWorldEvents.filter(e => e.id !== eventChange.id);
-                    }
-                });
-            } else if (key === 'location') {
-                currentState.location = value;
-            } else if (key === 'playerArchetype' || key === 'gameMode' || key === 'playerName') {
-                currentState[key] = value;
-            }
-        }
     }
 }

@@ -39,10 +39,11 @@
                 <div class="stats-box w-full max-w-2xl">
                     <h2>Informations du Joueur</h2>
                     <ul id="player-info-list">
-                        <li>Nom: <span id="profile-player-name">N/A</span></li>
+                        <li>Nom d'Affichage: <span id="profile-display-name">N/A</span></li> <!-- Nouveau -->
+                        <li>Nom de Personnage: <span id="profile-player-name">N/A</span></li>
                         <li>Classe: <span id="profile-player-archetype">N/A</span></li>
-                        <li>Description: <span id="profile-player-description">N/A</span></li> <!-- Nouveau -->
-                        <li>Background: <span id="profile-player-background">N/A</span></li>     <!-- Nouveau -->
+                        <li>Description: <span id="profile-player-description">N/A</span></li>
+                        <li>Background: <span id="profile-player-background">N/A</span></li>
                         <li>Mode de Jeu: <span id="profile-game-mode">N/A</span></li>
                     </ul>
                 </div>
@@ -122,29 +123,39 @@
         window.firebaseAuth = auth;
         window.firestoreDb = db;
         window.canvasAppId = appId;
-        let currentUserId = null;
+        window.currentUserId = null; // Maintenant défini globalement
+        window.playerDisplayName = null; // Défini globalement
 
         // Fonction pour gérer l'affichage des écrans (hors index.html)
         function showScreen(screenId) {
-            // Cette fonction est simplifiée pour les pages secondaires
-            // car elles n'ont pas les mêmes écrans (loading, auth, start)
-            // que index.html. Elle est surtout là pour la cohérence.
             const targetScreen = document.getElementById(screenId);
             if (targetScreen) {
-                targetScreen.classList.add('active'); // Assurez-vous qu'elle est visible
+                targetScreen.classList.add('active');
             }
         }
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                currentUserId = user.uid;
-                await window.loadGameSession(currentUserId); // Appelle la fonction dans script.js
+                window.currentUserId = user.uid;
+                // Récupérer le nom d'affichage de l'utilisateur
+                const userProfileRef = doc(db, 'artifacts', appId, 'users', window.currentUserId);
+                const userProfileSnap = await getDoc(userProfileRef);
+                if (userProfileSnap.exists() && userProfileSnap.data().displayName) {
+                    window.playerDisplayName = userProfileSnap.data().displayName;
+                } else {
+                    window.playerDisplayName = 'Non défini'; // Nom par défaut si non trouvé
+                }
+
+                await window.loadGameSession(window.currentUserId); // Appelle la fonction dans script.js
             } else {
-                currentUserId = null;
+                window.currentUserId = null;
+                window.playerDisplayName = null;
                 window.showAlert("Veuillez vous connecter pour voir votre profil.", "info");
-                // Optionnel: rediriger vers index.html ou afficher un message sur la page
                 if (document.getElementById('profile-player-name')) {
                     document.getElementById('profile-player-name').textContent = 'Non connecté';
+                }
+                if (document.getElementById('profile-display-name')) {
+                    document.getElementById('profile-display-name').textContent = 'Non connecté';
                 }
             }
         });
