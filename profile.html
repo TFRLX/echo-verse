@@ -11,11 +11,13 @@
     <div class="background-container">
         <nav class="main-nav">
             <div class="nav-brand">
-                <a href="index.html">ECHO VERSE</a>
+                <a href="index.html">
+                    <img src="https://placehold.co/150x50/1a1a2e/8be9fd?text=ECHO+VERSE+LOGO" alt="Logo Echo Verse" class="h-10">
+                </a>
             </div>
             <ul class="nav-links">
                 <li><a href="index.html">Jouer</a></li>
-                <li><a href="profile.html" class="active">Mon Profil</a></li> <!-- Active ici -->
+                <li><a href="profile.html" class="active">Mon Profil</a></li>
                 <li><a href="history.html">Historique</a></li>
                 <li><a href="instructions.html">Instructions</a></li>
                 <li><a href="lore.html">L'Univers</a></li>
@@ -32,13 +34,132 @@
             </ul>
         </nav>
         <div class="content-wrapper">
-            <div class="container" style="flex-direction: column;"> <!-- Force la colonne pour les pages simples -->
+            <div class="container" style="flex-direction: column; align-items: flex-start; gap: 20px;">
                 <h1>Mon Profil</h1>
-                <p>Ceci est la page de votre profil. Le contenu détaillé sera ajouté plus tard.</p>
-                <!-- Le contenu réel du profil sera généré ici par JS plus tard -->
+                <div class="stats-box w-full max-w-2xl">
+                    <h2>Informations du Joueur</h2>
+                    <ul id="player-info-list">
+                        <li>Nom: <span id="profile-player-name">N/A</span></li>
+                        <li>Classe: <span id="profile-player-archetype">N/A</span></li>
+                        <li>Mode de Jeu: <span id="profile-game-mode">N/A</span></li>
+                    </ul>
+                </div>
+                <div class="stats-box w-full max-w-2xl">
+                    <h2>Statistiques Actuelles</h2>
+                    <ul id="profile-attributes-list">
+                        <li>Vigueur: <span id="profile-vigor-value">N/A</span></li>
+                        <li>Ingéniosité: <span id="profile-ingenuity-value">N/A</span></li>
+                        <li>Adaptation: <span id="profile-adaptation-value">N/A</span></li>
+                        <li>Influence: <span id="profile-influence-value">N/A</span></li>
+                    </ul>
+                </div>
+                <div class="stats-box w-full max-w-2xl">
+                    <h2>Inventaire</h2>
+                    <ul id="profile-inventory-list">
+                        <li>Aucun objet</li>
+                    </ul>
+                </div>
+                <div class="stats-box w-full max-w-2xl">
+                    <h2>Relations Factionnelles</h2>
+                    <ul id="profile-factions-list">
+                        <li>La Garde Chronique: <span id="profile-garde-chronique-relation">N/A</span></li>
+                        <li>Les Flux Libres: <span id="profile-flux-libres-relation">N/A</span></li>
+                        <li>Les Résonances Obscures: <span id="profile-resonances-obscures-relation">N/A</span></li>
+                    </ul>
+                </div>
+                <div class="stats-box w-full max-w-2xl">
+                    <h2>PNJ Rencontrés</h2>
+                    <ul id="profile-npcs-list">
+                        <li>Aucun PNJ</li>
+                    </ul>
+                </div>
+                <div class="stats-box w-full max-w-2xl">
+                    <h2>Quêtes Actives</h2>
+                    <ul id="profile-quests-list">
+                        <li>Aucune quête</li>
+                    </ul>
+                </div>
+                <div class="stats-box w-full max-w-2xl">
+                    <h2>Événements Mondiaux</h2>
+                    <ul id="profile-events-list">
+                        <li>Aucun événement</li>
+                    </ul>
+                </div>
             </div>
         </div>
     </div>
-    <!-- Pas de script.js pour l'instant si c'est juste une page statique -->
+
+    <!-- La Modal Personnalisée (pour remplacer les alertes) -->
+    <div id="custom-alert-modal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <p id="modal-message" class="modal-message"></p>
+            <button id="modal-ok-button" class="modal-button">OK</button>
+        </div>
+    </div>
+
+    <footer class="main-footer">
+        <p>&copy; 2024 Echo Verse. Tous droits réservés. Reproduction ou utilisation non autorisée du contenu, des logos et des concepts strictement interdite.</p>
+        <p>Ce site utilise des technologies d'IA générative et de base de données. Pour plus d'informations, consultez nos <a href="#" class="text-blue-400 hover:underline">Conditions d'Utilisation</a> et notre <a href="#" class="text-blue-400 hover:underline">Politique de Confidentialité</a>.</p>
+    </footer>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        window.firebaseApp = app;
+        window.firebaseAuth = auth;
+        window.firestoreDb = db;
+        window.canvasAppId = appId;
+        let currentUserId = null;
+
+        // Fonction pour gérer l'affichage des écrans (hors index.html)
+        function showScreen(screenId) {
+            // Cette fonction est simplifiée pour les pages secondaires
+            // car elles n'ont pas les mêmes écrans (loading, auth, start)
+            // que index.html. Elle est surtout là pour la cohérence.
+            const targetScreen = document.getElementById(screenId);
+            if (targetScreen) {
+                targetScreen.classList.add('active'); // Assurez-vous qu'elle est visible
+            }
+        }
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUserId = user.uid;
+                await window.loadGameSession(currentUserId); // Appelle la fonction dans script.js
+            } else {
+                currentUserId = null;
+                window.showAlert("Veuillez vous connecter pour voir votre profil.", "info");
+                // Optionnel: rediriger vers index.html ou afficher un message sur la page
+                if (document.getElementById('profile-player-name')) {
+                    document.getElementById('profile-player-name').textContent = 'Non connecté';
+                }
+            }
+        });
+
+        (async () => {
+            try {
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.error("Erreur d'authentification initiale sur la page de profil:", error);
+                window.showAlert("Impossible de se connecter automatiquement. Veuillez essayer depuis la page principale ou recharger.", "error");
+            }
+        })();
+    </script>
+    <script src="script.js"></script>
 </body>
 </html>

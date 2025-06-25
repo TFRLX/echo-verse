@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Echo Verse - Mon Profil</title>
+    <title>Echo Verse - Faire un Don</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
 </head>
@@ -11,34 +11,119 @@
     <div class="background-container">
         <nav class="main-nav">
             <div class="nav-brand">
-                <a href="index.html">ECHO VERSE</a>
+                <a href="index.html">
+                    <img src="https://placehold.co/150x50/1a1a2e/8be9fd?text=ECHO+VERSE+LOGO" alt="Logo Echo Verse" class="h-10">
+                </a>
             </div>
             <ul class="nav-links">
                 <li><a href="index.html">Jouer</a></li>
-                <li><a href="profile.html" class="active">Mon Profil</a></li> <!-- Active ici -->
+                <li><a href="profile.html">Mon Profil</a></li>
                 <li><a href="history.html">Historique</a></li>
                 <li><a href="instructions.html">Instructions</a></li>
                 <li><a href="lore.html">L'Univers</a></li>
                 <li><a href="community.html">Communauté</a></li>
                 <li class="dropdown">
-                    <a href="#" class="dropbtn">Soutien</a>
+                    <a href="#" class="dropbtn active">Soutien</a>
                     <div class="dropdown-content">
                         <a href="contact.html">Nous Joindre</a>
                         <a href="bug-report.html">Rapporter un Bug</a>
                         <a href="updates.html">Mises à Jour</a>
-                        <a href="donate.html">Faire un Don</a>
+                        <a href="donate.html" class="active">Faire un Don</a>
                     </div>
                 </li>
             </ul>
         </nav>
         <div class="content-wrapper">
-            <div class="container" style="flex-direction: column;"> <!-- Force la colonne pour les pages simples -->
-                <h1>Mon Profil</h1>
-                <p>Ceci est la page de votre profil. Le contenu détaillé sera ajouté plus tard.</p>
-                <!-- Le contenu réel du profil sera généré ici par JS plus tard -->
+            <div class="container" style="flex-direction: column; align-items: flex-start; gap: 20px;">
+                <h1>Soutenez l'Echo Verse</h1>
+                <div class="stats-box w-full max-w-2xl">
+                    <p>Echo Verse est un projet passionné, développé pour vous offrir une expérience narrative unique et en constante évolution. Si vous appréciez votre voyage à travers les réalités fracturées et souhaitez nous aider à continuer à développer ce monde, toute contribution est la bienvenue !</p>
+
+                    <h2 class="mt-4">Pourquoi Faire un Don ?</h2>
+                    <ul class="list-disc list-inside pl-4">
+                        <li><strong>Développement Continu:</strong> Vos dons nous aident à financer le temps de développement pour de nouvelles fonctionnalités, modes de jeu et améliorations.</li>
+                        <li><strong>Coûts des Serveurs:</strong> Faire fonctionner l'IA et la base de données a un coût. Votre soutien contribue directement à maintenir le jeu en ligne et réactif.</li>
+                        <li><strong>Expansion de l'Univers:</strong> Permet de créer plus de contenu narratif, d'introduire de nouveaux personnages, factions et lieux.</li>
+                        <li><strong>Amélioration de l'IA:</strong> Soutient la recherche et l'optimisation pour rendre le Maître du Jeu encore plus intelligent et immersif.</li>
+                    </ul>
+
+                    <h2 class="mt-6">Comment Faire un Don ?</h2>
+                    <p class="mt-2">Nous proposons plusieurs moyens sécurisés de soutenir Echo Verse. Chaque contribution, petite ou grande, fait une réelle différence !</p>
+                    <ul class="list-disc list-inside pl-4 mt-2">
+                        <li><strong>PayPal:</strong> Un moyen simple et sécurisé d'envoyer un don unique.
+                            <br><a href="#" class="text-blue-400 hover:underline" onclick="window.showAlert('Lien PayPal à ajouter ici')">Faire un don via PayPal</a></li>
+                        <li><strong>Patreon:</strong> Devenez un mécène mensuel pour obtenir des récompenses exclusives, un accès anticipé aux fonctionnalités et un rôle spécial sur notre Discord.
+                            <br><a href="#" class="text-blue-400 hover:underline" onclick="window.showAlert('Lien Patreon à ajouter ici')">Devenir Mécène sur Patreon</a></li>
+                        <li><strong>Autres Options:</strong> Nous explorons d'autres plateformes de don. Restez à l'écoute !</li>
+                    </ul>
+
+                    <p class="mt-6">Merci infiniment pour votre générosité et votre soutien à l'Echo Verse !</p>
+                </div>
             </div>
         </div>
     </div>
-    <!-- Pas de script.js pour l'instant si c'est juste une page statique -->
+
+    <!-- La Modal Personnalisée (pour remplacer les alertes) -->
+    <div id="custom-alert-modal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <p id="modal-message" class="modal-message"></p>
+            <button id="modal-ok-button" class="modal-button">OK</button>
+        </div>
+    </div>
+
+    <footer class="main-footer">
+        <p>&copy; 2024 Echo Verse. Tous droits réservés. Reproduction ou utilisation non autorisée du contenu, des logos et des concepts strictement interdite.</p>
+        <p>Ce site utilise des technologies d'IA générative et de base de données. Pour plus d'informations, consultez nos <a href="#" class="text-blue-400 hover:underline">Conditions d'Utilisation</a> et notre <a href="#" class="text-blue-400 hover:underline">Politique de Confidentialité</a>.</p>
+    </footer>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        window.firebaseApp = app;
+        window.firebaseAuth = auth;
+        window.firestoreDb = db;
+        window.canvasAppId = appId;
+        let currentUserId = null;
+
+        function showScreen(screenId) {
+            const targetScreen = document.getElementById(screenId);
+            if (targetScreen) {
+                targetScreen.classList.add('active');
+            }
+        }
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUserId = user.uid;
+                // Pas besoin de charger la session ici, car cette page est statique.
+            } else {
+                currentUserId = null;
+            }
+        });
+
+        (async () => {
+            try {
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.error("Erreur d'authentification initiale sur la page de don:", error);
+            }
+        })();
+    </script>
+    <script src="script.js"></script>
 </body>
 </html>

@@ -10,26 +10,23 @@ try {
     serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
 } catch (error) {
     console.error("Erreur de parsing de la variable d'environnement FIREBASE_SERVICE_ACCOUNT_KEY:", error);
-    // En cas d'échec du parsing, il est préférable d'arrêter l'initialisation ici
-    // car Firebase ne pourra pas être initialisé correctement.
-    // Pour les fonctions Netlify, un `throw` ou un `process.exit(1)` est courant pour les erreurs critiques d'initialisation.
-    // Cependant, pour ne pas bloquer le démarrage de la lambda pour d'autres diagnostics, nous allons juste logguer.
-    // La fonction échouera de toute façon à l'initialisation de Firebase Admin.
+    // En cas d'échec du parsing, la fonction s'arrêtera à l'initialisation de Firebase Admin.
 }
 
 // Initialisation de Firebase Admin SDK.
 // Cette logique est à l'extérieur du handler pour n'être exécutée qu'une seule fois
 // lors du "cold start" de la fonction, et non à chaque appel.
-try {
-    // Vérifie si une application Firebase est déjà initialisée pour éviter les erreurs de réinitialisation.
-    if (!admin.apps.length) {
+// On s'assure qu'elle n'est initialisée qu'une seule fois.
+if (!admin.apps.length) {
+    try {
         admin.initializeApp({
             credential: admin.credential.cert(serviceAccount) // Passe l'objet JavaScript déjà parsé
         });
+        console.log("Firebase Admin SDK initialisé avec succès.");
+    } catch (error) {
+        console.error("Erreur d'initialisation Firebase Admin:", error);
+        // Si l'initialisation Firebase échoue, les tentatives d'accès à Firestore entraîneront l'erreur 'app/no-app'.
     }
-} catch (error) {
-    console.error("Erreur d'initialisation Firebase Admin:", error);
-    // Si l'initialisation Firebase échoue, les tentatives d'accès à Firestore entraîneront l'erreur 'app/no-app'.
 }
 
 const db = admin.firestore();
@@ -37,7 +34,6 @@ const db = admin.firestore();
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 if (!GEMINI_API_KEY) {
     console.error("GEMINI_API_KEY n'est pas définie dans les variables d'environnement Netlify.");
-    // Le déploiement continuera, mais les appels à Gemini échoueront.
 }
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-pro" });
@@ -54,15 +50,25 @@ exports.handler = async function(event, context) {
     }
 
     try {
-        const { playerName, playerArchetype, gameMode, playerAction, isStart, sessionId } = JSON.parse(event.body);
-        const sessionRef = db.collection('sessions').doc(sessionId);
+        const { userId, playerName, playerArchetype, gameMode, playerAction, isStart } = JSON.parse(event.body);
+
+        if (!userId) {
+            console.error("UserID est manquant dans la requête.");
+            return { statusCode: 400, body: 'ID Utilisateur (userId) manquant.' };
+        }
+
+        // Utilise la structure Firestore recommandée: /artifacts/{appId}/users/{userId}/sessions/current
+        const appId = process.env.APP_ID || 'default-app-id'; // Définissez APP_ID dans Netlify ENV ou utilisez un défaut
+        const userSessionRef = db.collection('artifacts').doc(appId).collection('users').doc(userId).collection('sessions').doc('current');
+        
         let currentStoryState;
 
         if (isStart) {
+            // Création d'une nouvelle session
             currentStoryState = {
                 playerName: playerName,
                 playerArchetype: playerArchetype,
-                gameMode: gameMode, // Conserver le mode de jeu dans l'état
+                gameMode: gameMode,
                 history: [],
                 inventory: [],
                 attributes: {
@@ -82,9 +88,11 @@ exports.handler = async function(event, context) {
                 majorWorldEvents: [],
             };
         } else {
-            const doc = await sessionRef.get();
+            // Chargement de la session existante
+            const doc = await userSessionRef.get();
             if (!doc.exists) {
-                 return { statusCode: 404, body: 'Session de jeu non trouvée. Veuillez recommencer une nouvelle partie.' };
+                console.warn(`Session non trouvée pour l'utilisateur ${userId}.`);
+                return { statusCode: 404, body: 'Session de jeu non trouvée. Veuillez recommencer une nouvelle partie.' };
             }
             currentStoryState = doc.data();
         }
@@ -103,7 +111,8 @@ exports.handler = async function(event, context) {
 
         currentStoryState.history.push({ type: 'gemini', text: narration });
 
-        await sessionRef.set(currentStoryState);
+        // Sauvegarde de l'état mis à jour dans Firestore
+        await userSessionRef.set(currentStoryState);
 
         return {
             statusCode: 200,
@@ -167,9 +176,8 @@ ${historyContext}
 
 **Directives Spécifiques au Mode de Jeu "${storyState.gameMode}" :**
 `;
-
     switch (storyState.gameMode) {
-        case "Echo de la Fracture":
+        case "Fracture Dimensionnelle": // Ancien "Echo de la Fracture"
             prompt += `
 **Contexte :** La Grande Fracture a fusionné des réalités. Attendez-vous à l'imprévisible : anomalies temporelles, créatures mutées, et les factions en guerre. C'est un mélange de science-fiction, de fantastique et de survie.
 **Ton :** Épique, mystérieux, parfois sombre.
@@ -177,7 +185,7 @@ ${historyContext}
 **Attributs :** Vigueur pour les combats/efforts physiques. Ingéniosité pour comprendre les anomalies/technologies. Adaptation pour la survie et la discrétion. Influence pour les interactions avec PNJ/factions.
 `;
             break;
-        case "Chronique Urbaine Fracturée":
+        case "Chronique Cyberpunk": // Ancien "Chronique Urbaine Fracturée"
             prompt += `
 **Contexte :** L'Echo Verse a envahi des villes modernes. Métropoles où les gratte-ciel côtoient ruines antiques ou vaisseaux spatiaux. Thriller cyberpunk teinté de surnaturel ou drame de survie urbaine.
 **Ton :** Sombre, nerveux, mystérieux, urbain.
@@ -185,7 +193,7 @@ ${historyContext}
 **Attributs :** Ingéniosité pour la technologie/résolution d'énigmes. Adaptation pour la furtivité urbaine. Influence pour les interactions sociales/négociations. Vigueur pour les affrontements sporadiques.
 `;
             break;
-        case "Frontière Sauvage Fracturée":
+        case "Terres Sauvages": // Ancien "Frontière Sauvage Fracturée"
             prompt += `
 **Contexte :** Explorez des étendues sauvages déchirées par la Fracture : forêts spectrales, déserts cristallins, océans de brume éthérée. Mode axé sur l'exploration et la survie.
 **Ton :** Aventureux, contemplatif, parfois dangereux.
@@ -193,7 +201,7 @@ ${historyContext}
 **Attributs :** Adaptation pour la survie et la navigation. Vigueur pour les longs trajets. Ingéniosité pour la fabrication/l'interprétation des signes.
 `;
             break;
-        case "Récit de Vie / Drame Personnel":
+        case "Drame Quotidien": // Ancien "Récit de Vie / Drame Personnel"
             prompt += `
 **Contexte :** Un monde réaliste contemporain. Pas de magie, pas de monstres, pas de fracture temporelle. Les défis sont humains : relations, travail, émotions, dilemmes personnels.
 **Ton :** Réaliste, émotionnel, psychologique, intime.
@@ -202,7 +210,7 @@ ${historyContext}
 **Note :** Les factions sont des groupes sociaux (famille, amis, collègues), les PNJ sont des personnes normales, les quêtes sont des objectifs de vie, les événements mondiaux sont des actualités/événements locaux.
 `;
             break;
-        case "Romance Inattendue":
+        case "Romance et Passion": // Ancien "Romance Inattendue"
             prompt += `
 **Contexte :** Un monde réaliste contemporain. L'histoire est centrée sur le développement d'une relation amoureuse.
 **Ton :** Romantique, léger, passionné, parfois dramatique.
@@ -211,7 +219,7 @@ ${historyContext}
 **Note :** Focus sur les PNJ liés à la romance (le partenaire potentiel, ses amis, sa famille).
 `;
             break;
-        case "Tour du Monde à Ma Manière":
+        case "Tour du Monde": // Ancien "Tour du Monde à Ma Manière"
             prompt += `
 **Contexte :** Un monde réaliste contemporain. Le joueur voyage autour du globe.
 **Ton :** Aventureux, découverte, parfois humoristique ou contemplatif.
@@ -220,7 +228,7 @@ ${historyContext}
 **Note :** Le "Lieu" doit décrire des villes, pays, monuments. L'inventaire peut inclure des objets de voyage.
 `;
             break;
-        case "Enquête Mystérieuse":
+        case "Enquête Criminelle": // Ancien "Enquête Mystérieuse"
             prompt += `
 **Contexte :** Un monde réaliste ou légèrement fantastique, axé sur la résolution d'une enquête. Crime, disparition, secret.
 **Ton :** Suspens, déduction, atmosphère sombre ou intrigante.
@@ -229,7 +237,7 @@ ${historyContext}
 **Note :** PNJ sont des suspects, témoins, victimes. Les quêtes sont les étapes de l'enquête. L'inventaire contient les preuves.
 `;
             break;
-        case "Le Pacte de l'Ombre":
+        case "Horreur Psychologique": // Ancien "Le Pacte de l'Ombre"
             prompt += `
 **Contexte :** Un environnement où l'horreur psychologique prédomine. Le surnaturel peut être réel ou perçu. Le danger est souvent interne ou suggéré.
 **Ton :** Horreur, oppressant, psychologique, angoissant, mystérieux.
@@ -238,7 +246,7 @@ ${historyContext}
 **Note :** Le "Lieu" est souvent isolé ou hanté. Les "Événements Mondiaux" peuvent être des phénomènes paranormaux croissants.
 `;
             break;
-        case "Gestionnaire de Micro-Monde":
+        case "Micro-Gestion": // Ancien "Gestionnaire de Micro-Monde"
             prompt += `
 **Contexte :** Un monde réaliste. Le joueur gère une petite entité (entreprise, ferme, communauté, magasin).
 **Ton :** Stratégique, économique, axé sur les défis quotidiens de gestion.
@@ -247,7 +255,7 @@ ${historyContext}
 **Note :** Les "factions" sont des concurrents, des fournisseurs, des syndicats. Les "PNJ" sont des employés, des clients. L'inventaire sont des ressources ou produits.
 `;
             break;
-        case "Odyssée Stellaire Fracturée":
+        case "Odyssée Stellaire": // Ancien "Odyssée Stellaire Fracturée"
             prompt += `
 **Contexte :** La Fracture a étendu son influence aux confins de l'espace. Voyagez entre des planètes altérées, des stations spatiales à la dérive et des anomalies cosmiques. Science-fiction épique avec des touches de fantastique.
 **Ton :** Grandiose, aventureux, parfois claustrophobe ou existentiel.
@@ -263,7 +271,7 @@ ${historyContext}
 **Attributs :** Adaptation pour les changements soudains d'environnement. Ingéniosité pour comprendre les anomalies temporelles.
 `;
             break;
-        case "Carrière Ambitieuse":
+        case "Carrière Professionnelle": // Ancien "Carrière Ambitieuse"
             prompt += `
 **Contexte :** Le monde moderne, l'ascension sociale et professionnelle.
 **Ton :** Compétitif, stratégique, parfois cynique.
@@ -279,7 +287,7 @@ ${historyContext}
 **Attributs :** Influence pour la médiation et la communication. Adaptation pour les changements au sein de la famille.
 `;
             break;
-        case "Survie en Milieu Hostile":
+        case "Survie Extrême": // Ancien "Survie en Milieu Hostile"
             prompt += `
 **Contexte :** Un environnement naturel sauvage et impitoyable, sans éléments surnaturels.
 **Ton :** Tendu, réaliste, aventureux.
@@ -295,7 +303,7 @@ ${historyContext}
 **Attributs :** Adaptation pour la gestion du stress et la rapidité d'exécution. Ingéniosité pour trouver des solutions créatives sous contrainte.
 `;
             break;
-        case "Légendes Oubliées":
+        case "Légendes Anciennes": // Ancien "Légendes Oubliées"
             prompt += `
 **Contexte :** Un monde de pure fantasy, inspiré par les mythes et les contes de fées. Magie, créatures mythiques, royaumes anciens.
 **Ton :** Épique, merveilleux, parfois sombre et dangereux.
@@ -311,7 +319,7 @@ ${historyContext}
 **Attributs :** Influence pour la manipulation et la séduction. Adaptation pour la discrétion et la survie nocturne.
 `;
             break;
-        case "Quête des Dieux Anciens":
+        case "Quête Divine": // Ancien "Quête des Dieux Anciens"
             prompt += `
 **Contexte :** La mythologie prend vie. Les dieux de panthéons oubliés ou nouveaux interviennent directement dans le monde, demandant des faveurs ou déclenchant leur colère.
 **Ton :** Épique, divin, dramatique.
@@ -319,7 +327,7 @@ ${historyContext}
 **Attributs :** Influence pour interagir avec les dieux et leurs prêtres. Vigueur pour les défis héroïques. Ingéniosité pour comprendre les énigmes divines.
 `;
             break;
-        case "Conspiration Mondiale":
+        case "Complot Mondial": // Ancien "Conspiration Mondiale"
             prompt += `
 **Contexte :** Un thriller d'espionnage moderne où des organisations secrètes tirent les ficelles du monde.
 **Ton :** Paranoïaque, haletant, stratégique.
@@ -468,13 +476,13 @@ function parseGeminiResponse(responseText) {
                     });
                 } else if (key === 'Lieu') {
                     stateUpdates.location = value;
-                } else if (key === 'playerArchetype' || key === 'gameMode' || key === 'playerName') {
-                    currentState[key] = value; // Assurez-vous que ces valeurs sont aussi mises à jour
+                } else {
+                    stateUpdates[key.toLowerCase().replace(/\s/g, '')] = value;
                 }
             }
         });
     }
-    return stateUpdates; // Retourne stateUpdates
+    return { narration, options, inventoryChanges, stateUpdates };
 }
 
 function applyStateUpdates(currentState, inventoryChanges, stateUpdates) {
@@ -501,7 +509,6 @@ function applyStateUpdates(currentState, inventoryChanges, stateUpdates) {
             } else if (key === 'factionRelations') {
                 for (const factionKey in value) {
                     if (value.hasOwnProperty(factionKey) && currentState.factionRelations[factionKey]) {
-                        // Gérer les relations numériques ou textuelles
                         currentState.factionRelations[factionKey].relation = value[factionKey];
                     }
                 }
@@ -515,7 +522,7 @@ function applyStateUpdates(currentState, inventoryChanges, stateUpdates) {
                         const existingNpcIndex = currentState.npcsMet.findIndex(n => n.name === npcChange.name);
                         if (existingNpcIndex !== -1) {
                             currentState.npcsMet[existingNpcIndex].relation = npcChange.relation;
-                            if(npcChange.lastInteraction) currentState.npcsMet[existingNpcIndex].lastInteraction = npcChange.lastInteraction;
+                            currentState.npcsMet[existingNpcIndex].lastInteraction = npcChange.lastInteraction;
                         } else {
                             currentState.npcsMet.push({ name: npcChange.name, relation: npcChange.relation, lastInteraction: npcChange.lastInteraction });
                         }
@@ -551,13 +558,9 @@ function applyStateUpdates(currentState, inventoryChanges, stateUpdates) {
                 });
             } else if (key === 'location') {
                 currentState.location = value;
+            } else if (key === 'playerArchetype' || key === 'gameMode' || key === 'playerName') {
+                currentState[key] = value;
             }
-            // Ces valeurs sont déjà dans l'état de base et ne devraient pas être écrasées si elles sont 'undefined'
-            // Elles sont mises à jour au début de la fonction 'handler' si 'isStart' est true,
-            // ou chargées depuis Firestore si 'isStart' est false.
-            // La logique 'currentState[key] = value' dans parseGeminiResponse pourrait être problématique si value est 'undefined' ou 'null'
-            // et écraserait des données importantes.
-            // On s'assure que seuls les attributs et collections listés sont mis à jour par le parseur.
         }
     }
 }

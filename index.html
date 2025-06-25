@@ -14,7 +14,10 @@
         <!-- Barre de Navigation Globale -->
         <nav class="main-nav">
             <div class="nav-brand">
-                <a href="index.html">ECHO VERSE</a> <!-- Votre logo ou titre de jeu -->
+                <a href="index.html">
+                    <!-- Placeholder pour votre logo -->
+                    <img src="https://placehold.co/150x50/1a1a2e/8be9fd?text=ECHO+VERSE+LOGO" alt="Logo Echo Verse" class="h-10">
+                </a>
             </div>
             <ul class="nav-links">
                 <li><a href="index.html" class="active">Jouer</a></li>
@@ -32,7 +35,6 @@
                         <a href="donate.html">Faire un Don</a>
                     </div>
                 </li>
-                <!-- Ajoutez ici des liens pour Connexion/Inscription si/quand vous les implémentez -->
             </ul>
         </nav>
 
@@ -40,128 +42,263 @@
         <div class="content-wrapper">
             <div class="container">
                 <h1>Echo Verse</h1>
-                <div id="game-area">
-                    <div id="start-screen" class="screen active">
-                        <h2>Bienvenue, Voyageur des Échos</h2>
-                        <input type="text" id="player-name-input" placeholder="Quel est votre nom ?">
-                        <select id="player-archetype-select">
-                            <option value="">Choisissez votre classe</option>
-                            <optgroup label="Classes Martiales">
-                                <option value="Guerrier">Guerrier (Force, Combat)</option>
-                                <option value="Chevalier">Chevalier (Défense, Honneur)</option>
-                                <option value="Assasssin">Assassin (Discrétion, Attaque Rapide)</option>
-                                <option value="Barbare">Barbare (Brutalité, Résistance)</option>
-                                <option value="Archer">Archer (Précision, Distance)</option>
-                            </optgroup>
-                            <optgroup label="Classes Intellectuelles">
-                                <option value="Mage">Mage (Magie, Connaissance)</option>
-                                <option value="Inventeur">Inventeur (Technologie, Création)</option>
-                                <option value="Détective">Détective (Déduction, Observation)</option>
-                                <option value="Archéologue">Archéologue (Histoire, Exploration)</option>
-                                <option value="Scientifique">Scientifique (Logique, Expérimentation)</option>
-                            </optgroup>
-                            <optgroup label="Classes Sociales">
-                                <option value="Diplomate">Diplomate (Négociation, Persuasion)</option>
-                                <option value="Barde">Barde (Charisme, Inspiration)</option>
-                                <option value="Marchand">Marchand (Commerce, Influence)</option>
-                                <option value="Espion">Espion (Infiltration, Mensonge)</option>
-                                <option value="Médecin">Médecin (Soins, Connaissance Médicale)</option>
-                            </optgroup>
-                            <optgroup label="Classes Adaptatives">
-                                <option value="Rôdeur">Rôdeur (Survie, Nature)</option>
-                                <option value="Nomade">Nomade (Voyage, Autonomie)</option>
-                                <option value="Explorateur">Explorateur (Découverte, Adaptabilité)</option>
-                                <option value="Survivant">Survivant (Résilience, Déni de danger)</option>
-                            </optgroup>
-                        </select>
-                        <select id="game-mode-select">
-                            <option value="">Choisissez votre Mode de Jeu</option>
-                            <optgroup label="Aventures Épiques et Fantastiques">
-                                <option value="Fracture Dimensionnelle">Fracture Dimensionnelle (SF, Fantasy, Survie)</option>
-                                <option value="Chronique Cyberpunk">Chronique Cyberpunk (Villes Futuristes, Mystères)</option>
-                                <option value="Terres Sauvages">Terres Sauvages (Nature, Exploration, Dangers)</option>
-                                <option value="Odyssée Stellaire">Odyssée Stellaire (Espace, Intrigue Galactique)</option>
-                                <option value="Apocalypse Temporelle">Apocalypse Temporelle (Voyage dans le Temps, Chaos)</option>
-                                <option value="Légendes Anciennes">Légendes Anciennes (Fantasy, Magie, Royaumes Antiques)</option>
-                                <option value="Chroniques Vampiriques">Chroniques Vampiriques (Horreur Gothique, Romance)</option>
-                                <option value="Quête Divine">Quête Divine (Mythologie, Interaction avec les Dieux)</option>
-                            </optgroup>
-                            <optgroup label="Récits Contemporains et Humains">
-                                <option value="Drame Quotidien">Drame Quotidien (Vie Personnelle, Relations)</option>
-                                <option value="Romance et Passion">Romance et Passion (Développement d'une Relation)</option>
-                                <option value="Tour du Monde">Tour du Monde (Voyage, Découverte Culturelle)</option>
-                                <option value="Carrière Professionnelle">Carrière Professionnelle (Ambition, Intrigues de Bureau)</option>
-                                <option value="Défis Familiaux">Défis Familiaux (Conflits, Liens Familiaux)</option>
-                            </optgroup>
-                            <optgroup label="Thrillers et Stratégie">
-                                <option value="Enquête Criminelle">Enquête Criminelle (Déduction, Suspens)</option>
-                                <option value="Horreur Psychologique">Horreur Psychologique (Peur, Santé Mentale)</option>
-                                <option value="Micro-Gestion">Micro-Gestion (Entreprise, Communauté, Ressources)</option>
-                                <option value="Survie Extrême">Survie Extrême (Environnements Hostiles, Instinct)</option>
-                                <option value="Course Contre la Montre">Course Contre la Montre (Urgence, Décisions Rapides)</option>
-                                <option value="Complot Mondial">Complot Mondial (Espionnage, Secrets Internationaux)</option>
-                                <option value="Agent Double">Agent Double (Loyauté, Trahison, Infiltration)</option>
-                            </optgroup>
-                        </select>
-                        <button id="start-adventure-button">Commencer l'Aventure</button>
-                    </div>
 
-                    <div id="story-screen" class="screen">
-                        <div id="story-display"></div>
-                        <div id="options-display" class="action-buttons"></div>
-                        <div id="free-text-input" class="action-input">
-                            <textarea id="action-input-field" placeholder="Décrivez votre action..."></textarea>
-                            <button id="submit-action-button">Agir</button>
-                        </div>
-                    </div>
+                <div id="loading-screen" class="screen active">
+                    <div class="spinner"></div>
+                    <p>Chargement de l'Echo Verse...</p>
                 </div>
 
-                <div class="sidebar">
-                    <div class="stats-box">
-                        <h2>Statistiques</h2>
-                        <ul>
-                            <li>Vigueur: <span id="vigor-value"></span></li>
-                            <li>Ingéniosité: <span id="ingenuity-value"></span></li>
-                            <li>Adaptation: <span id="adaptation-value"></span></li>
-                            <li>Influence: <span id="influence-value"></span></li>
-                        </ul>
+                <div id="auth-screen" class="screen">
+                    <h2>Connectez-vous ou jouez anonymement</h2>
+                    <button id="sign-in-anon-button" class="mt-4">Jouer en Anonyme</button>
+                    <!-- Futurement, des champs pour email/mdp ou Google Login -->
+                    <p class="mt-4 text-sm text-gray-400">
+                        Votre progression sera sauvegardée via Firebase.
+                        Si vous avez déjà joué, votre dernière session sera chargée.
+                    </p>
+                </div>
+
+                <div id="start-screen" class="screen">
+                    <h2>Bienvenue, Voyageur des Échos</h2>
+                    <input type="text" id="player-name-input" placeholder="Quel est votre nom ?">
+                    <select id="player-archetype-select">
+                        <option value="">Choisissez votre classe</option>
+                        <optgroup label="Classes Martiales">
+                            <option value="Guerrier">Guerrier (Force, Combat)</option>
+                            <option value="Chevalier">Chevalier (Défense, Honneur)</option>
+                            <option value="Assasssin">Assassin (Discrétion, Attaque Rapide)</option>
+                            <option value="Barbare">Barbare (Brutalité, Résistance)</option>
+                            <option value="Archer">Archer (Précision, Distance)</option>
+                        </optgroup>
+                        <optgroup label="Classes Intellectuelles">
+                            <option value="Mage">Mage (Magie, Connaissance)</option>
+                            <option value="Inventeur">Inventeur (Technologie, Création)</option>
+                            <option value="Détective">Détective (Déduction, Observation)</option>
+                            <option value="Archéologue">Archéologue (Histoire, Exploration)</option>
+                            <option value="Scientifique">Scientifique (Logique, Expérimentation)</option>
+                        </optgroup>
+                        <optgroup label="Classes Sociales">
+                            <option value="Diplomate">Diplomate (Négociation, Persuasion)</option>
+                            <option value="Barde">Barde (Charisme, Inspiration)</option>
+                            <option value="Marchand">Marchand (Commerce, Influence)</option>
+                            <option value="Espion">Espion (Infiltration, Mensonge)</option>
+                            <option value="Médecin">Médecin (Soins, Connaissance Médicale)</option>
+                        </optgroup>
+                        <optgroup label="Classes Adaptatives">
+                            <option value="Rôdeur">Rôdeur (Survie, Nature)</option>
+                            <option value="Nomade">Nomade (Voyage, Autonomie)</option>
+                            <option value="Explorateur">Explorateur (Découverte, Adaptabilité)</option>
+                            <option value="Survivant">Survivant (Résilience, Déni de danger)</option>
+                        </optgroup>
+                    </select>
+                    <select id="game-mode-select">
+                        <option value="">Choisissez votre Mode de Jeu</option>
+                        <optgroup label="Aventures Épiques et Fantastiques">
+                            <option value="Fracture Dimensionnelle">Fracture Dimensionnelle (SF, Fantasy, Survie)</option>
+                            <option value="Chronique Cyberpunk">Chronique Cyberpunk (Villes Futuristes, Mystères)</option>
+                            <option value="Terres Sauvages">Terres Sauvages (Nature, Exploration, Dangers)</option>
+                            <option value="Odyssée Stellaire">Odyssée Stellaire (Espace, Intrigue Galactique)</option>
+                            <option value="Apocalypse Temporelle">Apocalypse Temporelle (Voyage dans le Temps, Chaos)</option>
+                            <option value="Légendes Anciennes">Légendes Anciennes (Fantasy, Magie, Royaumes Antiques)</option>
+                            <option value="Chroniques Vampiriques">Chroniques Vampiriques (Horreur Gothique, Romance)</option>
+                            <option value="Quête Divine">Quête Divine (Mythologie, Interaction avec les Dieux)</option>
+                        </optgroup>
+                        <optgroup label="Récits Contemporains et Humains">
+                            <option value="Drame Quotidien">Drame Quotidien (Vie Personnelle, Relations)</option>
+                            <option value="Romance et Passion">Romance et Passion (Développement d'une Relation)</option>
+                            <option value="Tour du Monde">Tour du Monde (Voyage, Découverte Culturelle)</option>
+                            <option value="Carrière Professionnelle">Carrière Professionnelle (Ambition, Intrigues de Bureau)</option>
+                            <option value="Défis Familiaux">Défis Familiaux (Conflits, Liens Familiaux)</option>
+                        </optgroup>
+                        <optgroup label="Thrillers et Stratégie">
+                            <option value="Enquête Criminelle">Enquête Criminelle (Déduction, Suspens)</option>
+                            <option value="Horreur Psychologique">Horreur Psychologique (Peur, Santé Mentale)</option>
+                            <option value="Micro-Gestion">Micro-Gestion (Entreprise, Communauté, Ressources)</option>
+                            <option value="Survie Extrême">Survie Extrême (Environnements Hostiles, Instinct)</option>
+                            <option value="Course Contre la Montre">Course Contre la Montre (Urgence, Décisions Rapides)</option>
+                            <option value="Complot Mondial">Complot Mondial (Espionnage, Secrets Internationaux)</option>
+                            <option value="Agent Double">Agent Double (Loyauté, Trahison, Infiltration)</option>
+                        </optgroup>
+                    </select>
+                    <button id="start-adventure-button">Commencer l'Aventure</button>
+                </div>
+
+                <div id="story-screen" class="screen">
+                    <div id="story-display"></div>
+                    <div id="options-display" class="action-buttons"></div>
+                    <div id="free-text-input" class="action-input">
+                        <textarea id="action-input-field" placeholder="Décrivez votre action..."></textarea>
+                        <button id="submit-action-button">Agir</button>
                     </div>
-                    <div class="stats-box">
-                        <h2>Inventaire</h2>
-                        <ul id="inventory-list">
-                            <li>Aucun objet</li>
-                        </ul>
-                    </div>
-                    <div class="stats-box">
-                        <h2>Factions</h2>
-                        <ul>
-                            <li>Garde Chronique: <span id="garde-chronique-relation"></span></li>
-                            <li>Flux Libres: <span id="flux-libres-relation"></span></li>
-                            <li>Résonances Obscures: <span id="resonances-obscures-relation"></span></li>
-                        </ul>
-                    </div>
-                    <div class="stats-box">
-                        <h2>PNJ Rencontrés</h2>
-                        <ul id="npcs-list">
-                            <li>Aucun PNJ</li>
-                        </ul>
-                    </div>
-                    <div class="stats-box">
-                        <h2>Quêtes Actives</h2>
-                        <ul id="quests-list">
-                            <li>Aucune quête</li>
-                        </ul>
-                    </div>
-                    <div class="stats-box">
-                        <h2>Événements Mondiaux</h2>
-                        <ul id="events-list">
-                            <li>Aucun événement</li>
-                        </ul>
-                    </div>
+                    <button id="save-game-button" class="mt-4">Sauvegarder la Partie</button>
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <div class="stats-box">
+                    <h2>Statistiques</h2>
+                    <ul>
+                        <li>Vigueur: <span id="vigor-value"></span></li>
+                        <li>Ingéniosité: <span id="ingenuity-value"></span></li>
+                        <li>Adaptation: <span id="adaptation-value"></span></li>
+                        <li>Influence: <span id="influence-value"></span></li>
+                    </ul>
+                </div>
+                <div class="stats-box">
+                    <h2>Inventaire</h2>
+                    <ul id="inventory-list">
+                        <li>Aucun objet</li>
+                    </ul>
+                </div>
+                <div class="stats-box">
+                    <h2>Factions</h2>
+                    <ul>
+                        <li>Garde Chronique: <span id="garde-chronique-relation"></span></li>
+                        <li>Flux Libres: <span id="flux-libres-relation"></span></li>
+                        <li>Résonances Obscures: <span id="resonances-obscures-relation"></span></li>
+                    </ul>
+                </div>
+                <div class="stats-box">
+                    <h2>PNJ Rencontrés</h2>
+                    <ul id="npcs-list">
+                        <li>Aucun PNJ</li>
+                    </ul>
+                </div>
+                <div class="stats-box">
+                    <h2>Quêtes Actives</h2>
+                    <ul id="quests-list">
+                        <li>Aucune quête</li>
+                    </ul>
+                </div>
+                <div class="stats-box">
+                    <h2>Événements Mondiaux</h2>
+                    <ul id="events-list">
+                        <li>Aucun événement</li>
+                    </ul>
+                </div>
+                <div class="stats-box user-info-box">
+                    <h2>Info Utilisateur</h2>
+                    <p>ID Utilisateur: <span id="user-id-display">Chargement...</span></p>
+                    <button id="sign-out-button">Se Déconnecter</button>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- La Modal Personnalisée (pour remplacer les alertes) -->
+    <div id="custom-alert-modal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <p id="modal-message" class="modal-message"></p>
+            <button id="modal-ok-button" class="modal-button">OK</button>
+        </div>
+    </div>
+
+    <footer class="main-footer">
+        <p>&copy; 2024 Echo Verse. Tous droits réservés. Reproduction ou utilisation non autorisée du contenu, des logos et des concepts strictement interdite.</p>
+        <p>Ce site utilise des technologies d'IA générative et de base de données. Pour plus d'informations, consultez nos <a href="#" class="text-blue-400 hover:underline">Conditions d'Utilisation</a> et notre <a href="#" class="text-blue-400 hover:underline">Politique de Confidentialité</a>.</p>
+    </footer>
+
+    <!-- Firebase SDKs (dépendances requises pour Firestore et Auth) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Variables globales fournies par l'environnement Canvas
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        // Initialiser Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Rendre ces variables disponibles globalement (pour script.js)
+        window.firebaseApp = app;
+        window.firebaseAuth = auth;
+        window.firestoreDb = db;
+        window.canvasAppId = appId; // Rendre l'ID de l'application Canvas disponible
+
+        let currentUserId = null; // ID de l'utilisateur Firebase
+        const userIdDisplay = document.getElementById('user-id-display');
+        const signInAnonButton = document.getElementById('sign-in-anon-button');
+        const signOutButton = document.getElementById('sign-out-button');
+        const loadingScreen = document.getElementById('loading-screen');
+        const authScreen = document.getElementById('auth-screen');
+
+        // Gérer les écrans au démarrage
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        // Listener pour l'état d'authentification Firebase
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUserId = user.uid;
+                if (userIdDisplay) userIdDisplay.textContent = currentUserId;
+                console.log("Firebase Authentifié:", currentUserId);
+                // Une fois authentifié, tenter de charger la partie
+                await window.loadGameSession(currentUserId);
+            } else {
+                currentUserId = null;
+                if (userIdDisplay) userIdDisplay.textContent = 'Non connecté';
+                console.log("Firebase Non Authentifié. Affichage de l'écran d'authentification.");
+                showScreen('auth-screen'); // Afficher l'écran d'auth si non connecté
+            }
+        });
+
+        // Bouton de connexion anonyme
+        if (signInAnonButton) {
+            signInAnonButton.addEventListener('click', async () => {
+                try {
+                    await signInAnonymously(auth);
+                } catch (error) {
+                    console.error("Erreur de connexion anonyme:", error);
+                    window.showAlert("Erreur de connexion anonyme. Veuillez réessayer.", "error");
+                }
+            });
+        }
+
+        // Bouton de déconnexion
+        if (signOutButton) {
+            signOutButton.addEventListener('click', async () => {
+                try {
+                    await signOut(auth);
+                    window.showAlert("Vous avez été déconnecté.", "info");
+                    // Réinitialiser la session locale et revenir à l'écran de démarrage
+                    localStorage.removeItem('echoVerseSessionId'); // Assurez-vous que l'ancienne ID de session est supprimée
+                    if (window.currentStoryState) window.currentStoryState = {}; // Réinitialiser l'état local du jeu
+                    showScreen('auth-screen'); // Retour à l'écran d'authentification
+                } catch (error) {
+                    console.error("Erreur de déconnexion:", error);
+                    window.showAlert("Erreur lors de la déconnexion. Veuillez réessayer.", "error");
+                }
+            });
+        }
+
+        // Tenter de se connecter avec le jeton fourni par Canvas au démarrage
+        // Si aucun jeton n'est fourni, on passe par signInAnonymously()
+        (async () => {
+            showScreen('loading-screen'); // Afficher l'écran de chargement au tout début
+            try {
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.error("Erreur d'authentification initiale:", error);
+                window.showAlert("Impossible de se connecter automatiquement. Veuillez essayer de jouer anonymement ou recharger.", "error");
+                showScreen('auth-screen'); // Afficher l'écran d'auth en cas d'échec initial
+            }
+        })();
+
+    </script>
     <script src="script.js"></script>
 </body>
 </html>

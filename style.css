@@ -1,19 +1,20 @@
 /* polices */
 body {
-    font-family: 'Rajdhani', sans-serif; /* Police principale */
-    background-color: #1a1a2e;
-    color: #e0e0e0;
+    font-family: 'Rajdhani', sans-serif; /* Police principale pour le corps du texte */
+    background-color: #1a1a2e; /* Couleur de fond par défaut */
+    color: #e0e0e0; /* Couleur de texte par défaut */
     margin: 0;
-    padding: 0; /* Important de supprimer le padding par défaut du body */
+    padding: 0;
     display: flex;
-    flex-direction: column; /* Pour que la nav soit au-dessus du contenu */
+    flex-direction: column;
     min-height: 100vh;
     overflow-x: hidden; /* Empêche le défilement horizontal indésirable */
+    line-height: 1.6;
 }
 
-/* --- Arrière-plan animé --- */
+/* Conteneur principal pour le fond animé */
 .background-container {
-    position: fixed; /* Fixe le fond derrière tout le contenu */
+    position: fixed;
     top: 0;
     left: 0;
     width: 100%;
@@ -21,9 +22,10 @@ body {
     background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); /* Dégradé de base */
     background-size: 400% 400%; /* Permet une animation de dégradé */
     animation: gradientShift 15s ease infinite; /* Anime le dégradé */
-    /* Ancien z-index: -1; a été retiré */
+    z-index: -1; /* Place le fond derrière le contenu */
 }
 
+/* Animation pour le dégradé du fond */
 @keyframes gradientShift {
     0% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
@@ -39,14 +41,14 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    pointer-events: none; /* Ceci est correct et nécessaire pour les pseudo-éléments */
+    pointer-events: none;
     opacity: 0.3;
     animation: pulseGlow 20s infinite alternate; /* Animation de lumière subtile */
 }
 
 .background-container::before {
     background: radial-gradient(circle at 20% 80%, rgba(139, 233, 253, 0.2), transparent 70%),
-                        radial-gradient(circle at 80% 20%, rgba(255, 121, 198, 0.2), transparent 70%);
+                radial-gradient(circle at 80% 20%, rgba(255, 121, 198, 0.2), transparent 70%);
 }
 
 .background-container::after {
@@ -54,13 +56,13 @@ body {
     filter: blur(50px); /* Flou pour un effet de nébuleuse */
 }
 
+/* Animation de pulsation pour les effets de nébuleuse */
 @keyframes pulseGlow {
     0% { transform: scale(1); opacity: 0.2; }
     100% { transform: scale(1.1); opacity: 0.4; }
 }
 
-
-/* --- Barre de Navigation --- */
+/* Barre de Navigation Globale */
 .main-nav {
     background-color: rgba(36, 36, 62, 0.8); /* Fond sombre semi-transparent */
     backdrop-filter: blur(10px); /* Effet verre dépoli */
@@ -75,20 +77,16 @@ body {
     width: 100%;
     z-index: 1000; /* Assure qu'elle est au-dessus du contenu */
     box-sizing: border-box; /* Inclut padding dans la largeur */
+    border-bottom: 1px solid rgba(139, 233, 253, 0.2); /* Bordure subtile */
 }
 
-.nav-brand a {
-    font-family: 'Orbitron', sans-serif; /* Police futuriste pour le titre */
-    font-size: 2em;
-    color: #8be9fd; /* Bleu clair */
-    text-decoration: none;
-    font-weight: bold;
-    letter-spacing: 2px;
-    transition: color 0.3s ease;
+.nav-brand img {
+    height: 40px; /* Taille du logo */
+    transition: transform 0.3s ease;
 }
 
-.nav-brand a:hover {
-    color: #f1fa8c; /* Jaune néon au survol */
+.nav-brand img:hover {
+    transform: scale(1.05); /* Léger agrandissement au survol */
 }
 
 .nav-links {
@@ -100,8 +98,8 @@ body {
 }
 
 .nav-links li {
-    margin-left: 30px; /* Espace entre les éléments */
-    position: relative; /* Pour le menu déroulant */
+    margin-left: 30px;
+    position: relative;
 }
 
 .nav-links a {
@@ -109,111 +107,93 @@ body {
     text-decoration: none;
     font-size: 1.1em;
     font-weight: 600;
-    padding: 5px 0;
-    transition: color 0.3s ease, border-bottom 0.3s ease;
-    border-bottom: 2px solid transparent; /* Ligne sous le lien au survol */
+    padding: 8px 0; /* Augmenter le padding pour une meilleure zone de clic */
+    transition: color 0.3s ease, border-bottom 0.3s ease, transform 0.2s ease;
+    border-bottom: 2px solid transparent;
 }
 
 .nav-links a:hover,
 .nav-links a.active {
     color: #bd93f9; /* Violet */
     border-bottom: 2px solid #bd93f9;
+    transform: translateY(-2px); /* Léger effet de soulèvement */
 }
 
 /* Menu Déroulant (Dropdown) */
 .dropdown-content {
     display: none;
     position: absolute;
-    background-color: rgba(44, 44, 74, 0.95);
-    min-width: 160px;
-    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.6);
+    background-color: rgba(44, 44, 74, 0.98); /* Plus opaque */
+    min-width: 180px;
+    box-shadow: 0px 8px 25px 0px rgba(0,0,0,0.8); /* Ombre plus prononcée */
     z-index: 1;
-    border-radius: 5px;
+    border-radius: 8px;
     padding: 10px 0;
-    left: 50%; /* Centrer sous l'élément parent */
+    left: 50%;
     transform: translateX(-50%);
-    top: calc(100% + 10px); /* Espacement sous le bouton parent */
+    top: calc(100% + 15px); /* Plus d'espace sous le bouton parent */
+    border: 1px solid rgba(189, 147, 249, 0.3); /* Bordure subtile */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0); /* Retour à la position normale */
 }
 
 .dropdown-content a {
     color: #f8f8f2;
-    padding: 12px 16px;
+    padding: 12px 20px;
     text-decoration: none;
     display: block;
     text-align: left;
-    border-bottom: none; /* Pas de ligne sous les éléments du dropdown */
+    border-bottom: none;
     font-size: 1em;
+    transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .dropdown-content a:hover {
     background-color: #44475a;
     color: #ff79c6; /* Rose au survol */
-    border-bottom: none;
-    border-radius: 3px;
+    border-radius: 5px; /* Arrondi léger au survol */
 }
 
-.dropdown:hover .dropdown-content {
-    display: block;
-}
-
-/* --- Contenu Principal du Site --- */
+/* Contenu Principal du Site (au-dessus du fond) */
 .content-wrapper {
-    flex-grow: 1; /* Permet au contenu de prendre l'espace restant */
-    padding: 30px 20px; /* Padding autour de tout le contenu */
-    padding-top: 100px; /* Ajustez si votre nav est plus haute */
+    flex-grow: 1;
+    padding: 30px 20px;
+    padding-top: 100px; /* Espace pour la barre de navigation sticky */
     display: flex;
     justify-content: center;
     align-items: flex-start;
     box-sizing: border-box;
+    position: relative; /* Pour que le z-index fonctionne */
+    z-index: 1; /* Assure que le contenu est au-dessus du fond */
 }
 
 .container {
     display: flex;
     width: 100%;
     max-width: 1400px;
-    gap: 20px;
-    /* Supprimez les styles de background-color, shadow, etc. car ils seront gérés par les sections internes */
-    background-color: transparent; /* Assurez-vous que le container n'a pas de fond */
-    box-shadow: none;
-    padding: 0; /* Assurez-vous que le container n'a pas de padding initial */
+    gap: 30px; /* Plus d'espace entre les sections */
+    flex-wrap: wrap; /* Permet aux éléments de passer à la ligne sur de petits écrans */
+    justify-content: center; /* Centre les éléments lorsqu'ils s'enroulent */
 }
 
-/* --- Styles existants du jeu (ajustés pour s'intégrer) --- */
-#game-area {
-    flex-grow: 1;
-    background-color: rgba(40, 42, 54, 0.85); /* Fond sombre semi-transparent */
-    backdrop-filter: blur(5px); /* Effet verre dépoli */
-    -webkit-backdrop-filter: blur(5px);
-    border-radius: 8px;
-    padding: 30px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-    min-height: 800px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-}
-
-.sidebar {
-    flex-shrink: 0;
-    width: 300px;
-    background-color: rgba(40, 42, 54, 0.85); /* Fond sombre semi-transparent */
-    backdrop-filter: blur(5px); /* Effet verre dépoli */
-    -webkit-backdrop-filter: blur(5px);
-    border-radius: 8px;
-    padding: 20px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
+/* Styles des titres principaux */
 h1 {
     font-family: 'Orbitron', sans-serif;
     color: #8be9fd;
     text-align: center;
     margin-bottom: 25px;
-    font-size: 2.5em;
-    text-shadow: 0 0 10px rgba(139, 233, 253, 0.5); /* Effet lumineux */
+    font-size: 3em; /* Taille plus grande pour les titres principaux */
+    text-shadow: 0 0 15px rgba(139, 233, 253, 0.7), 0 0 25px rgba(139, 233, 253, 0.3); /* Effet néon plus prononcé */
+    letter-spacing: 3px;
+    width: 100%; /* Assure que le titre prend toute la largeur */
 }
 
 h2 {
@@ -221,9 +201,50 @@ h2 {
     color: #f1fa8c;
     margin-top: 0;
     margin-bottom: 15px;
-    font-size: 1.8em;
+    font-size: 2em; /* Taille plus grande pour les sous-titres */
     text-align: center;
-    text-shadow: 0 0 8px rgba(241, 250, 140, 0.4);
+    text-shadow: 0 0 10px rgba(241, 250, 140, 0.5);
+    letter-spacing: 1.5px;
+    border-bottom: 1px solid rgba(241, 250, 140, 0.3); /* Ligne sous les titres de sections */
+    padding-bottom: 10px;
+    margin-left: -15px; /* Ajuster pour la bordure intérieure du stats-box */
+    margin-right: -15px;
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+/* Styles pour les écrans de jeu et les sidebars */
+#game-area, .sidebar, .stats-box {
+    background-color: rgba(40, 42, 54, 0.9); /* Fond sombre presque opaque */
+    backdrop-filter: blur(8px); /* Flou plus intense */
+    -webkit-backdrop-filter: blur(8px);
+    border-radius: 12px; /* Coins plus arrondis */
+    padding: 25px;
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.6); /* Ombre plus profonde */
+    border: 1px solid rgba(189, 147, 249, 0.2); /* Bordure lumineuse */
+    transition: transform 0.3s ease, box-shadow 0.3s ease; /* Transition pour les interactions */
+}
+
+/* Effet au survol pour les boîtes (ex: sidebar, stats-box) */
+.stats-box:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 35px rgba(189, 147, 249, 0.3); /* Ombre avec couleur au survol */
+}
+
+#game-area {
+    flex-grow: 1;
+    min-height: 700px; /* Hauteur minimale ajustée */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.sidebar {
+    flex-shrink: 0;
+    width: 350px; /* Sidebar légèrement plus large */
+    display: flex;
+    flex-direction: column;
+    gap: 25px; /* Plus d'espace entre les boîtes de stats */
 }
 
 .screen {
@@ -236,93 +257,118 @@ h2 {
     display: flex;
 }
 
+/* Champs de texte et sélecteurs */
 #player-name-input, #player-archetype-select, #game-mode-select, #action-input-field {
-    width: calc(100% - 20px);
+    width: calc(100% - 24px); /* Ajusté pour le padding */
     padding: 12px;
     margin-bottom: 15px;
-    border: 1px solid #6272a4;
-    border-radius: 5px;
-    background-color: #44475a;
-    color: #f8f8f2;
-    font-size: 1em;
-    box-sizing: border-box; /* Inclure padding dans la largeur */
+    border: 1px solid #6272a4; /* Bleu gris */
+    border-radius: 8px; /* Plus arrondis */
+    background-color: #44475a; /* Gris foncé */
+    color: #f8f8f2; /* Texte blanc cassé */
+    font-size: 1.1em;
+    box-sizing: border-box;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
+#player-name-input:focus, #player-archetype-select:focus, #game-mode-select:focus, #action-input-field:focus {
+    outline: none;
+    border-color: #8be9fd; /* Bordure bleu clair au focus */
+    box-shadow: 0 0 0 3px rgba(139, 233, 253, 0.3); /* Ombre lumineuse au focus */
+}
+
+/* Boutons */
 button {
-    background-color: #bd93f9;
-    color: #282a36;
-    padding: 12px 20px;
+    background-image: linear-gradient(to right, #bd93f9 0%, #ff79c6 100%); /* Dégradé violet-rose */
+    color: #282a36; /* Texte sombre */
+    padding: 14px 25px; /* Plus de padding */
     border: none;
-    border-radius: 5px;
+    border-radius: 8px; /* Plus arrondis */
     cursor: pointer;
-    font-size: 1.1em;
+    font-size: 1.2em;
     font-weight: bold;
-    transition: background-color 0.2s ease, transform 0.1s ease;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease; /* Transition plus globale */
     width: 100%;
     box-sizing: border-box;
-    text-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 button:hover {
-    background-color: #ff79c6;
-    transform: translateY(-2px); /* Léger effet de soulèvement */
+    background-image: linear-gradient(to right, #ff79c6 0%, #bd93f9 100%); /* Inverse le dégradé */
+    transform: translateY(-3px) scale(1.01); /* Effet de soulèvement plus prononcé */
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3), 0 0 20px rgba(255, 121, 198, 0.4); /* Ombre et lueur */
 }
 
-#story-display {
-    background-color: rgba(68, 71, 90, 0.7); /* Fond semi-transparent pour le texte */
-    backdrop-filter: blur(3px); /* Léger flou pour le texte */
-    -webkit-backdrop-filter: blur(3px);
-    border-radius: 5px;
-    padding: 20px;
-    margin-bottom: 20px;
-    min-height: 400px;
-    overflow-y: auto;
-    line-height: 1.6;
-    white-space: pre-wrap;
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column-reverse; /* Pour que le nouveau texte apparaisse en bas */
-    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2); /* Ombre interne subtile */
-}
-#story-display p {
-    margin-top: 0;
-    margin-bottom: 1em;
+button:active {
+    transform: translateY(0); /* Effet de clic */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
+/* Style spécifique pour le bouton d'action dans le jeu */
 .action-buttons button {
-    margin-top: 10px;
-    background-color: #50fa7b; /* Vert vif */
+    background-image: linear-gradient(to right, #50fa7b 0%, #8be9fd 100%); /* Dégradé vert-bleu */
     color: #282a36;
 }
 
 .action-buttons button:hover {
-    background-color: #bd93f9;
+    background-image: linear-gradient(to right, #8be9fd 0%, #50fa7b 100%);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3), 0 0 20px rgba(80, 250, 123, 0.4);
+}
+
+/* zone de texte de l'histoire */
+#story-display {
+    background-color: rgba(68, 71, 90, 0.7);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    border-radius: 10px;
+    padding: 25px;
+    margin-bottom: 20px;
+    min-height: 450px; /* Augmenter la hauteur minimale */
+    max-height: 70vh; /* Limiter la hauteur sur de grands écrans */
+    overflow-y: auto;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column-reverse; /* Pour que le nouveau texte apparaisse en bas */
+    box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(98, 114, 164, 0.3); /* Bordure subtile */
+    font-size: 1.05em; /* Texte légèrement plus grand */
+}
+#story-display p {
+    margin-top: 0;
+    margin-bottom: 1.2em; /* Plus d'espace entre les paragraphes */
+    color: #f8f8f2;
 }
 
 .action-buttons {
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    margin-top: 20px;
+    gap: 12px; /* Plus d'espace entre les boutons d'action */
+    margin-top: 25px;
 }
 
 .action-input {
-    margin-top: 20px;
+    margin-top: 25px;
 }
 
 #action-input-field {
-    height: 80px;
+    height: 100px; /* Hauteur plus confortable pour l'entrée libre */
     resize: vertical;
-    margin-bottom: 10px;
+    margin-bottom: 15px;
 }
 
+/* Styles pour les boîtes de statistiques et listes */
 .stats-box {
-    background-color: rgba(68, 71, 90, 0.7); /* Fond semi-transparent */
-    backdrop-filter: blur(3px);
-    -webkit-backdrop-filter: blur(3px);
-    border-radius: 5px;
-    padding: 15px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    background-color: rgba(68, 71, 90, 0.7);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(98, 114, 164, 0.3);
 }
 
 .stats-box ul {
@@ -332,33 +378,188 @@ button:hover {
 }
 
 .stats-box li {
-    margin-bottom: 8px;
+    margin-bottom: 10px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    font-size: 1em;
+    padding-bottom: 5px;
+    border-bottom: 1px dashed rgba(248, 248, 242, 0.1); /* Ligne pointillée subtile */
 }
 
 .stats-box li:last-child {
     margin-bottom: 0;
+    border-bottom: none;
 }
 
 .stats-box li span {
     font-weight: bold;
     color: #ff79c6; /* Rose */
+    font-family: 'Orbitron', sans-serif; /* Police futuriste pour les valeurs */
+    font-size: 1.1em;
 }
 
 #inventory-list li, #npcs-list li, #quests-list li, #events-list li {
-     margin-bottom: 5px;
-     font-size: 0.9em;
-     color: #f8f8f2; /* Texte des listes en blanc cassé */
+    margin-bottom: 8px;
+    font-size: 0.95em;
+    color: #f8f8f2;
+    padding-left: 5px;
+    border-bottom: none; /* Pas de bordure pour ces listes détaillées */
 }
 
+/* Styles pour les liens à l'intérieur des boîtes (ex: Communauté, Support) */
+.stats-box a {
+    color: #8be9fd; /* Bleu clair */
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
 
-/* --- Responsive Design Basique --- */
+.stats-box a:hover {
+    color: #f1fa8c; /* Jaune néon au survol */
+    text-decoration: underline;
+}
+
+/* Styles pour les listes ordonnées et non ordonnées générales (instructions, lore) */
+.stats-box ol, .stats-box ul.list-disc {
+    padding-left: 25px; /* Indentation */
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+.stats-box ol li, .stats-box ul.list-disc li {
+    margin-bottom: 8px;
+    border-bottom: none; /* Supprimer les bordures indésirables */
+}
+
+/* Pied de page (Footer) */
+.main-footer {
+    background-color: rgba(26, 26, 46, 0.9); /* Fond sombre presque opaque */
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    color: #6272a4; /* Texte bleu gris */
+    text-align: center;
+    padding: 20px;
+    font-size: 0.9em;
+    border-top: 1px solid rgba(98, 114, 164, 0.2); /* Bordure supérieure subtile */
+    margin-top: auto; /* Pousse le footer en bas */
+    width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.main-footer a {
+    color: #8be9fd; /* Liens bleu clair */
+    text-decoration: none;
+    transition: color 0.2s ease, text-decoration 0.2s ease;
+}
+
+.main-footer a:hover {
+    color: #f1fa8c; /* Jaune néon au survol */
+    text-decoration: underline;
+}
+
+/* --- Styles pour la modal personnalisée --- */
+.modal-overlay {
+    display: none; /* Caché par défaut */
+    position: fixed;
+    z-index: 2000; /* Au-dessus de tout */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto; /* Activer le défilement si nécessaire */
+    background-color: rgba(0, 0, 0, 0.7); /* Fond semi-transparent */
+    backdrop-filter: blur(5px); /* Flou derrière la modal */
+    -webkit-backdrop-filter: blur(5px);
+    justify-content: center;
+    align-items: center;
+    animation: fadeIn 0.3s forwards;
+}
+
+.modal-content {
+    background-color: #282a36; /* Couleur de fond des boîtes de jeu */
+    margin: auto;
+    padding: 30px;
+    border: 1px solid #bd93f9; /* Bordure violette */
+    border-radius: 15px;
+    width: 80%;
+    max-width: 500px;
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.8);
+    position: relative;
+    text-align: center;
+    transform: translateY(-50px);
+    opacity: 0;
+    animation: slideIn 0.3s forwards 0.1s; /* Délai pour après le fadeIn */
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.modal-content.error { border-color: #ff5555; } /* Rouge pour les erreurs */
+.modal-content.success { border-color: #50fa7b; } /* Vert pour le succès */
+.modal-content.info { border-color: #8be9fd; } /* Bleu pour l'information */
+
+.close-button {
+    color: #f8f8f2;
+    font-size: 28px;
+    font-weight: bold;
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.close-button:hover,
+.close-button:focus {
+    color: #ff5555;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.modal-message {
+    font-size: 1.2em;
+    color: #f8f8f2;
+    margin-bottom: 20px;
+}
+
+.modal-button {
+    background-image: linear-gradient(to right, #bd93f9 0%, #ff79c6 100%);
+    color: #282a36;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 1.1em;
+    margin-top: 15px;
+    cursor: pointer;
+}
+
+.modal-button:hover {
+    background-image: linear-gradient(to right, #ff79c6 0%, #bd93f9 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3), 0 0 10px rgba(255, 121, 198, 0.4);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideIn {
+    from { transform: translateY(-50px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* --- Responsive Design --- */
 @media (max-width: 1200px) {
     .container {
-        flex-direction: column; /* Colonne sur les petits écrans */
+        flex-direction: column;
         align-items: center;
+        gap: 20px;
+    }
+    #game-area {
+        width: 100%; /* Occupe toute la largeur disponible */
+        min-height: auto; /* Supprime la hauteur min fixe */
     }
     .sidebar {
         width: 100%;
@@ -366,8 +567,9 @@ button:hover {
     }
     .main-nav {
         padding: 15px 20px;
-        flex-direction: column; /* La navigation en colonne sur mobile */
+        flex-direction: column;
         align-items: flex-start;
+        position: static; /* Ne colle plus en haut sur les petits écrans */
     }
     .nav-links {
         flex-direction: column;
@@ -390,32 +592,44 @@ button:hover {
         width: 100%;
     }
     .dropdown-content {
-        position: static; /* Positionnement normal dans le flux */
+        position: static;
         width: 100%;
         transform: none;
         box-shadow: none;
         background-color: rgba(44, 44, 74, 0.95);
         border-radius: 0;
     }
+    .content-wrapper {
+        padding-top: 20px; /* Réduit le padding du haut quand la nav n'est plus sticky */
+    }
+    .modal-content {
+        width: 95%;
+        padding: 20px;
+    }
 }
 
 @media (max-width: 768px) {
-    h1 { font-size: 2em; }
-    h2 { font-size: 1.5em; }
+    h1 { font-size: 2.2em; }
+    h2 { font-size: 1.6em; }
     .main-nav { padding: 10px 15px; }
-    .nav-brand a { font-size: 1.5em; }
-    .nav-links li { margin-left: 15px; }
+    .nav-brand img { height: 35px; }
+    .nav-links li { margin-left: 10px; }
+    .content-wrapper { padding: 15px; }
+    #game-area, .sidebar, .stats-box { padding: 15px; border-radius: 8px; }
+    button { padding: 10px 15px; font-size: 1em; }
+    #player-name-input, #player-archetype-select, #game-mode-select, #action-input-field { font-size: 0.95em; }
+    #story-display { min-height: 300px; padding: 15px; font-size: 0.9em; }
+}
+
+@media (max-width: 480px) {
+    h1 { font-size: 1.8em; letter-spacing: 1px; }
+    h2 { font-size: 1.3em; letter-spacing: 0.5px; }
+    .main-nav { padding: 10px; }
+    .nav-links a { font-size: 0.9em; }
     .content-wrapper { padding: 10px; }
-    #game-area, .sidebar { padding: 15px; }
-}
-
-/* Règle pour forcer la réactivité des éléments interactifs */
-input, select, button, textarea {
-    pointer-events: auto !important;
-}
-
-/* Assurer que le conteneur principal des éléments interactifs n'est pas bloqué */
-#game-area, #start-screen, #story-screen {
-    pointer-events: auto !important;
-    z-index: 1; /* Assurer qu'il est au-dessus du fond */
+    #game-area, .sidebar, .stats-box { padding: 10px; border-radius: 5px; }
+    button { padding: 8px 12px; font-size: 0.9em; border-radius: 6px; }
+    .stats-box li { font-size: 0.9em; }
+    .stats-box li span { font-size: 1em; }
+    #story-display { min-height: 250px; padding: 10px; }
 }

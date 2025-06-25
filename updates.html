@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Echo Verse - Mises à Jour</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="background-container">
+        <nav class="main-nav">
+            <div class="nav-brand">
+                <a href="index.html">
+                    <img src="https://placehold.co/150x50/1a1a2e/8be9fd?text=ECHO+VERSE+LOGO" alt="Logo Echo Verse" class="h-10">
+                </a>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html">Jouer</a></li>
+                <li><a href="profile.html">Mon Profil</a></li>
+                <li><a href="history.html">Historique</a></li>
+                <li><a href="instructions.html">Instructions</a></li>
+                <li><a href="lore.html">L'Univers</a></li>
+                <li><a href="community.html">Communauté</a></li>
+                <li class="dropdown">
+                    <a href="#" class="dropbtn active">Soutien</a>
+                    <div class="dropdown-content">
+                        <a href="contact.html">Nous Joindre</a>
+                        <a href="bug-report.html">Rapporter un Bug</a>
+                        <a href="updates.html" class="active">Mises à Jour</a>
+                        <a href="donate.html">Faire un Don</a>
+                    </div>
+                </li>
+            </ul>
+        </nav>
+        <div class="content-wrapper">
+            <div class="container" style="flex-direction: column; align-items: flex-start; gap: 20px;">
+                <h1>Mises à Jour de l'Echo Verse</h1>
+                <div class="stats-box w-full max-w-3xl">
+                    <h2>Version 1.1.0 - Le Réveil des Échos (24 Juin 2025)</h2>
+                    <ul class="list-disc list-inside pl-4 mt-2">
+                        <li><strong>Nouveaux Archétypes et Modes de Jeu:</strong> Ajout d'une douzaine de nouvelles classes et de modes de jeu pour une variété d'aventures accrue (Fantastique, Thriller, Gestion, etc.).</li>
+                        <li><strong>Amélioration de l'Interactivité:</strong> Résolution des problèmes de clic et de saisie sur l'interface de jeu.</li>
+                        <li><strong>Optimisation des Fonctions Serveur:</strong> Fiabilisation de la connexion avec l'IA Gemini et la base de données Firebase.</li>
+                        <li><strong>Interface de Démarrage Clarifiée:</strong> Descriptions plus concises pour les modes de jeu, et simplification du choix de "classe".</li>
+                        <li><strong>Ajout d'un Bouton de Sauvegarde:</strong> Permet de déclencher une sauvegarde manuelle de votre progression (en plus de la sauvegarde automatique).</li>
+                        <li><strong>Mise en place des Pages de Navigation:</strong> Ajout du contenu initial pour "Mon Profil", "Historique", "Instructions", "L'Univers", "Communauté" et la section "Soutien".</li>
+                        <li><strong>Refonte Visuelle:</strong> Nouvelle palette de couleurs, fond animé et éléments d'interface modernisés.</li>
+                        <li><strong>Messages en Jeu:</strong> Remplacement des alertes natives du navigateur par des modals stylisées.</li>
+                        <li><strong>Authentification Firebase:</strong> Intégration de la connexion utilisateur pour une gestion des sauvegardes plus robuste.</li>
+                    </ul>
+
+                    <h2 class="mt-6">Prochaines Mises à Jour (Feuille de Route)</h2>
+                    <ul class="list-disc list-inside pl-4 mt-2">
+                        <li><strong>Sauvegarde et Chargement Multi-Sessions:</strong> Permettra de gérer plusieurs parties simultanément et de les charger depuis n'importe quel appareil.</li>
+                        <li><strong>Personnalisation du Profil:</strong> Options pour afficher et personnaliser les statistiques et l'historique du joueur.</li>
+                        <li><strong>Extensions de l'Univers:</strong> Ajout de nouvelles factions, PNJ et événements globaux.</li>
+                        <li><strong>Interface Utilisateur Améliorée:</strong> Refonte visuelle et ergonomique de certaines sections du jeu.</li>
+                        <li><strong>Intégration Audio:</strong> Ajout d'effets sonores et de musiques d'ambiance.</li>
+                        <li><strong>Options de Partage d'Aventures:</strong> Possibilité de partager facilement vos histoires avec la communauté.</li>
+                        <li><strong>Idées de la Communauté:</strong> Une section dédiée pour présenter les meilleures idées envoyées par les joueurs.</li>
+                    </ul>
+
+                    <h2 class="mt-6">Idées de la Communauté</h2>
+                    <p class="mt-2">Nous sommes toujours à l'écoute de vos suggestions pour améliorer Echo Verse ! Si vous avez des idées, n'hésitez pas à nous les envoyer par e-mail. Les meilleures idées, avec votre permission, pourront être présentées ici et potentiellement implémentées dans le jeu !</p>
+                    <p>Envoyez vos idées à : <a href="mailto:idees@echoverse.com" class="text-blue-400 hover:underline">idees@echoverse.com</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- La Modal Personnalisée (pour remplacer les alertes) -->
+    <div id="custom-alert-modal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <p id="modal-message" class="modal-message"></p>
+            <button id="modal-ok-button" class="modal-button">OK</button>
+        </div>
+    </div>
+
+    <footer class="main-footer">
+        <p>&copy; 2024 Echo Verse. Tous droits réservés. Reproduction ou utilisation non autorisée du contenu, des logos et des concepts strictement interdite.</p>
+        <p>Ce site utilise des technologies d'IA générative et de base de données. Pour plus d'informations, consultez nos <a href="#" class="text-blue-400 hover:underline">Conditions d'Utilisation</a> et notre <a href="#" class="text-blue-400 hover:underline">Politique de Confidentialité</a>.</p>
+    </footer>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        window.firebaseApp = app;
+        window.firebaseAuth = auth;
+        window.firestoreDb = db;
+        window.canvasAppId = appId;
+        let currentUserId = null;
+
+        function showScreen(screenId) {
+            const targetScreen = document.getElementById(screenId);
+            if (targetScreen) {
+                targetScreen.classList.add('active');
+            }
+        }
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUserId = user.uid;
+                // Pas besoin de charger la session ici, car cette page est statique.
+            } else {
+                currentUserId = null;
+            }
+        });
+
+        (async () => {
+            try {
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.error("Erreur d'authentification initiale sur la page de mises à jour:", error);
+            }
+        })();
+    </script>
+    <script src="script.js"></script>
+</body>
+</html>
