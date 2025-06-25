@@ -185,8 +185,8 @@
                 </div>
                 <div class="stats-box user-info-box">
                     <h2>Info Utilisateur</h2>
-                    <p>Nom d'affichage: <span id="display-name-value">Chargement...</span></p> <!-- Nouveau -->
-                    <p class="text-sm text-gray-400 mt-1">ID Utilisateur: <span id="user-id-display">Chargement...</span></p> <!-- ID en dessous -->
+                    <p>Nom d'affichage: <span id="display-name-value">Chargement...</span></p>
+                    <p class="text-sm text-gray-400 mt-1">ID Utilisateur: <span id="user-id-display">Chargement...</span></p>
                     <button id="sign-out-button">Se Déconnecter</button>
                 </div>
             </div>
@@ -231,9 +231,9 @@
 
         let currentUserId = null; // ID de l'utilisateur Firebase
         const userIdDisplay = document.getElementById('user-id-display');
-        const displayNameValue = document.getElementById('display-name-value'); // Nouveau
-        const displayNameInput = document.getElementById('display-name-input'); // Nouveau
-        const setDisplayNameButton = document.getElementById('set-display-name-button'); // Nouveau
+        const displayNameValue = document.getElementById('display-name-value');
+        const displayNameInput = document.getElementById('display-name-input');
+        const setDisplayNameButton = document.getElementById('set-display-name-button');
         const signInAnonButton = document.getElementById('sign-in-anon-button');
         const signOutButton = document.getElementById('sign-out-button');
         const loadingScreen = document.getElementById('loading-screen');
