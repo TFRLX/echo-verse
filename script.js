@@ -1,141 +1,53 @@
-// Déclaration des éléments UI
-const playerNameInput = document.getElementById('player-name-input');
-const playerArchetypeSelect = document.getElementById('player-archetype-select');
-const playerDescriptionInput = document.getElementById('player-description-input');
-const playerBackgroundInput = document.getElementById('player-background-input');
-const gameModeSelect = document.getElementById('game-mode-select');
-const startAdventureButton = document.getElementById('start-adventure-button');
-const startScreen = document.getElementById('start-screen');
-const storyScreen = document.getElementById('story-screen');
-const storyDisplay = document.getElementById('story-display');
-const optionsDisplay = document.getElementById('options-display');
-const freeTextInput = document.getElementById('free-text-input');
-const actionInputField = document.getElementById('action-input-field');
-const submitActionButton = document.getElementById('submit-action-button');
-const saveGameButton = document.getElementById('save-game-button');
-
-// UI pour les statistiques et inventaire (main game screen)
-const vigorValue = document.getElementById('vigor-value');
-const ingenuityValue = document.getElementById('ingenuity-value');
-const adaptationValue = document.getElementById('adaptation-value');
-const influenceValue = document.getElementById('influence-value');
-const inventoryList = document.getElementById('inventory-list');
-const gardeChroniqueRelation = document.getElementById('garde-chronique-relation');
-const fluxLibresRelation = document.getElementById('flux-libres-relation');
-const resonancesObscuresRelation = document.getElementById('resonances-obscures-relation');
-const npcsList = document.getElementById('npcs-list');
-const questsList = document.getElementById('quests-list');
-const eventsList = document.getElementById('events-list');
-
-// UI pour la page de profil
-const profilePlayerName = document.getElementById('profile-player-name');
-const profilePlayerArchetype = document.getElementById('profile-player-archetype');
-const profilePlayerDescription = document.getElementById('profile-player-description');
-const profilePlayerBackground = document.getElementById('profile-player-background');
-const profileGameMode = document.getElementById('profile-game-mode');
-const profileVigorValue = document.getElementById('profile-vigor-value');
-const profileIngenuityValue = document.getElementById('profile-ingenuity-value');
-const profileAdaptationValue = document.getElementById('profile-adaptation-value');
-const profileInfluenceValue = document.getElementById('profile-influence-value');
-const profileInventoryList = document.getElementById('profile-inventory-list');
-const profileGardeChroniqueRelation = document.getElementById('profile-garde-chronique-relation');
-const profileFluxLibresRelation = document.getElementById('profile-flux-libres-relation');
-const profileResonancesObscuresRelation = document.getElementById('profile-resonances-obscures-relation');
-const profileNpcsList = document.getElementById('profile-npcs-list');
-const profileQuestsList = document.getElementById('profile-quests-list');
-const profileEventsList = document.getElementById('profile-events-list');
-const profileDisplayName = document.getElementById('profile-display-name');
-
-// UI pour la page d'historique
-const sessionsHistoryList = document.getElementById('sessions-history-list');
-
-// Éléments de la modal personnalisée
-const customAlertModal = document.getElementById('custom-alert-modal');
-const modalMessage = document.getElementById('modal-message');
-const modalOkButton = document.getElementById('modal-ok-button');
-const closeButton = document.querySelector('.close-button');
-
-
-// --- Variables globales de Firebase (rendues disponibles par le script dans index.html) ---
-let firebaseApp;
-let firebaseAuth;
-let firestoreDb;
-let canvasAppId;
-window.currentUserId = null; // Rendu global par index.html
-window.playerDisplayName = null; // Rendu global par index.html
-
-// État de la partie
+// --- Gestion de l'état de la partie ---
+let currentSessionId = localStorage.getItem('echoVerseSessionId');
 let currentStoryState = {}; // Sera chargé/mis à jour par le backend
 
-// Fonction utilitaire pour afficher la modal personnalisée
-window.showAlert = (message, type = 'info') => {
-    modalMessage.textContent = message;
-    customAlertModal.classList.add('active'); // Ajouter la classe active pour l'animation
-    
-    // Réinitialiser les classes de type et appliquer la bonne
-    modalMessage.parentNode.classList.remove('error', 'success', 'info');
-    modalMessage.parentNode.classList.add(type);
+// Déclaration des variables globales qui seront initialisées dans window.onload
+let playerNameInput, playerArchetypeSelect, gameModeSelect, startAdventureButton,
+    startScreen, storyScreen, storyDisplay, optionsDisplay, freeTextInput,
+    actionInputField, submitActionButton,
+    vigorValue, ingenuityValue, adaptationValue, influenceValue, inventoryList,
+    gardeChroniqueRelation, fluxLibresRelation, resonancesObscuresRelation,
+    npcsList, questsList, eventsList;
 
-    customAlertModal.style.display = 'flex'; // S'assurer que l'overlay est affiché
-};
-
-// Fermer la modal
-const closeModal = () => {
-    customAlertModal.style.display = 'none';
-    customAlertModal.classList.remove('active'); // Retirer la classe active
-};
-
-modalOkButton.addEventListener('click', closeModal);
-closeButton.addEventListener('click', closeModal);
-window.addEventListener('click', (event) => {
-    if (event.target === customAlertModal) {
-        closeModal();
-    }
-});
-
-
-// Fonction pour gérer l'affichage des écrans (chargement, auth, début, jeu)
-function showScreen(screenId) {
-    document.querySelectorAll('.screen').forEach(screen => {
-        screen.classList.remove('active');
-    });
-    const targetScreen = document.getElementById(screenId);
-    if (targetScreen) {
-        targetScreen.classList.add('active');
-    }
-}
+console.log("Script.js chargé : Début de l'exécution du fichier.");
 
 
 // Fonction utilitaire pour gérer les mises à jour des listes UI (inventaire, PNJ, quêtes, événements)
-function updateListDisplay(element, items, displayFunc, defaultText = 'Aucun') {
-    if (!element) return;
-    element.innerHTML = '';
+function updateListDisplay(element, items, displayFunc) {
+    // Vérification pour s'assurer que l'élément existe avant de le manipuler
+    if (!element) {
+        console.error(`Element for list display not found:`, element);
+        return;
+    }
+    element.innerHTML = ''; // Vide la liste existante
     if (items && items.length > 0) {
         items.forEach(item => {
             const li = document.createElement('li');
-            li.innerHTML = displayFunc(item);
+            li.innerHTML = displayFunc(item); // Utilise une fonction de display spécifique pour chaque type d'élément
             element.appendChild(li);
         });
     } else {
         const li = document.createElement('li');
-        const itemType = element.id.includes('inventory') ? 'objet' :
-                         element.id.includes('npcs') ? 'PNJ' :
-                         element.id.includes('quests') ? 'quête' : 'événement';
-        li.textContent = `${defaultText} ${itemType}`;
+        li.textContent = `Aucun ${element.id.replace('-list', '') === 'inventory' ? 'objet' : element.id.replace('-list', '') === 'npcs' ? 'PNJ' : element.id.replace('-list', '') === 'quests' ? 'quête' : 'événement'}`;
         element.appendChild(li);
     }
 }
 
-// Fonctions de mise à jour de l'UI du jeu principal
+
+// Fonctions de mise à jour de l'UI
 function appendStory(text) {
+    if (!storyDisplay) { console.error("storyDisplay element not found."); return; }
+    // Remplace les <br> par des sauts de ligne réels dans les balises <p> pour un meilleur rendu
     const formattedText = text.replace(/<br>/g, '<br><br>');
     const p = document.createElement('p');
     p.innerHTML = formattedText;
     storyDisplay.appendChild(p);
-    storyDisplay.scrollTop = storyDisplay.scrollHeight;
+    storyDisplay.scrollTop = storyDisplay.scrollHeight; // Défilement automatique
 }
 
 function displayOptions(options) {
+    if (!optionsDisplay || !freeTextInput) { console.error("Options or Free Text Input elements not found."); return; }
     optionsDisplay.innerHTML = '';
     freeTextInput.style.display = 'none';
     optionsDisplay.style.display = 'flex';
@@ -148,104 +60,75 @@ function displayOptions(options) {
 }
 
 function displayFreeTextInput() {
+    if (!optionsDisplay || !freeTextInput || !actionInputField) { console.error("Free Text Input elements not found."); return; }
     optionsDisplay.style.display = 'none';
     freeTextInput.style.display = 'block';
     actionInputField.value = '';
     actionInputField.focus();
 }
 
-function updateGameUI() {
+function updateAttributesDisplay() {
     if (currentStoryState.attributes) {
-        vigorValue.textContent = currentStoryState.attributes.vigor;
-        ingenuityValue.textContent = currentStoryState.attributes.ingenuity;
-        adaptationValue.textContent = currentStoryState.attributes.adaptation;
-        influenceValue.textContent = currentStoryState.attributes.influence;
+        if (vigorValue) vigorValue.textContent = currentStoryState.attributes.vigor;
+        if (ingenuityValue) ingenuityValue.textContent = currentStoryState.attributes.ingenuity;
+        if (adaptationValue) adaptationValue.textContent = currentStoryState.attributes.adaptation;
+        if (influenceValue) influenceValue.textContent = currentStoryState.attributes.influence;
     }
-    updateListDisplay(inventoryList, currentStoryState.inventory, (item) => `${item.name} (${item.description})`, 'Aucun');
+}
+
+function updateInventoryDisplay() {
+    if (!inventoryList) { console.error("inventoryList element not found."); return; }
+    updateListDisplay(inventoryList, currentStoryState.inventory, (item) => `${item.name} (${item.description})`);
+}
+
+function updateFactionRelationsDisplay() {
     if (currentStoryState.factionRelations) {
-        gardeChroniqueRelation.textContent = currentStoryState.factionRelations.gardeChronique.relation;
-        fluxLibresRelation.textContent = currentStoryState.factionRelations.fluxLibres.relation;
-        resonancesObscuresRelation.textContent = currentStoryState.factionRelations.resonancesObscures.relation;
+        if (gardeChroniqueRelation) gardeChroniqueRelation.textContent = currentStoryState.factionRelations.gardeChronique.relation;
+        if (fluxLibresRelation) fluxLibresRelation.textContent = currentStoryState.factionRelations.fluxLibres.relation;
+        if (resonancesObscuresRelation) resonancesObscuresRelation.textContent = currentStoryState.factionRelations.resonancesObscures.relation;
     }
-    updateListDisplay(npcsList, currentStoryState.npcsMet, (npc) => `${npc.name} (${npc.relation || 'Inconnu'})`, 'Aucun');
-    updateListDisplay(questsList, currentStoryState.activeQuests.filter(q => q.status === 'Active'), (quest) => `${quest.name} [${quest.status}]`, 'Aucune');
-    updateListDisplay(eventsList, currentStoryState.majorWorldEvents, (event) => `${event.description}`, 'Aucun');
 }
 
-// Fonctions de mise à jour de l'UI de la page de profil
-function updateProfileUI() {
-    if (profileDisplayName) profileDisplayName.textContent = window.playerDisplayName || 'N/A';
-    if (profilePlayerName) profilePlayerName.textContent = currentStoryState.playerName || 'N/A';
-    if (profilePlayerArchetype) profilePlayerArchetype.textContent = currentStoryState.playerArchetype || 'N/A';
-    if (profilePlayerDescription) profilePlayerDescription.textContent = currentStoryState.playerDescription || 'N/A';
-    if (profilePlayerBackground) profilePlayerBackground.textContent = currentStoryState.playerBackground || 'N/A';
-    if (profileGameMode) profileGameMode.textContent = currentStoryState.gameMode || 'N/A';
-
-    if (profileVigorValue) profileVigorValue.textContent = currentStoryState.attributes ? currentStoryState.attributes.vigor : 'N/A';
-    if (profileIngenuityValue) profileIngenuityValue.textContent = currentStoryState.attributes ? currentStoryState.attributes.ingenuity : 'N/A';
-    if (profileAdaptationValue) profileAdaptationValue.textContent = currentStoryState.attributes ? currentStoryState.attributes.adaptation : 'N/A';
-    if (profileInfluenceValue) profileInfluenceValue.textContent = currentStoryState.attributes ? currentStoryState.attributes.influence : 'N/A';
-
-    if (profileInventoryList) updateListDisplay(profileInventoryList, currentStoryState.inventory, (item) => `${item.name} (${item.description})`, 'Aucun');
-
-    if (profileGardeChroniqueRelation) profileGardeChroniqueRelation.textContent = currentStoryState.factionRelations ? currentStoryState.factionRelations.gardeChronique.relation : 'N/A';
-    if (profileFluxLibresRelation) profileFluxLibresRelation.textContent = currentStoryState.factionRelations ? currentStoryState.factionRelations.fluxLibres.relation : 'N/A';
-    if (profileResonancesObscuresRelation) profileResonancesObscuresRelation.textContent = currentStoryState.factionRelations ? currentStoryState.factionRelations.resonancesObscures.relation : 'N/A';
-
-    if (profileNpcsList) updateListDisplay(profileNpcsList, currentStoryState.npcsMet, (npc) => `${npc.name} (${npc.relation || 'Inconnu'})`, 'Aucun');
-    if (profileQuestsList) updateListDisplay(profileQuestsList, currentStoryState.activeQuests.filter(q => q.status === 'Active'), (quest) => `${quest.name} [${quest.status}]`, 'Aucune');
-    if (profileEventsList) updateListDisplay(profileEventsList, currentStoryState.majorWorldEvents, (event) => `${event.description}`, 'Aucun');
+function updateNPCsDisplay() {
+    if (!npcsList) { console.error("npcsList element not found."); return; }
+    updateListDisplay(npcsList, currentStoryState.npcsMet, (npc) => `${npc.name} (${npc.relation || 'Inconnu'})`);
 }
 
-// Fonctions de mise à jour de l'UI de la page d'historique
-function updateHistoryUI() {
-    if (sessionsHistoryList) {
-        sessionsHistoryList.innerHTML = '';
-        if (window.currentUserId && currentStoryState.playerName) {
-            const li = document.createElement('li');
-            li.textContent = `Partie en cours: ${currentStoryState.playerName} (${currentStoryState.gameMode})`;
-            sessionsHistoryList.appendChild(li);
-        } else {
-            const li = document.createElement('li');
-            li.textContent = 'Aucune partie sauvegardée trouvée.';
-            sessionsHistoryList.appendChild(li);
-        }
-    }
+function updateQuestsDisplay() {
+    if (!questsList) { console.error("questsList element not found."); return; }
+    updateListDisplay(questsList, currentStoryState.activeQuests.filter(q => q.status === 'Active'), (quest) => `${quest.name} [${quest.status}]`);
+}
+
+function updateEventsDisplay() {
+    if (!eventsList) { console.error("eventsList element not found."); return; }
+    updateListDisplay(eventsList, currentStoryState.majorWorldEvents, (event) => `${event.description}`);
 }
 
 
 // --- Communication avec le Backend (Netlify Function) ---
 async function sendToBackend(action, isStart = false) {
-    if (!window.currentUserId) {
-        showAlert("Vous n'êtes pas connecté. Veuillez vous connecter ou jouer anonymement pour commencer.", "error");
-        return;
-    }
-    if (!window.playerDisplayName) {
-        showAlert("Veuillez choisir un nom d'affichage avant de commencer l'aventure.", "error");
+    if (!currentSessionId && !isStart) {
+        alert("Erreur de session. Veuillez recharger la page ou démarrer une nouvelle partie.");
         return;
     }
 
     // Afficher l'action du joueur dans l'historique
-    if (!isStart && currentStoryState.playerName) {
-        appendStory(`\n> ${currentStoryState.playerName} : ${action}\n`);
+    if (!isStart) { // Ne pas afficher l'action 'start' qui n'est pas une vraie action de jeu
+        appendStory(`\n> ${currentStoryState.playerName || 'Vous'} : ${action}\n`);
     }
 
     // Désactiver les entrées pendant le traitement
-    optionsDisplay.style.pointerEvents = 'none';
-    freeTextInput.style.pointerEvents = 'none';
-    submitActionButton.textContent = 'Réflexion en cours...';
-    if (saveGameButton) saveGameButton.disabled = true;
+    if (optionsDisplay) optionsDisplay.style.pointerEvents = 'none';
+    if (freeTextInput) freeTextInput.style.pointerEvents = 'none';
+    if (submitActionButton) submitActionButton.textContent = 'Réflexion en cours...';
 
     const payload = {
-        userId: window.currentUserId,
-        displayName: window.playerDisplayName, // Envoyer le nom d'affichage
-        playerName: currentStoryState.playerName, // Le nom du personnage dans l'histoire, qui sera le display name
+        playerName: currentStoryState.playerName,
         playerArchetype: currentStoryState.playerArchetype,
-        playerDescription: currentStoryState.playerDescription,
-        playerBackground: currentStoryState.playerBackground,
-        gameMode: currentStoryState.gameMode,
+        gameMode: currentStoryState.gameMode, // Nouveau: Envoyer le mode de jeu
         playerAction: action,
         isStart: isStart,
+        sessionId: currentSessionId,
     };
 
     try {
@@ -261,13 +144,19 @@ async function sendToBackend(action, isStart = false) {
         }
 
         const data = await response.json();
-        const { narration, options, newState } = data;
+        const { narration, options, newState } = data; // Le backend envoie le newState complet
 
-        currentStoryState = newState;
+        currentStoryState = newState; // METTRE À JOUR L'ÉTAT LOCAL AVEC LE NOUVEL ÉTAT
 
-        // Mise à jour de l'UI du jeu principal
+        // Mise à jour de l'UI avec le nouvel état
         appendStory(narration);
-        updateGameUI();
+        updateAttributesDisplay();
+        updateInventoryDisplay();
+        updateFactionRelationsDisplay();
+        updateNPCsDisplay();
+        updateQuestsDisplay();
+        updateEventsDisplay();
+
 
         if (options && options.length > 0) {
             displayOptions(options);
@@ -277,197 +166,174 @@ async function sendToBackend(action, isStart = false) {
 
     } catch (error) {
         console.error('Erreur lors de l\'envoi au backend:', error);
-        showAlert("Une erreur est survenue. Le tissu de l'Echo Verse vacille... (Voir la console pour plus de détails)", "error");
-        if (freeTextInput) displayFreeTextInput();
+        appendStory("<p style='color: red;'>Une erreur est survenue. Le tissu de l'Echo Verse vacille... (Voir la console pour plus de détails)</p>");
+        displayFreeTextInput();
     } finally {
         // Réactiver les entrées
-        optionsDisplay.style.pointerEvents = 'auto';
-        freeTextInput.style.pointerEvents = 'auto';
-        submitActionButton.textContent = 'Agir';
-        if (saveGameButton) saveGameButton.disabled = false;
+        if (optionsDisplay) optionsDisplay.style.pointerEvents = 'auto';
+        if (freeTextInput) freeTextInput.style.pointerEvents = 'auto';
+        if (submitActionButton) submitActionButton.textContent = 'Agir';
     }
 }
 
 
-// --- Fonctions de chargement et d'initialisation de la partie ---
+// --- Événements du Démarrage (Déplacés à l'intérieur de window.onload) ---
+// Charger une session existante au chargement de la page (si ID de session existe)
+window.onload = async () => {
+    console.log("window.onload exécuté : Tentative d'initialisation des éléments DOM et des écouteurs d'événements.");
 
-// Fonction exposée globalement pour être appelée par le script Firebase dans index.html
-window.loadGameSession = async (userId) => {
-    window.currentUserId = userId;
-    const path = window.location.pathname;
+    // Initialiser les variables en accédant aux éléments du DOM après le chargement complet de la page
+    playerNameInput = document.getElementById('player-name-input');
+    playerArchetypeSelect = document.getElementById('player-archetype-select');
+    gameModeSelect = document.getElementById('game-mode-select');
+    startAdventureButton = document.getElementById('start-adventure-button');
+    startScreen = document.getElementById('start-screen');
+    storyScreen = document.getElementById('story-screen');
+    storyDisplay = document.getElementById('story-display');
+    optionsDisplay = document.getElementById('options-display');
+    freeTextInput = document.getElementById('free-text-input');
+    actionInputField = document.getElementById('action-input-field');
+    submitActionButton = document.getElementById('submit-action-button');
 
-    const userIdDisplay = document.getElementById('user-id-display');
-    const displayNameValue = document.getElementById('display-name-value');
+    vigorValue = document.getElementById('vigor-value');
+    ingenuityValue = document.getElementById('ingenuity-value');
+    adaptationValue = document.getElementById('adaptation-value');
+    influenceValue = document.getElementById('influence-value');
+    inventoryList = document.getElementById('inventory-list');
+    gardeChroniqueRelation = document.getElementById('garde-chronique-relation');
+    fluxLibresRelation = document.getElementById('flux-libres-relation');
+    resonancesObscuresRelation = document.getElementById('resonances-obscures-relation');
+    npcsList = document.getElementById('npcs-list');
+    questsList = document.getElementById('quests-list');
+    eventsList = document.getElementById('events-list');
 
-    if (userIdDisplay) userIdDisplay.textContent = window.currentUserId;
-    if (displayNameValue) displayNameValue.textContent = window.playerDisplayName || 'Non défini';
+    // Vérification de la présence des éléments critiques
+    if (!playerNameInput) console.error("Erreur: playerNameInput non trouvé!");
+    if (!playerArchetypeSelect) console.error("Erreur: playerArchetypeSelect non trouvé!");
+    if (!gameModeSelect) console.error("Erreur: gameModeSelect non trouvé!");
+    if (!startAdventureButton) console.error("Erreur: startAdventureButton non trouvé!");
+    if (!startScreen) console.error("Erreur: startScreen non trouvé!");
+    if (!storyScreen) console.error("Erreur: storyScreen non trouvé!");
 
 
-    // Logique de chargement pour la page principale (index.html)
-    if (path === '/' || path.includes('index.html')) {
-        // Le nom d'affichage doit être défini avant de charger une partie ou de commencer
-        if (!window.playerDisplayName) {
-            showScreen('auth-screen'); // Revenir à l'écran d'authentification pour choisir un nom
-            return;
-        }
+    // Attach event listeners here to ensure DOM elements are fully loaded
+    if (startAdventureButton) { // S'assurer que le bouton existe avant d'ajouter l'écouteur
+        console.log("Attaching click listener to startAdventureButton.");
+        startAdventureButton.addEventListener('click', () => {
+            console.log("startAdventureButton cliqué!");
+            const playerName = playerNameInput.value.trim();
+            const playerArchetype = playerArchetypeSelect.value;
+            const gameMode = gameModeSelect.value; // Récupérer le mode de jeu sélectionné
 
+            if (!playerName || !playerArchetype || !gameMode) {
+                alert("Veuillez entrer votre nom, choisir un archétype et un mode de jeu.");
+                return;
+            }
+
+            // Initialiser ou charger la session ID
+            if (!currentSessionId) {
+                currentSessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('echoVerseSessionId', currentSessionId);
+            }
+
+            // Mettre à jour l'état local avec le nom, l'archétype ET LE MODE DE JEU
+            currentStoryState.playerName = playerName;
+            currentStoryState.playerArchetype = playerArchetype;
+            currentStoryState.gameMode = gameMode;
+
+            if (startScreen) startScreen.classList.remove('active');
+            if (storyScreen) storyScreen.classList.add('active');
+
+            // Envoyer la requête de démarrage au backend
+            sendToBackend(`Démarrer l'aventure en tant que ${playerArchetype} en mode ${gameMode}`, true);
+        });
+    } else {
+        console.error("startAdventureButton element not found, cannot attach event listener.");
+    }
+
+
+    if (submitActionButton) { // S'assurer que le bouton existe avant d'ajouter l'écouteur
+        console.log("Attaching click listener to submitActionButton.");
+        submitActionButton.addEventListener('click', () => {
+            console.log("submitActionButton cliqué!");
+            const action = actionInputField.value.trim();
+            if (action) {
+                sendToBackend(action);
+            } else {
+                alert("Veuillez décrire votre action.");
+            }
+        });
+    } else {
+        console.error("submitActionButton element not found, cannot attach event listener.");
+    }
+
+
+    // Permettre d'envoyer l'action avec "Entrée"
+    if (actionInputField) { // S'assurer que le champ existe avant d'ajouter l'écouteur
+        console.log("Attaching keypress listener to actionInputField.");
+        actionInputField.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) { // Shift+Enter pour un saut de ligne
+                e.preventDefault(); // Empêche le saut de ligne par défaut du textarea
+                if (submitActionButton) submitActionButton.click();
+            }
+        });
+    } else {
+        console.error("actionInputField element not found, cannot attach event listener.");
+    }
+
+
+    // Existing session loading logic
+    if (currentSessionId) {
+        console.log("Session ID existante détectée, tentant de charger la session.");
+        // Tente de charger l'état depuis le backend. Si la session n'est pas trouvée (par ex. première visite après avoir vidé la DB),
+        // le backend renverra 404, et le frontend basculera sur l'écran de démarrage.
         try {
             const response = await fetch('/.netlify/functions/gemini-narrator', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId: window.currentUserId, isStart: false, playerAction: "Charger session" }),
+                body: JSON.stringify({ sessionId: currentSessionId, isStart: false, playerAction: "Charger session" }),
             });
 
             if (!response.ok) {
                 if (response.status === 404) {
-                    console.warn("Session non trouvée pour cet utilisateur, démarrage d'une nouvelle partie.");
-                    showScreen('start-screen'); // Afficher l'écran de démarrage si pas de partie
+                    console.warn("Session non trouvée, démarrage d'une nouvelle partie.");
+                    localStorage.removeItem('echoVerseSessionId'); // Supprime l'ID de session invalide
+                    currentSessionId = null; // Réinitialise
+                    if (startScreen) startScreen.classList.add('active');
+                    if (storyScreen) storyScreen.classList.remove('active');
                 } else {
                     throw new Error(`Erreur HTTP: ${response.status} - ${await response.text()}`);
                 }
             } else {
                 const data = await response.json();
-                currentStoryState = data.newState;
+                currentStoryState = data.newState; // Charger l'état complet
                 appendStory(`Bienvenue de nouveau, ${currentStoryState.playerName} ! L'Echo Verse vous attend...`);
-                appendStory(data.narration);
+                appendStory(data.narration); // Afficher la dernière narration enregistrée (ou un message de bienvenue générique)
 
-                updateGameUI();
-                showScreen('story-screen');
-                displayFreeTextInput();
+                // Mettre à jour toutes les UI
+                updateAttributesDisplay();
+                updateInventoryDisplay();
+                updateFactionRelationsDisplay();
+                updateNPCsDisplay();
+                updateQuestsDisplay();
+                updateEventsDisplay();
+
+                if (startScreen) startScreen.classList.remove('active');
+                if (storyScreen) storyScreen.classList.add('active');
+                displayFreeTextInput(); // Afficher l'input libre par default après le chargement
             }
         } catch (error) {
             console.error('Erreur lors du chargement de la session:', error);
-            showAlert("Impossible de charger la session. Veuillez démarrer une nouvelle partie.", "error");
-            showScreen('start-screen');
+            alert("Impossible de charger la session. Une nouvelle partie va démarrer.");
+            localStorage.removeItem('echoVerseSessionId');
+            currentSessionId = null;
+            if (startScreen) startScreen.classList.add('active');
+            if (storyScreen) storyScreen.classList.remove('active');
         }
-    } else if (path.includes('profile.html')) {
-        if (window.currentUserId) {
-            try {
-                const response = await fetch('/.netlify/functions/gemini-narrator', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ userId: window.currentUserId, isStart: false, playerAction: "Charger session pour profil" }),
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    currentStoryState = data.newState;
-                    updateProfileUI();
-                } else {
-                    console.error('Impossible de charger les données du profil:', await response.text());
-                    showAlert('Impossible de charger les données de votre profil.', "error");
-                }
-            } catch (error) {
-                console.error('Erreur lors du chargement du profil:', error);
-                showAlert('Erreur lors du chargement des données de profil.', "error");
-            }
-        } else {
-            if (profilePlayerName) profilePlayerName.textContent = 'Veuillez vous connecter pour voir votre profil.';
-            if (profileDisplayName) profileDisplayName.textContent = 'Non connecté';
-        }
-    } else if (path.includes('history.html')) {
-        if (window.currentUserId) {
-            try {
-                 const response = await fetch('/.netlify/functions/gemini-narrator', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ userId: window.currentUserId, isStart: false, playerAction: "Charger session pour historique" }),
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    currentStoryState = data.newState;
-                    updateHistoryUI();
-                } else {
-                    console.error('Impossible de charger les données de l\'historique:', await response.text());
-                    showAlert('Impossible de charger les données de votre historique.', "error");
-                }
-            } catch (error) {
-                console.error('Erreur lors du chargement de l\'historique:', error);
-                showAlert('Erreur lors du chargement des données d\'historique.', "error");
-            }
-        } else {
-             if (sessionsHistoryList) {
-                sessionsHistoryList.innerHTML = '<li>Veuillez vous connecter pour voir votre historique.</li>';
-             }
-        }
+    } else {
+        console.log("Aucune session ID existante, affichage de l'écran de démarrage.");
+        // Si pas de session, afficher l'écran de démarrage
+        if (startScreen) startScreen.classList.add('active');
+        if (storyScreen) storyScreen.classList.remove('active');
     }
 };
-
-
-// --- Événements du Démarrage du Jeu ---
-startAdventureButton.addEventListener('click', () => {
-    const playerName = playerNameInput.value.trim(); // Ce sera le nom d'affichage pré-rempli
-    const playerArchetype = playerArchetypeSelect.value;
-    const playerDescription = playerDescriptionInput.value.trim();
-    const playerBackground = playerBackgroundInput.value.trim();
-    const gameMode = gameModeSelect.value;
-
-    if (!playerName || !playerArchetype || !gameMode) {
-        showAlert("Veuillez entrer votre nom, choisir une classe et un mode de jeu.", "info");
-        return;
-    }
-    if (!playerDescription) {
-        showAlert("Veuillez décrire l'apparence de votre personnage.", "info");
-        return;
-    }
-    if (!playerBackground) {
-        showAlert("Veuillez donner un aperçu du passé de votre personnage.", "info");
-        return;
-    }
-
-    // Réinitialiser l'état local pour une nouvelle partie
-    currentStoryState = {
-        playerName: playerName, // Le nom du personnage est maintenant le nom d'affichage
-        playerArchetype: playerArchetype,
-        playerDescription: playerDescription,
-        playerBackground: playerBackground,
-        gameMode: gameMode,
-        history: [],
-        inventory: [],
-        attributes: {
-            vigor: 80,
-            ingenuity: 70,
-            adaptation: 60,
-            influence: 50
-        },
-        location: "un endroit flou et indéfinissable au moment de la micro-fracture initiale",
-        factionRelations: {
-            gardeChronique: { name: "La Garde Chronique", relation: 0 },
-            fluxLibres: { name: "Les Flux Libres", relation: 0 },
-            resonancesObscures: { name: "Les Résonances Obscures", relation: -100 }
-        },
-        npcsMet: [],
-        activeQuests: [],
-        majorWorldEvents: [],
-    };
-
-    showScreen('story-screen'); // Afficher l'écran de jeu
-
-    // Envoyer la requête de démarrage au backend
-    sendToBackend(`Démarrer l'aventure en tant que ${playerArchetype} : "${playerDescription}", avec un background "${playerBackground}" en mode ${gameMode}`, true);
-});
-
-submitActionButton.addEventListener('click', () => {
-    const action = actionInputField.value.trim();
-    if (action) {
-        sendToBackend(action);
-    } else {
-        showAlert("Veuillez décrire votre action.", "info");
-    }
-});
-
-// Événement pour le bouton de sauvegarde
-if (saveGameButton) {
-    saveGameButton.addEventListener('click', () => {
-        showAlert("Votre partie est automatiquement sauvegardée après chaque action.", "success");
-    });
-}
-
-// Permettre d'envoyer l'action avec "Entrée"
-actionInputField.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        submitActionButton.click();
-    }
-});

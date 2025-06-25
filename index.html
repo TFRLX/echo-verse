@@ -1,391 +1,339 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Echo Verse - Votre Aventure IA</title>
-    <link rel="stylesheet" href="style.css">
-    <!-- Polices Google pour un style moderne et futuriste -->
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
-</head>
-<body>
-    <!-- Le conteneur principal pour le fond animé et le contenu -->
-    <div class="background-container">
-        <!-- Barre de Navigation Globale -->
-        <nav class="main-nav">
-            <div class="nav-brand">
-                <a href="index.html">
-                    <!-- Placeholder pour votre logo -->
-                    <img src="https://placehold.co/150x50/1a1a2e/8be9fd?text=ECHO+VERSE+LOGO" alt="Logo Echo Verse" class="h-10">
-                </a>
-            </div>
-            <ul class="nav-links">
-                <li><a href="index.html" class="active">Jouer</a></li>
-                <li><a href="profile.html">Mon Profil</a></li>
-                <li><a href="history.html">Historique</a></li>
-                <li><a href="instructions.html">Instructions</a></li>
-                <li><a href="lore.html">L'Univers</a></li>
-                <li><a href="community.html">Communauté</a></li>
-                <li class="dropdown">
-                    <a href="#" class="dropbtn">Soutien</a>
-                    <div class="dropdown-content">
-                        <a href="contact.html">Nous Joindre</a>
-                        <a href="bug-report.html">Rapporter un Bug</a>
-                        <a href="updates.html">Mises à Jour</a>
-                        <a href="donate.html">Faire un Don</a>
-                    </div>
-                </li>
-            </ul>
-        </nav>
+// --- Gestion de l'état de la partie ---
+let currentSessionId = localStorage.getItem('echoVerseSessionId');
+let currentStoryState = {}; // Sera chargé/mis à jour par le backend
 
-        <!-- Contenu Principal du Site (incluant votre jeu) -->
-        <div class="content-wrapper">
-            <div class="container">
-                <h1>Echo Verse</h1>
+// Déclaration des variables globales qui seront initialisées dans window.onload
+let playerNameInput, playerArchetypeSelect, gameModeSelect, startAdventureButton,
+    startScreen, storyScreen, storyDisplay, optionsDisplay, freeTextInput,
+    actionInputField, submitActionButton,
+    vigorValue, ingenuityValue, adaptationValue, influenceValue, inventoryList,
+    gardeChroniqueRelation, fluxLibresRelation, resonancesObscuresRelation,
+    npcsList, questsList, eventsList;
 
-                <div id="loading-screen" class="screen active">
-                    <div class="spinner"></div>
-                    <p>Chargement de l'Echo Verse...</p>
-                </div>
+console.log("Script.js chargé : Début de l'exécution du fichier.");
 
-                <div id="auth-screen" class="screen">
-                    <h2>Connectez-vous ou jouez anonymement</h2>
-                    <!-- Nouveau champ pour le nom d'affichage -->
-                    <input type="text" id="display-name-input" placeholder="Choisissez un nom d'affichage unique (ex: Voyageur73)" class="mb-4" style="display: none;">
-                    <button id="set-display-name-button" class="mt-2" style="display: none;">Confirmer le Nom</button>
-                    <!-- Fin nouveaux champs -->
-                    <button id="sign-in-anon-button" class="mt-4">Jouer en Anonyme</button>
-                    <p class="mt-4 text-sm text-gray-400">
-                        Votre progression sera sauvegardée via Firebase.
-                        Si vous avez déjà joué, votre dernière session sera chargée.
-                    </p>
-                </div>
 
-                <div id="start-screen" class="screen">
-                    <h2>Bienvenue, Voyageur des Échos</h2>
-                    <input type="text" id="player-name-input" placeholder="Quel est votre nom ?" disabled> <!-- Désactivé car le nom d'affichage le remplira -->
-                    <select id="player-archetype-select">
-                        <option value="">Choisissez votre classe</option>
-                        <optgroup label="Classes Martiales">
-                            <option value="Guerrier">Guerrier (Force, Combat)</option>
-                            <option value="Chevalier">Chevalier (Défense, Honneur)</option>
-                            <option value="Assasssin">Assassin (Discrétion, Attaque Rapide)</option>
-                            <option value="Barbare">Barbare (Brutalité, Résistance)</option>
-                            <option value="Archer">Archer (Précision, Distance)</option>
-                        </optgroup>
-                        <optgroup label="Classes Intellectuelles">
-                            <option value="Mage">Mage (Magie, Connaissance)</option>
-                            <option value="Inventeur">Inventeur (Technologie, Création)</option>
-                            <option value="Détective">Détective (Déduction, Observation)</option>
-                            <option value="Archéologue">Archéologue (Histoire, Exploration)</option>
-                            <option value="Scientifique">Scientifique (Logique, Expérimentation)</option>
-                        </optgroup>
-                        <optgroup label="Classes Sociales">
-                            <option value="Diplomate">Diplomate (Négociation, Persuasion)</option>
-                            <option value="Barde">Barde (Charisme, Inspiration)</option>
-                            <option value="Marchand">Marchand (Commerce, Influence)</option>
-                            <option value="Espion">Espion (Infiltration, Mensonge)</option>
-                            <option value="Médecin">Médecin (Soins, Connaissance Médicale)</option>
-                        </optgroup>
-                        <optgroup label="Classes Adaptatives">
-                            <option value="Rôdeur">Rôdeur (Survie, Nature)</option>
-                            <option value="Nomade">Nomade (Voyage, Autonomie)</option>
-                            <option value="Explorateur">Explorateur (Découverte, Adaptabilité)</option>
-                            <option value="Survivant">Survivant (Résilience, Déni de danger)</option>
-                        </optgroup>
-                    </select>
-                    <!-- Champs pour la description du personnage et le background -->
-                    <textarea id="player-description-input" placeholder="Décrivez l'apparence de votre personnage (ex: homme, jeune, grand, charismatique, avec une cicatrice...)" rows="3"></textarea>
-                    <textarea id="player-background-input" placeholder="Racontez une brève histoire de votre personnage (son passé, motivations, un secret...)" rows="5"></textarea>
+// Fonction utilitaire pour gérer les mises à jour des listes UI (inventaire, PNJ, quêtes, événements)
+function updateListDisplay(element, items, displayFunc) {
+    // Vérification pour s'assurer que l'élément existe avant de le manipuler
+    if (!element) {
+        console.error(`Element for list display not found:`, element);
+        return;
+    }
+    element.innerHTML = ''; // Vide la liste existante
+    if (items && items.length > 0) {
+        items.forEach(item => {
+            const li = document.createElement('li');
+            li.innerHTML = displayFunc(item); // Utilise une fonction de display spécifique pour chaque type d'élément
+            element.appendChild(li);
+        });
+    } else {
+        const li = document.createElement('li');
+        li.textContent = `Aucun ${element.id.replace('-list', '') === 'inventory' ? 'objet' : element.id.replace('-list', '') === 'npcs' ? 'PNJ' : element.id.replace('-list', '') === 'quests' ? 'quête' : 'événement'}`;
+        element.appendChild(li);
+    }
+}
 
-                    <select id="game-mode-select">
-                        <option value="">Choisissez votre Mode de Jeu</option>
-                        <optgroup label="Aventures Épiques et Fantastiques">
-                            <option value="Fracture Dimensionnelle">Fracture Dimensionnelle (SF, Fantasy, Survie)</option>
-                            <option value="Chronique Cyberpunk">Chronique Cyberpunk (Villes Futuristes, Mystères)</option>
-                            <option value="Terres Sauvages">Terres Sauvages (Nature, Exploration, Dangers)</option>
-                            <option value="Odyssée Stellaire">Odyssée Stellaire (Espace, Intrigue Galactique)</option>
-                            <option value="Apocalypse Temporelle">Apocalypse Temporelle (Voyage dans le Temps, Chaos)</option>
-                            <option value="Légendes Anciennes">Légendes Anciennes (Fantasy, Magie, Royaumes Antiques)</option>
-                            <option value="Chroniques Vampiriques">Chroniques Vampiriques (Horreur Gothique, Romance)</option>
-                            <option value="Quête Divine">Quête Divine (Mythologie, Interaction avec les Dieux)</option>
-                        </optgroup>
-                        <optgroup label="Récits Contemporains et Humains">
-                            <option value="Drame Quotidien">Drame Quotidien (Vie Personnelle, Relations)</option>
-                            <option value="Romance et Passion">Romance et Passion (Développement d'une Relation)</option>
-                            <option value="Tour du Monde">Tour du Monde (Voyage, Découverte Culturelle)</option>
-                            <option value="Carrière Professionnelle">Carrière Professionnelle (Ambition, Intrigues de Bureau)</option>
-                            <option value="Défis Familiaux">Défis Familiaux (Conflits, Liens Familiaux)</option>
-                        </optgroup>
-                        <optgroup label="Thrillers et Stratégie">
-                            <option value="Enquête Criminelle">Enquête Criminelle (Déduction, Suspens)</option>
-                            <option value="Horreur Psychologique">Horreur Psychologique (Peur, Santé Mentale)</option>
-                            <option value="Micro-Gestion">Micro-Gestion (Entreprise, Communauté, Ressources)</option>
-                            <option value="Survie Extrême">Survie Extrême (Environnements Hostiles, Instinct)</option>
-                            <option value="Course Contre la Montre">Course Contre la Montre (Urgence, Décisions Rapides)</option>
-                            <option value="Complot Mondial">Complot Mondial (Espionnage, Secrets Internationaux)</option>
-                            <option value="Agent Double">Agent Double (Loyauté, Trahison, Infiltration)</option>
-                        </optgroup>
-                    </select>
-                    <button id="start-adventure-button">Commencer l'Aventure</button>
-                </div>
 
-                <div id="story-screen" class="screen">
-                    <div id="story-display"></div>
-                    <div id="options-display" class="action-buttons"></div>
-                    <div id="free-text-input" class="action-input">
-                        <textarea id="action-input-field" placeholder="Décrivez votre action..."></textarea>
-                        <button id="submit-action-button">Agir</button>
-                    </div>
-                    <button id="save-game-button" class="mt-4">Sauvegarder la Partie</button>
-                </div>
-            </div>
+// Fonctions de mise à jour de l'UI
+function appendStory(text) {
+    if (!storyDisplay) { console.error("storyDisplay element not found."); return; }
+    // Remplace les <br> par des sauts de ligne réels dans les balises <p> pour un meilleur rendu
+    const formattedText = text.replace(/<br>/g, '<br><br>');
+    const p = document.createElement('p');
+    p.innerHTML = formattedText;
+    storyDisplay.appendChild(p);
+    storyDisplay.scrollTop = storyDisplay.scrollHeight; // Défilement automatique
+}
 
-            <div class="sidebar">
-                <div class="stats-box">
-                    <h2>Statistiques</h2>
-                    <ul>
-                        <li>Vigueur: <span id="vigor-value"></span></li>
-                        <li>Ingéniosité: <span id="ingenuity-value"></span></li>
-                        <li>Adaptation: <span id="adaptation-value"></span></li>
-                        <li>Influence: <span id="influence-value"></span></li>
-                    </ul>
-                </div>
-                <div class="stats-box">
-                    <h2>Inventaire</h2>
-                    <ul id="inventory-list">
-                        <li>Aucun objet</li>
-                    </ul>
-                </div>
-                <div class="stats-box">
-                    <h2>Factions</h2>
-                    <ul>
-                        <li>Garde Chronique: <span id="garde-chronique-relation"></span></li>
-                        <li>Flux Libres: <span id="flux-libres-relation"></span></li>
-                        <li>Résonances Obscures: <span id="resonances-obscures-relation"></span></li>
-                    </ul>
-                </div>
-                <div class="stats-box">
-                    <h2>PNJ Rencontrés</h2>
-                    <ul id="npcs-list">
-                        <li>Aucun PNJ</li>
-                    </ul>
-                </div>
-                <div class="stats-box">
-                    <h2>Quêtes Actives</h2>
-                    <ul id="quests-list">
-                        <li>Aucune quête</li>
-                    </ul>
-                </div>
-                <div class="stats-box">
-                    <h2>Événements Mondiaux</h2>
-                    <ul id="events-list">
-                        <li>Aucun événement</li>
-                    </ul>
-                </div>
-                <div class="stats-box user-info-box">
-                    <h2>Info Utilisateur</h2>
-                    <p>Nom d'affichage: <span id="display-name-value">Chargement...</span></p>
-                    <p class="text-sm text-gray-400 mt-1">ID Utilisateur: <span id="user-id-display">Chargement...</span></p>
-                    <button id="sign-out-button">Se Déconnecter</button>
-                </div>
-            </div>
-        </div>
-    </div>
+function displayOptions(options) {
+    if (!optionsDisplay || !freeTextInput) { console.error("Options or Free Text Input elements not found."); return; }
+    optionsDisplay.innerHTML = '';
+    freeTextInput.style.display = 'none';
+    optionsDisplay.style.display = 'flex';
+    options.forEach(option => {
+        const button = document.createElement('button');
+        button.textContent = option;
+        button.addEventListener('click', () => sendToBackend(option));
+        optionsDisplay.appendChild(button);
+    });
+}
 
-    <!-- La Modal Personnalisée (pour remplacer les alertes) -->
-    <div id="custom-alert-modal" class="modal-overlay">
-        <div class="modal-content">
-            <span class="close-button">&times;</span>
-            <p id="modal-message" class="modal-message"></p>
-            <button id="modal-ok-button" class="modal-button">OK</button>
-        </div>
-    </div>
+function displayFreeTextInput() {
+    if (!optionsDisplay || !freeTextInput || !actionInputField) { console.error("Free Text Input elements not found."); return; }
+    optionsDisplay.style.display = 'none';
+    freeTextInput.style.display = 'block';
+    actionInputField.value = '';
+    actionInputField.focus();
+}
 
-    <footer class="main-footer">
-        <p>&copy; 2024 Echo Verse. Tous droits réservés. Reproduction ou utilisation non autorisée du contenu, des logos et des concepts strictement interdite.</p>
-        <p>Ce site utilise des technologies d'IA générative et de base de données. Pour plus d'informations, consultez nos <a href="#" class="text-blue-400 hover:underline">Conditions d'Utilisation</a> et notre <a href="#" class="text-blue-400 hover:underline">Politique de Confidentialité</a>.</p>
-    </footer>
+function updateAttributesDisplay() {
+    if (currentStoryState.attributes) {
+        if (vigorValue) vigorValue.textContent = currentStoryState.attributes.vigor;
+        if (ingenuityValue) ingenuityValue.textContent = currentStoryState.attributes.ingenuity;
+        if (adaptationValue) adaptationValue.textContent = currentStoryState.attributes.adaptation;
+        if (influenceValue) influenceValue.textContent = currentStoryState.attributes.influence;
+    }
+}
 
-    <!-- Firebase SDKs (dépendances requises pour Firestore et Auth) -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+function updateInventoryDisplay() {
+    if (!inventoryList) { console.error("inventoryList element not found."); return; }
+    updateListDisplay(inventoryList, currentStoryState.inventory, (item) => `${item.name} (${item.description})`);
+}
 
-        // Variables globales fournies par l'environnement Canvas
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+function updateFactionRelationsDisplay() {
+    if (currentStoryState.factionRelations) {
+        if (gardeChroniqueRelation) gardeChroniqueRelation.textContent = currentStoryState.factionRelations.gardeChronique.relation;
+        if (fluxLibresRelation) fluxLibresRelation.textContent = currentStoryState.factionRelations.fluxLibres.relation;
+        if (resonancesObscuresRelation) resonancesObscuresRelation.textContent = currentStoryState.factionRelations.resonancesObscures.relation;
+    }
+}
 
-        // Initialiser Firebase
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+function updateNPCsDisplay() {
+    if (!npcsList) { console.error("npcsList element not found."); return; }
+    updateListDisplay(npcsList, currentStoryState.npcsMet, (npc) => `${npc.name} (${npc.relation || 'Inconnu'})`);
+}
 
-        // Rendre ces variables disponibles globalement (pour script.js)
-        window.firebaseApp = app;
-        window.firebaseAuth = auth;
-        window.firestoreDb = db;
-        window.canvasAppId = appId; // Rendre l'ID de l'application Canvas disponible
+function updateQuestsDisplay() {
+    if (!questsList) { console.error("questsList element not found."); return; }
+    updateListDisplay(questsList, currentStoryState.activeQuests.filter(q => q.status === 'Active'), (quest) => `${quest.name} [${quest.status}]`);
+}
 
-        let currentUserId = null; // ID de l'utilisateur Firebase
-        const userIdDisplay = document.getElementById('user-id-display');
-        const displayNameValue = document.getElementById('display-name-value');
-        const displayNameInput = document.getElementById('display-name-input');
-        const setDisplayNameButton = document.getElementById('set-display-name-button');
-        const signInAnonButton = document.getElementById('sign-in-anon-button');
-        const signOutButton = document.getElementById('sign-out-button');
-        const loadingScreen = document.getElementById('loading-screen');
-        const authScreen = document.getElementById('auth-screen');
+function updateEventsDisplay() {
+    if (!eventsList) { console.error("eventsList element not found."); return; }
+    updateListDisplay(eventsList, currentStoryState.majorWorldEvents, (event) => `${event.description}`);
+}
 
-        // Gérer les écrans au démarrage
-        function showScreen(screenId) {
-            document.querySelectorAll('.screen').forEach(screen => {
-                screen.classList.remove('active');
-            });
-            document.getElementById(screenId).classList.add('active');
-        }
 
-        // Listener pour l'état d'authentification Firebase
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                currentUserId = user.uid;
-                if (userIdDisplay) userIdDisplay.textContent = currentUserId;
-                console.log("Firebase Authentifié:", currentUserId);
+// --- Communication avec le Backend (Netlify Function) ---
+async function sendToBackend(action, isStart = false) {
+    if (!currentSessionId && !isStart) {
+        alert("Erreur de session. Veuillez recharger la page ou démarrer une nouvelle partie.");
+        return;
+    }
 
-                // Tenter de charger le nom d'affichage de l'utilisateur
-                const userProfileRef = doc(db, 'artifacts', appId, 'users', currentUserId);
-                const userProfileSnap = await getDoc(userProfileRef);
+    // Afficher l'action du joueur dans l'historique
+    if (!isStart) { // Ne pas afficher l'action 'start' qui n'est pas une vraie action de jeu
+        appendStory(`\n> ${currentStoryState.playerName || 'Vous'} : ${action}\n`);
+    }
 
-                if (userProfileSnap.exists() && userProfileSnap.data().displayName) {
-                    const savedDisplayName = userProfileSnap.data().displayName;
-                    window.playerDisplayName = savedDisplayName; // Stocker globalement
-                    if (displayNameValue) displayNameValue.textContent = savedDisplayName;
-                    // Pré-remplir et désactiver le champ du nom du joueur dans le formulaire de démarrage
-                    if (document.getElementById('player-name-input')) {
-                        document.getElementById('player-name-input').value = savedDisplayName;
-                        document.getElementById('player-name-input').disabled = true;
-                    }
-                    showScreen('start-screen'); // Passer directement à l'écran de démarrage
-                    await window.loadGameSession(currentUserId); // Tenter de charger la partie
-                } else {
-                    // Si pas de nom d'affichage, demander au joueur d'en choisir un
-                    window.playerDisplayName = null;
-                    if (displayNameValue) displayNameValue.textContent = 'Non défini';
-                    showScreen('auth-screen');
-                    if (displayNameInput) displayNameInput.style.display = 'block';
-                    if (setDisplayNameButton) setDisplayNameButton.style.display = 'block';
-                    if (signInAnonButton) signInAnonButton.style.display = 'none'; // Cacher le bouton "Jouer en Anonyme" tant que le nom d'affichage n'est pas choisi
-                    window.showAlert("Choisissez un nom d'affichage unique pour votre voyage dans l'Echo Verse. Il ne pourra pas être changé ensuite.", "info");
-                }
-            } else {
-                currentUserId = null;
-                window.playerDisplayName = null;
-                if (userIdDisplay) userIdDisplay.textContent = 'Non connecté';
-                if (displayNameValue) displayNameValue.textContent = 'Non connecté';
-                console.log("Firebase Non Authentifié. Affichage de l'écran d'authentification.");
-                showScreen('auth-screen');
-                if (displayNameInput) displayNameInput.style.display = 'block';
-                if (setDisplayNameButton) setDisplayNameButton.style.display = 'block';
-                if (signInAnonButton) signInAnonButton.style.display = 'none'; // Cacher le bouton "Jouer en Anonyme"
-                window.showAlert("Choisissez un nom d'affichage unique pour votre voyage dans l'Echo Verse. Il ne pourra pas être changé ensuite.", "info");
-            }
+    // Désactiver les entrées pendant le traitement
+    if (optionsDisplay) optionsDisplay.style.pointerEvents = 'none';
+    if (freeTextInput) freeTextInput.style.pointerEvents = 'none';
+    if (submitActionButton) submitActionButton.textContent = 'Réflexion en cours...';
+
+    const payload = {
+        playerName: currentStoryState.playerName,
+        playerArchetype: currentStoryState.playerArchetype,
+        gameMode: currentStoryState.gameMode, // Nouveau: Envoyer le mode de jeu
+        playerAction: action,
+        isStart: isStart,
+        sessionId: currentSessionId,
+    };
+
+    try {
+        const response = await fetch('/.netlify/functions/gemini-narrator', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
         });
 
-        // Bouton de connexion anonyme (maintenant affiché après la saisie du nom d'affichage ou si déjà défini)
-        if (signInAnonButton) {
-            signInAnonButton.addEventListener('click', async () => {
-                try {
-                    await signInAnonymously(auth);
-                } catch (error) {
-                    console.error("Erreur de connexion anonyme:", error);
-                    window.showAlert("Erreur de connexion anonyme. Veuillez réessayer.", "error");
-                }
-            });
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Erreur HTTP: ${response.status} - ${errorText}`);
         }
 
-        // Nouveau bouton pour définir le nom d'affichage
-        if (setDisplayNameButton) {
-            setDisplayNameButton.addEventListener('click', async () => {
-                const newDisplayName = displayNameInput.value.trim();
-                if (newDisplayName.length < 3 || newDisplayName.length > 20) {
-                    window.showAlert("Le nom d'affichage doit contenir entre 3 et 20 caractères.", "error");
-                    return;
-                }
-                // Vérifier si le nom d'affichage est déjà pris (basic check, can be more robust with Firestore queries)
-                // Pour cet exemple, on stocke directement. Une vérification d'unicité plus forte serait côté backend.
+        const data = await response.json();
+        const { narration, options, newState } = data; // Le backend envoie le newState complet
 
-                if (currentUserId) {
-                    const userProfileRef = doc(db, 'artifacts', appId, 'users', currentUserId);
-                    try {
-                        await setDoc(userProfileRef, { displayName: newDisplayName }, { merge: true });
-                        window.playerDisplayName = newDisplayName;
-                        if (displayNameValue) displayNameValue.textContent = newDisplayName;
-                        if (displayNameInput) displayNameInput.style.display = 'none';
-                        if (setDisplayNameButton) setDisplayNameButton.style.display = 'none';
-                        if (signInAnonButton) signInAnonButton.style.display = 'block'; // Afficher le bouton de connexion anonyme
-                        window.showAlert(`Votre nom d'affichage "${newDisplayName}" a été enregistré.`, "success");
-                        // Pré-remplir et désactiver le champ du nom du joueur dans le formulaire de démarrage
-                        if (document.getElementById('player-name-input')) {
-                            document.getElementById('player-name-input').value = newDisplayName;
-                            document.getElementById('player-name-input').disabled = true;
-                        }
-                        showScreen('start-screen'); // Passer à l'écran de démarrage
-                        await window.loadGameSession(currentUserId); // Tenter de charger la partie
-                    } catch (error) {
-                        console.error("Erreur lors de l'enregistrement du nom d'affichage:", error);
-                        window.showAlert("Erreur lors de l'enregistrement du nom d'affichage. Veuillez réessayer.", "error");
-                    }
-                } else {
-                    window.showAlert("Erreur: Utilisateur non authentifié pour enregistrer le nom d'affichage. Veuillez réessayer de vous connecter.", "error");
-                }
-            });
+        currentStoryState = newState; // METTRE À JOUR L'ÉTAT LOCAL AVEC LE NOUVEL ÉTAT
+
+        // Mise à jour de l'UI avec le nouvel état
+        appendStory(narration);
+        updateAttributesDisplay();
+        updateInventoryDisplay();
+        updateFactionRelationsDisplay();
+        updateNPCsDisplay();
+        updateQuestsDisplay();
+        updateEventsDisplay();
+
+
+        if (options && options.length > 0) {
+            displayOptions(options);
+        } else {
+            displayFreeTextInput();
         }
 
-        // Bouton de déconnexion
-        if (signOutButton) {
-            signOutButton.addEventListener('click', async () => {
-                try {
-                    await signOut(auth);
-                    window.showAlert("Vous avez été déconnecté.", "info");
-                    localStorage.removeItem('echoVerseSessionId');
-                    if (window.currentStoryState) window.currentStoryState = {};
-                    window.playerDisplayName = null; // Réinitialiser le nom d'affichage local
-                    showScreen('auth-screen'); // Retour à l'écran d'authentification
-                    // Réinitialiser les éléments de nom d'affichage sur l'écran d'auth
-                    if (displayNameInput) displayNameInput.value = '';
-                    if (displayNameInput) displayNameInput.style.display = 'block';
-                    if (setDisplayNameButton) setDisplayNameButton.style.display = 'block';
-                    if (signInAnonButton) signInAnonButton.style.display = 'none';
-                } catch (error) {
-                    console.error("Erreur lors de la déconnexion:", error);
-                    window.showAlert("Erreur lors de la déconnexion. Veuillez réessayer.", "error");
-                }
-            });
-        }
+    } catch (error) {
+        console.error('Erreur lors de l\'envoi au backend:', error);
+        appendStory("<p style='color: red;'>Une erreur est survenue. Le tissu de l'Echo Verse vacille... (Voir la console pour plus de détails)</p>");
+        displayFreeTextInput();
+    } finally {
+        // Réactiver les entrées
+        if (optionsDisplay) optionsDisplay.style.pointerEvents = 'auto';
+        if (freeTextInput) freeTextInput.style.pointerEvents = 'auto';
+        if (submitActionButton) submitActionButton.textContent = 'Agir';
+    }
+}
 
-        // Tenter de se connecter avec le jeton fourni par Canvas au démarrage
-        (async () => {
-            showScreen('loading-screen');
-            try {
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                } else {
-                    await signInAnonymously(auth);
-                }
-            } catch (error) {
-                console.error("Erreur d'authentification initiale:", error);
-                window.showAlert("Impossible de se connecter automatiquement. Veuillez essayer de jouer anonymement ou recharger.", "error");
-                // Fallback si l'authentification échoue complètement : afficher l'écran d'auth avec le champ de nom d'affichage
-                showScreen('auth-screen');
-                if (displayNameInput) displayNameInput.style.display = 'block';
-                if (setDisplayNameButton) setDisplayNameButton.style.display = 'block';
-                if (signInAnonButton) signInAnonButton.style.display = 'none';
+
+// --- Événements du Démarrage (Déplacés à l'intérieur de window.onload) ---
+// Charger une session existante au chargement de la page (si ID de session existe)
+window.onload = async () => {
+    console.log("window.onload exécuté : Tentative d'initialisation des éléments DOM et des écouteurs d'événements.");
+
+    // Initialiser les variables en accédant aux éléments du DOM après le chargement complet de la page
+    playerNameInput = document.getElementById('player-name-input');
+    playerArchetypeSelect = document.getElementById('player-archetype-select');
+    gameModeSelect = document.getElementById('game-mode-select');
+    startAdventureButton = document.getElementById('start-adventure-button');
+    startScreen = document.getElementById('start-screen');
+    storyScreen = document.getElementById('story-screen');
+    storyDisplay = document.getElementById('story-display');
+    optionsDisplay = document.getElementById('options-display');
+    freeTextInput = document.getElementById('free-text-input');
+    actionInputField = document.getElementById('action-input-field');
+    submitActionButton = document.getElementById('submit-action-button');
+
+    vigorValue = document.getElementById('vigor-value');
+    ingenuityValue = document.getElementById('ingenuity-value');
+    adaptationValue = document.getElementById('adaptation-value');
+    influenceValue = document.getElementById('influence-value');
+    inventoryList = document.getElementById('inventory-list');
+    gardeChroniqueRelation = document.getElementById('garde-chronique-relation');
+    fluxLibresRelation = document.getElementById('flux-libres-relation');
+    resonancesObscuresRelation = document.getElementById('resonances-obscures-relation');
+    npcsList = document.getElementById('npcs-list');
+    questsList = document.getElementById('quests-list');
+    eventsList = document.getElementById('events-list');
+
+    // Vérification de la présence des éléments critiques
+    if (!playerNameInput) console.error("Erreur: playerNameInput non trouvé!");
+    if (!playerArchetypeSelect) console.error("Erreur: playerArchetypeSelect non trouvé!");
+    if (!gameModeSelect) console.error("Erreur: gameModeSelect non trouvé!");
+    if (!startAdventureButton) console.error("Erreur: startAdventureButton non trouvé!");
+    if (!startScreen) console.error("Erreur: startScreen non trouvé!");
+    if (!storyScreen) console.error("Erreur: storyScreen non trouvé!");
+
+
+    // Attach event listeners here to ensure DOM elements are fully loaded
+    if (startAdventureButton) { // S'assurer que le bouton existe avant d'ajouter l'écouteur
+        console.log("Attaching click listener to startAdventureButton.");
+        startAdventureButton.addEventListener('click', () => {
+            console.log("startAdventureButton cliqué!");
+            const playerName = playerNameInput.value.trim();
+            const playerArchetype = playerArchetypeSelect.value;
+            const gameMode = gameModeSelect.value; // Récupérer le mode de jeu sélectionné
+
+            if (!playerName || !playerArchetype || !gameMode) {
+                alert("Veuillez entrer votre nom, choisir un archétype et un mode de jeu.");
+                return;
             }
-        })();
 
-    </script>
-    <script src="script.js"></script>
-</body>
-</html>
+            // Initialiser ou charger la session ID
+            if (!currentSessionId) {
+                currentSessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('echoVerseSessionId', currentSessionId);
+            }
+
+            // Mettre à jour l'état local avec le nom, l'archétype ET LE MODE DE JEU
+            currentStoryState.playerName = playerName;
+            currentStoryState.playerArchetype = playerArchetype;
+            currentStoryState.gameMode = gameMode;
+
+            if (startScreen) startScreen.classList.remove('active');
+            if (storyScreen) storyScreen.classList.add('active');
+
+            // Envoyer la requête de démarrage au backend
+            sendToBackend(`Démarrer l'aventure en tant que ${playerArchetype} en mode ${gameMode}`, true);
+        });
+    } else {
+        console.error("startAdventureButton element not found, cannot attach event listener.");
+    }
+
+
+    if (submitActionButton) { // S'assurer que le bouton existe avant d'ajouter l'écouteur
+        console.log("Attaching click listener to submitActionButton.");
+        submitActionButton.addEventListener('click', () => {
+            console.log("submitActionButton cliqué!");
+            const action = actionInputField.value.trim();
+            if (action) {
+                sendToBackend(action);
+            } else {
+                alert("Veuillez décrire votre action.");
+            }
+        });
+    } else {
+        console.error("submitActionButton element not found, cannot attach event listener.");
+    }
+
+
+    // Permettre d'envoyer l'action avec "Entrée"
+    if (actionInputField) { // S'assurer que le champ existe avant d'ajouter l'écouteur
+        console.log("Attaching keypress listener to actionInputField.");
+        actionInputField.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) { // Shift+Enter pour un saut de ligne
+                e.preventDefault(); // Empêche le saut de ligne par défaut du textarea
+                if (submitActionButton) submitActionButton.click();
+            }
+        });
+    } else {
+        console.error("actionInputField element not found, cannot attach event listener.");
+    }
+
+
+    // Existing session loading logic
+    if (currentSessionId) {
+        console.log("Session ID existante détectée, tentant de charger la session.");
+        // Tente de charger l'état depuis le backend. Si la session n'est pas trouvée (par ex. première visite après avoir vidé la DB),
+        // le backend renverra 404, et le frontend basculera sur l'écran de démarrage.
+        try {
+            const response = await fetch('/.netlify/functions/gemini-narrator', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sessionId: currentSessionId, isStart: false, playerAction: "Charger session" }),
+            });
+
+            if (!response.ok) {
+                if (response.status === 404) {
+                    console.warn("Session non trouvée, démarrage d'une nouvelle partie.");
+                    localStorage.removeItem('echoVerseSessionId'); // Supprime l'ID de session invalide
+                    currentSessionId = null; // Réinitialise
+                    if (startScreen) startScreen.classList.add('active');
+                    if (storyScreen) storyScreen.classList.remove('active');
+                } else {
+                    throw new Error(`Erreur HTTP: ${response.status} - ${await response.text()}`);
+                }
+            } else {
+                const data = await response.json();
+                currentStoryState = data.newState; // Charger l'état complet
+                appendStory(`Bienvenue de nouveau, ${currentStoryState.playerName} ! L'Echo Verse vous attend...`);
+                appendStory(data.narration); // Afficher la dernière narration enregistrée (ou un message de bienvenue générique)
+
+                // Mettre à jour toutes les UI
+                updateAttributesDisplay();
+                updateInventoryDisplay();
+                updateFactionRelationsDisplay();
+                updateNPCsDisplay();
+                updateQuestsDisplay();
+                updateEventsDisplay();
+
+                if (startScreen) startScreen.classList.remove('active');
+                if (storyScreen) storyScreen.classList.add('active');
+                displayFreeTextInput(); // Afficher l'input libre par default après le chargement
+            }
+        } catch (error) {
+            console.error('Erreur lors du chargement de la session:', error);
+            alert("Impossible de charger la session. Une nouvelle partie va démarrer.");
+            localStorage.removeItem('echoVerseSessionId');
+            currentSessionId = null;
+            if (startScreen) startScreen.classList.add('active');
+            if (storyScreen) storyScreen.classList.remove('active');
+        }
+    } else {
+        console.log("Aucune session ID existante, affichage de l'écran de démarrage.");
+        // Si pas de session, afficher l'écran de démarrage
+        if (startScreen) startScreen.classList.add('active');
+        if (storyScreen) storyScreen.classList.remove('active');
+    }
+};

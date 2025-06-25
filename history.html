@@ -3,100 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Echo Verse - Historique</title>
+    <title>Echo Verse - Historique des Parties</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="background-container">
-        <nav class="main-nav">
-            <div class="nav-brand">
-                <a href="index.html">
-                    <img src="https://placehold.co/150x50/1a1a2e/8be9fd?text=ECHO+VERSE+LOGO" alt="Logo Echo Verse" class="h-10">
-                </a>
-            </div>
-            <ul class="nav-links">
-                <li><a href="index.html">Jouer</a></li>
-                <li><a href="profile.html">Mon Profil</a></li>
-                <li><a href="history.html" class="active">Historique</a></li>
-                <li><a href="instructions.html">Instructions</a></li>
-                <li><a href="lore.html">L'Univers</a></li>
-                <li><a href="community.html">Communauté</a></li>
-                <li class="dropdown">
-                    <a href="#" class="dropbtn">Soutien</a>
-                    <div class="dropdown-content">
-                        <a href="contact.html">Nous Joindre</a>
-                        <a href="bug-report.html">Rapporter un Bug</a>
-                        <a href="updates.html">Mises à Jour</a>
-                        <a href="donate.html">Faire un Don</a>
-                    </div>
-                </li>
-            </ul>
-        </nav>
-        <div class="content-wrapper">
-            <div class="container" style="flex-direction: column; align-items: flex-start; gap: 20px;">
-                <h1>Historique des Parties</h1>
-                <div class="stats-box w-full max-w-3xl">
-                    <p>Ici, vous trouverez l'historique de toutes vos sessions de jeu sauvegardées. Cliquez sur une session pour en voir les détails ou la recharger.</p>
-                    <ul id="sessions-history-list" class="mt-4">
-                        <li>Aucune partie sauvegardée trouvée.</li>
-                    </ul>
-                    <p class="text-sm text-gray-400 mt-4">Note: Pour l'instant, cette page affiche la dernière session active. Une gestion complète de multiples sessions sera ajoutée ultérieurement.</p>
-                </div>
-            </div>
+    <nav class="main-nav">
+        <div class="nav-brand">
+            <a href="index.html">
+                <img src="https://placehold.co/150x50/1a1a2e/8be9fd?text=ECHO+VERSE+LOGO" alt="Logo Echo Verse" class="h-10">
+            </a>
         </div>
-    </div>
-
-    <!-- La Modal Personnalisée (pour remplacer les alertes) -->
-    <div id="custom-alert-modal" class="modal-overlay">
-        <div class="modal-content">
-            <span class="close-button">&times;</span>
-            <p id="modal-message" class="modal-message"></p>
-            <button id="modal-ok-button" class="modal-button">OK</button>
-        </div>
-    </div>
-
-    <footer class="main-footer">
-        <p>&copy; 2024 Echo Verse. Tous droits réservés. Reproduction ou utilisation non autorisée du contenu, des logos et des concepts strictement interdite.</p>
-        <p>Ce site utilise des technologies d'IA générative et de base de données. Pour plus d'informations, consultez nos <a href="#" class="text-blue-400 hover:underline">Conditions d'Utilisation</a> et notre <a href="#" class="text-blue-400 hover:underline">Politique de Confidentialité</a>.</p>
-    </footer>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        window.firebaseApp = app;
-        window.firebaseAuth = auth;
-        window.firestoreDb = db;
-        window.canvasAppId = appId;
-        let currentUserId = null;
-
-        // Fonction pour gérer l'affichage des écrans (hors index.html)
-        function showScreen(screenId) {
-            const targetScreen = document.getElementById(screenId);
-            if (targetScreen) {
-                targetScreen.classList.add('active');
-            }
-        }
-
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                currentUserId = user.uid;
-                await window.loadGameSession(currentUserId);
-            } else {
-                currentUserId = null;
-                window.showAlert("Veuillez vous connecter pour voir votre historique.", "info");
-                if (document.getElementById('sessions-history-list')) {
-                    document.getElementById('sessions-history-list').innerHTML = '<li>Veuillez vous connecter pour voir votre historique.</li>';
+        <ul class="nav-links">
+            <li><a href="index.html">Jouer</a></li>
+            <li><a href="profile.html">Mon Profil</a></li>
+            <li><a href="history.html" class="active">Historique</a></li>
+            <li><a href="instructions.html">Instructions</a></li>
+            <li><a href="lore.html">L'Univers</a></li>
+            <li><a href="community.html">Communauté</a></li>
+            <li class="dropdown">
+                <a href="#" class="dropbtn">Soutien</a>
+                <div class="dropdown-content">
+                    <a href="contact.html">Nous Joindre</a>
+                    <a href="bug-report.html">Rapporter un Bug</a>
+                    <a href="updates.html">Mises à Jour</a>
+                    <a href="donate.html">Faire un Don</a>
                 }
             }
         });
@@ -109,8 +40,8 @@
                     await signInAnonymously(auth);
                 }
             } catch (error) {
-                console.error("Erreur d'authentification initiale sur la page d'historique:", error);
-                window.showAlert("Impossible de se connecter automatiquement. Veuillez essayer depuis la page principale ou recharger.", "error");
+                console.error("Erreur d'authentification initiale sur history.html:", error);
+                window.showAlert("Impossible de se connecter automatiquement. Veuillez réessayer.", "error");
             }
         })();
     </script>

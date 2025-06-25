@@ -8,68 +8,45 @@
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="background-container">
-        <nav class="main-nav">
-            <div class="nav-brand">
-                <a href="index.html">
-                    <img src="https://placehold.co/150x50/1a1a2e/8be9fd?text=ECHO+VERSE+LOGO" alt="Logo Echo Verse" class="h-10">
-                </a>
-            </div>
-            <ul class="nav-links">
-                <li><a href="index.html">Jouer</a></li>
-                <li><a href="profile.html">Mon Profil</a></li>
-                <li><a href="history.html">Historique</a></li>
-                <li><a href="instructions.html">Instructions</a></li>
-                <li><a href="lore.html">L'Univers</a></li>
-                <li><a href="community.html" class="active">Communauté</a></li>
-                <li class="dropdown">
-                    <a href="#" class="dropbtn">Soutien</a>
-                    <div class="dropdown-content">
-                        <a href="contact.html">Nous Joindre</a>
-                        <a href="bug-report.html">Rapporter un Bug</a>
-                        <a href="updates.html">Mises à Jour</a>
-                        <a href="donate.html">Faire un Don</a>
-                    </div>
-                </li>
-            </ul>
-        </nav>
-        <div class="content-wrapper">
-            <div class="container" style="flex-direction: column; align-items: flex-start; gap: 20px;">
-                <h1>Communauté Echo Verse</h1>
-                <div class="stats-box w-full max-w-3xl">
-                    <p>Rejoignez la communauté grandissante des Voyageurs des Échos ! Partagez vos aventures, discutez des modes de jeu, et connectez-vous avec d'autres joueurs.</p>
-
-                    <h2>Nos Plateformes Officielles</h2>
-                    <ul class="list-disc list-inside pl-4">
-                        <li><strong>Discord:</strong> Notre serveur Discord est le cœur de notre communauté. Rejoignez-nous pour discuter en temps réel, obtenir de l'aide, partager des anecdotes de jeu et participer à des événements exclusifs.
-                            <br><a href="#" class="text-blue-400 hover:underline" onclick="window.showAlert('Lien Discord à ajouter ici')">Rejoindre le Discord Echo Verse</a></li>
-                        <li><strong>Forums Officiels:</strong> Participez à des discussions plus approfondies, proposez des idées pour de futurs modes de jeu ou archétypes, et lisez les annonces officielles.
-                            <br><a href="#" class="text-blue-400 hover:underline" onclick="window.showAlert('Lien Forum à ajouter ici')">Visiter les Forums Echo Verse</a></li>
-                        <li><strong>Réseaux Sociaux:</strong> Suivez-nous sur nos réseaux sociaux pour les dernières actualités, des aperçus de développement et interagir avec l'équipe.
-                            <ul class="list-disc list-inside pl-6 mt-2">
-                                <li><a href="#" class="text-blue-400 hover:underline" onclick="window.showAlert('Lien X/Twitter à ajouter ici')">X (Twitter)</a></li>
-                                <li><a href="#" class="text-blue-400 hover:underline" onclick="window.showAlert('Lien Facebook à ajouter ici')">Facebook</a></li>
-                                <li><a href="#" class="text-blue-400 hover:underline" onclick="window.showAlert('Lien Instagram à ajouter ici')">Instagram</a></li>
-                            </ul>
-                        </li>
-                    </ul>
-
-                    <h2>Partagez Votre Histoire</h2>
-                    <p class="mt-4">Nous adorons lire vos aventures ! Utilisez le hashtag <strong>#EchoVerseStories</strong> sur vos réseaux sociaux pour partager des extraits de votre jeu, vos personnages préférés ou les moments les plus mémorables.</p>
-
-                    <h2>Bénévolat et Contribution</h2>
-                    <p class="mt-4">Vous êtes passionné par Echo Verse et souhaitez contribuer ? Nous recherchons toujours des modérateurs, des testeurs et des créateurs de contenu pour enrichir l'univers. Contactez-nous via la page de soutien si vous êtes intéressé !</p>
-                </div>
-            </div>
+    <nav class="main-nav">
+        <div class="nav-brand">
+            <a href="index.html">
+                <img src="https://placehold.co/150x50/1a1a2e/8be9fd?text=ECHO+VERSE+LOGO" alt="Logo Echo Verse" class="h-10">
+            </a>
         </div>
-    </div>
+        <ul class="nav-links">
+            <li><a href="index.html">Jouer</a></li>
+            <li><a href="profile.html">Mon Profil</a></li>
+            <li><a href="history.html">Historique</a></li>
+            <li><a href="instructions.html">Instructions</a></li>
+            <li><a href="lore.html">L'Univers</a></li>
+            <li><a href="community.html" class="active">Communauté</a></li>
+            <li class="dropdown">
+                <a href="#" class="dropbtn">Soutien</a>
+                <div class="dropdown-content">
+                    <a href="contact.html">Nous Joindre</a>
+                    <a href="bug-report.html">Rapporter un Bug</a>
+                    <a href="updates.html">Mises à Jour</a>
+                    <a href="donate.html">Faire un Don</a>
+                </div>
+            </li>
+        </ul>
+    </nav>
 
-    <!-- La Modal Personnalisée (pour remplacer les alertes) -->
-    <div id="custom-alert-modal" class="modal-overlay">
-        <div class="modal-content">
-            <span class="close-button">&times;</span>
-            <p id="modal-message" class="modal-message"></p>
-            <button id="modal-ok-button" class="modal-button">OK</button>
+    <div class="content-wrapper">
+        <div class="container" style="flex-direction: column; align-items: center; max-width: 800px;">
+            <h1>Rejoignez la Communauté Echo Verse</h1>
+            <div class="stats-box w-full mb-4">
+                <p>Connectez-vous avec d'autres Voyageurs de l'Echo Verse ! Partagez vos histoires, vos découvertes, vos théories sur la Fracture et bien plus encore.</p>
+                <h2 class="mt-4">Où nous trouver :</h2>
+                <ul class="list-disc pl-5">
+                    <li>**Discord :** Rejoignez notre serveur Discord officiel pour discuter en direct, partager des screenshots de vos parties et rencontrer d'autres joueurs. <a href="#" class="text-blue-400 hover:underline">Rejoindre Discord (lien factice)</a></li>
+                    <li>**Forums :** Participez à des discussions approfondies sur le lore, les stratégies de jeu et les futures mises à jour. <a href="#" class="text-blue-400 hover:underline">Accéder aux Forums (lien factice)</a></li>
+                    <li>**Réseaux Sociaux :** Suivez-nous sur [Nom Réseau Social 1] et [Nom Réseau Social 2] pour les dernières nouvelles et annonces.</li>
+                </ul>
+                <h2 class="mt-4">Partagez votre Aventure</h2>
+                <p>Nous adorons voir comment vos histoires se déroulent ! N'hésitez pas à partager des extraits de vos narrations, les statistiques de votre personnage ou vos moments les plus mémorables en utilisant le hashtag #EchoVerseAI sur vos plateformes préférées.</p>
+            </div>
         </div>
     </div>
 
@@ -77,54 +54,5 @@
         <p>&copy; 2024 Echo Verse. Tous droits réservés. Reproduction ou utilisation non autorisée du contenu, des logos et des concepts strictement interdite.</p>
         <p>Ce site utilise des technologies d'IA générative et de base de données. Pour plus d'informations, consultez nos <a href="#" class="text-blue-400 hover:underline">Conditions d'Utilisation</a> et notre <a href="#" class="text-blue-400 hover:underline">Politique de Confidentialité</a>.</p>
     </footer>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        window.firebaseApp = app;
-        window.firebaseAuth = auth;
-        window.firestoreDb = db;
-        window.canvasAppId = appId;
-        let currentUserId = null;
-
-        function showScreen(screenId) {
-            const targetScreen = document.getElementById(screenId);
-            if (targetScreen) {
-                targetScreen.classList.add('active');
-            }
-        }
-
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                currentUserId = user.uid;
-                // Pas besoin de charger la session ici, car cette page est statique.
-            } else {
-                currentUserId = null;
-            }
-        });
-
-        (async () => {
-            try {
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                } else {
-                    await signInAnonymously(auth);
-                }
-            } catch (error) {
-                console.error("Erreur d'authentification initiale sur la page de communauté:", error);
-            }
-        })();
-    </script>
-    <script src="script.js"></script>
 </body>
 </html>
