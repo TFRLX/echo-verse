@@ -9,9 +9,26 @@ const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__f
 const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
 // Initialiser Firebase (une seule fois pour toute l'application)
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+let app;
+let auth;
+let db;
+
+// NOUVELLE VÉRIFICATION DE LA CLÉ API
+if (!firebaseConfig.apiKey || firebaseConfig.apiKey.trim() === '') {
+    console.error("Firebase API Key is missing or empty in firebaseConfig.");
+    window.showAlert("Erreur de configuration Firebase: Clé API manquante ou invalide. Veuillez vérifier la variable '__firebase_config' sur Netlify et assurez-vous que 'apiKey' est correctement configurée dans votre projet Firebase.", "error");
+} else {
+    try {
+        app = initializeApp(firebaseConfig);
+        auth = getAuth(app);
+        db = getFirestore(app);
+        console.log("Firebase initialized successfully.");
+    } catch (error) {
+        console.error("Failed to initialize Firebase:", error);
+        window.showAlert("Erreur d'initialisation de Firebase. Veuillez vérifier votre configuration Firebase sur Netlify. Erreur: " + error.message, "error");
+    }
+}
+
 
 // Variables d'état pour le frontend
 let currentUserId = null;
@@ -247,7 +264,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Lancement initial de l'authentification Firebase
-    initFirebaseAuth();
+    // Seulement si Firebase a été initialisé avec succès
+    if (auth) { 
+        initFirebaseAuth();
+    } else {
+        console.error("Firebase auth is not initialized. Cannot proceed with initFirebaseAuth.");
+        // showAlert sera déjà affichée si firebaseConfig.apiKey était manquante
+    }
 });
 
 // --- Fonctions d'Authentification Firebase ---
@@ -316,6 +339,12 @@ async function initFirebaseAuth() {
 async function createUser() {
     console.log("createUser function called (from Commencer l'aventure button).");
     const newDisplayName = displayNameInput.value.trim();
+    if (!auth || !db) { // Vérifie que Firebase est initialisé
+        window.showAlert("Le service Firebase n'est pas disponible. Impossible de créer l'utilisateur.", "error");
+        console.error("Firebase services not initialized in createUser.");
+        return;
+    }
+
     if (newDisplayName.length < 3 || newDisplayName.length > 20) {
         const loginErrorElement = document.getElementById('loginError');
         if (loginErrorElement) {
@@ -368,6 +397,11 @@ async function createUser() {
 
 async function signInAnonymouslyUser() {
     console.log("signInAnonymouslyUser function called (from Continuer sans sauvegarder button).");
+    if (!auth) { // Vérifie que Firebase Auth est initialisé
+        window.showAlert("Le service d'authentification Firebase n'est pas disponible.", "error");
+        console.error("Firebase auth not initialized in signInAnonymouslyUser.");
+        return;
+    }
     try {
         await signInAnonymously(auth);
         window.showAlert("Vous jouez maintenant en mode anonyme. Votre progression ne sera pas sauvegardée.", "info");
@@ -381,6 +415,11 @@ async function signInAnonymouslyUser() {
 
 async function signOutUser() {
     console.log("signOutUser function called.");
+    if (!auth) { // Vérifie que Firebase Auth est initialisé
+        window.showAlert("Le service d'authentification Firebase n'est pas disponible.", "error");
+        console.error("Firebase auth not initialized in signOutUser.");
+        return;
+    }
     try {
         await signOut(auth);
         window.showAlert("Vous avez été déconnecté.", "info");
@@ -405,6 +444,12 @@ async function signOutUser() {
 
 async function saveCharacter() {
     console.log("saveCharacter function called.");
+    if (!db) { // Vérifie que Firestore est initialisé
+        window.showAlert("Le service de base de données n'est pas disponible. Impossible de sauvegarder le personnage.", "error");
+        console.error("Firestore not initialized in saveCharacter.");
+        return;
+    }
+
     const characterName = characterNameInput.value.trim();
     const archetype = archetypeSelect.value;
     const description = descriptionTextarea.value.trim();
@@ -586,8 +631,9 @@ function takeCustomAction() {
 
 async function saveGame() {
     console.log("saveGame function called.");
-    if (!currentUserId) {
-        window.showAlert("Vous devez être connecté pour sauvegarder votre partie.", "error");
+    if (!currentUserId || !db) { // Vérifie que l'utilisateur est connecté et Firestore est initialisé
+        window.showAlert("Vous devez être connecté et les services Firebase doivent être disponibles pour sauvegarder votre partie.", "error");
+        console.error("Firebase services not available or user not logged in for saveGame.");
         return;
     }
     try {
@@ -724,8 +770,9 @@ async function sendToBackend(action, isStart = false) {
 // Cette fonction est appelée par initFirebaseAuth si une session est détectée
 async function loadGameSession(userId) {
     console.log("loadGameSession called for userId:", userId);
-    if (!userId) {
-        console.warn("loadGameSession called without userId. Cannot load session.");
+    if (!userId || !db) { // Vérifie que Firestore est initialisé
+        console.warn("loadGameSession called without userId or Firestore not initialized. Cannot load session.");
+        window.showAlert("Les services Firebase ne sont pas disponibles. Impossible de charger la session.", "error");
         window.showScreen('loginScreen');
         return;
     }
