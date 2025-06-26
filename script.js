@@ -48,18 +48,20 @@ window.showAlert = (message, type = 'info') => {
     modalMessage.textContent = message;
     customAlertModal.classList.add('active');
     
+    // Ajoute la classe de type au contenu de la modal pour le stylisme
     modalMessage.parentNode.classList.remove('error', 'success', 'info');
     modalMessage.parentNode.classList.add(type);
 
-    customAlertModal.style.display = 'flex';
+    customAlertModal.style.display = 'flex'; // S'assure que l'overlay est visible
 
     const closeModal = () => {
         customAlertModal.style.display = 'none';
-        customAlertModal.classList.remove('active');
+        customAlertModal.classList.remove('active'); // Retire la classe active après la fermeture
     };
 
     modalOkButton.onclick = closeModal;
     closeButton.onclick = closeModal;
+    // Ferme la modal si l'utilisateur clique en dehors du contenu
     customAlertModal.onclick = (event) => {
         if (event.target === customAlertModal) {
             closeModal();
@@ -70,14 +72,16 @@ window.showAlert = (message, type = 'info') => {
 // Fonction pour gérer l'affichage des différents écrans du jeu
 window.showScreen = (screenId) => {
     console.log(`Attempting to show screen: ${screenId}`);
+    // Cache tous les écrans
     document.querySelectorAll('.screen').forEach(screen => {
         screen.classList.remove('active');
-        screen.style.display = 'none'; // Explicitly hide
+        screen.style.display = 'none'; // Cacher explicitement pour éviter les chevauchements visuels
     });
+    // Affiche l'écran cible
     const targetScreen = document.getElementById(screenId);
     if (targetScreen) {
         targetScreen.classList.add('active');
-        targetScreen.style.display = 'flex'; // Explicitly show
+        targetScreen.style.display = 'flex'; // Afficher explicitement
         console.log(`Screen ${screenId} is now active and visible.`);
     } else {
         console.error(`Screen with ID ${screenId} not found.`);
@@ -90,15 +94,16 @@ function updateListDisplay(element, items, displayFunc, defaultText = 'Aucun') {
         console.warn(`Element not found for list display:`, element);
         return;
     }
-    element.innerHTML = '';
+    element.innerHTML = ''; // Vide la liste existante
     if (items && items.length > 0) {
         items.forEach(item => {
             const li = document.createElement('li');
-            li.innerHTML = displayFunc(item);
+            li.innerHTML = displayFunc(item); // Utilise une fonction de display spécifique pour chaque type d'élément
             element.appendChild(li);
         });
     } else {
         const li = document.createElement('li');
+        // Détermine le type d'objet pour le texte par défaut
         const itemType = element.id.includes('inventory') ? 'objet' :
                          element.id.includes('npcs') ? 'PNJ' :
                          element.id.includes('quests') ? 'quête' : 'événement';
@@ -157,16 +162,20 @@ document.addEventListener('DOMContentLoaded', function() {
     questsList = document.getElementById('quests-list');
     eventsList = document.getElementById('events-list');
 
-    // Vérification des éléments cruciaux pour le débogage
-    console.log("Elements retrieved:");
-    console.log("loginScreen:", loginScreen);
-    console.log("createUserButton:", createUserButton);
-    console.log("signInAnonButton:", signInAnonButton);
-    console.log("characterScreen:", characterScreen);
-    console.log("saveCharacterButton:", saveCharacterButton);
-    console.log("modeScreen:", modeScreen);
-    console.log("startGameButton:", startGameButton);
-    console.log("gameScreen:", gameScreen);
+    // Vérification des éléments cruciaux pour le débogage (avec plus de détails)
+    console.log("Status des éléments DOM clés au chargement:");
+    console.log(`displayNameInput (ID: displayName): ${displayNameInput ? 'Found' : 'NOT FOUND'}`);
+    console.log(`createUserButton (ID: createUserButton): ${createUserButton ? 'Found' : 'NOT FOUND'}`);
+    console.log(`signInAnonButton (ID: signInAnonButton): ${signInAnonButton ? 'Found' : 'NOT FOUND'}`);
+    console.log(`characterNameInput (ID: characterName): ${characterNameInput ? 'Found' : 'NOT FOUND'}`);
+    console.log(`archetypeSelect (ID: archetype): ${archetypeSelect ? 'Found' : 'NOT FOUND'}`);
+    console.log(`saveCharacterButton (ID: saveCharacterButton): ${saveCharacterButton ? 'Found' : 'NOT FOUND'}`);
+    console.log(`gameModeSelect (ID: gameModeSelect): ${gameModeSelect ? 'Found' : 'NOT FOUND'}`);
+    console.log(`startGameButton (ID: startGameButton): ${startGameButton ? 'Found' : 'NOT FOUND'}`);
+    console.log(`loginScreen (ID: loginScreen): ${loginScreen ? 'Found' : 'NOT FOUND'}`);
+    console.log(`characterScreen (ID: characterScreen): ${characterScreen ? 'Found' : 'NOT FOUND'}`);
+    console.log(`modeScreen (ID: modeScreen): ${modeScreen ? 'Found' : 'NOT FOUND'}`);
+    console.log(`gameScreen (ID: gameScreen): ${gameScreen ? 'Found' : 'NOT FOUND'}`);
 
 
     // Attacher les écouteurs d'événements
@@ -207,7 +216,7 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error("newAdventureButton not found. Cannot attach listener.");
     }
     if (quitGameButton) {
-        quitGameButton.addEventListener('click', signOutUser); // Changed to signOutUser
+        quitGameButton.addEventListener('click', signOutUser); // Changed to signOutUser for consistency
         console.log("Event listener attached to quitGameButton (signOutUser).");
     } else {
         console.error("quitGameButton not found. Cannot attach listener.");
@@ -244,7 +253,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // --- Fonctions d'Authentification Firebase ---
 
 async function initFirebaseAuth() {
-    console.log("initFirebaseAuth called.");
+    console.log("initFirebaseAuth called. Setting up onAuthStateChanged listener.");
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             currentUserId = user.uid;
@@ -252,6 +261,7 @@ async function initFirebaseAuth() {
             console.log("Firebase Authentified, User ID:", currentUserId);
 
             const userProfileRef = doc(db, 'artifacts', appId, 'users', currentUserId);
+            // On utilise get() pour vérifier si le profil existe
             const userProfileSnap = await getDoc(userProfileRef);
 
             if (userProfileSnap.exists() && userProfileSnap.data().displayName) {
@@ -259,11 +269,13 @@ async function initFirebaseAuth() {
                 if (displayNameValue) displayNameValue.textContent = playerDisplayName;
                 if (characterNameInput) {
                     characterNameInput.value = playerDisplayName;
-                    characterNameInput.disabled = true;
+                    characterNameInput.disabled = true; // Empêche de modifier le nom du personnage s'il est déjà défini par le nom d'affichage
                 }
                 console.log(`User profile found: DisplayName=${playerDisplayName}. Attempting to load game session.`);
-                await loadGameSession(currentUserId); // Tente de charger la session après l'authentification
+                // Tente de charger la session existante, sinon passe à la création de personnage
+                await loadGameSession(currentUserId); 
             } else {
+                // Si pas de profil ou pas de displayName, on demande le displayName
                 playerDisplayName = null;
                 if (displayNameValue) displayNameValue.textContent = 'Non défini';
                 console.log("User profile or display name not found. Showing loginScreen.");
@@ -271,6 +283,7 @@ async function initFirebaseAuth() {
                 window.showAlert("Choisissez un nom d'affichage unique pour votre voyage dans l'Echo Verse. Il ne pourra pas être changé ensuite.", "info");
             }
         } else {
+            // Utilisateur déconnecté ou n'a jamais été authentifié
             currentUserId = null;
             playerDisplayName = null;
             if (userIdDisplay) userIdDisplay.textContent = 'Non connecté';
@@ -279,7 +292,7 @@ async function initFirebaseAuth() {
             window.showScreen('loginScreen');
             if (characterNameInput) {
                 characterNameInput.value = '';
-                characterNameInput.disabled = false;
+                characterNameInput.disabled = false; // Réactive l'input si pas de nom d'affichage
             }
             window.showAlert("Veuillez vous connecter pour sauvegarder votre progression. Vous pouvez également continuer anonymement, mais votre partie ne sera pas sauvegardée.", "info");
         }
@@ -288,10 +301,10 @@ async function initFirebaseAuth() {
     // Tentative d'authentification initiale (avec token Canvas ou anonyme)
     try {
         if (initialAuthToken) {
-            console.log("Attempting signInWithCustomToken...");
+            console.log("Attempting signInWithCustomToken with initialAuthToken...");
             await signInWithCustomToken(auth, initialAuthToken);
         } else {
-            console.log("Attempting signInAnonymously...");
+            console.log("Attempting signInAnonymously if no custom token...");
             await signInAnonymously(auth);
         }
     } catch (error) {
@@ -301,7 +314,7 @@ async function initFirebaseAuth() {
 }
 
 async function createUser() {
-    console.log("createUser function called.");
+    console.log("createUser function called (from Commencer l'aventure button).");
     const newDisplayName = displayNameInput.value.trim();
     if (newDisplayName.length < 3 || newDisplayName.length > 20) {
         const loginErrorElement = document.getElementById('loginError');
@@ -316,10 +329,12 @@ async function createUser() {
     if (loginErrorElement) loginErrorElement.style.display = 'none';
 
     try {
-        console.log("Attempting to create user with display name:", newDisplayName);
+        // Si l'utilisateur n'est pas déjà authentifié (ex: anonyme par défaut du Canvas), on le connecte anonymement.
+        // onAuthStateChanged se déclenchera et mettra à jour currentUserId.
         if (!currentUserId) {
-            console.log("No currentUserId, signing in anonymously first...");
+            console.log("No currentUserId detected, signing in anonymously before setting display name...");
             await signInAnonymously(auth);
+            // Attendre que onAuthStateChanged mette à jour currentUserId
             await new Promise(resolve => {
                 const unsubscribe = onAuthStateChanged(auth, user => {
                     if (user) {
@@ -328,19 +343,22 @@ async function createUser() {
                     }
                 });
             });
-            console.log("Anonymous sign-in complete:", currentUserId);
+            console.log("Anonymous sign-in complete for display name setting. New userId:", currentUserId);
         }
         
+        // Maintenant que currentUserId est garanti d'être non-null, sauvegardez le displayName
         const userProfileRef = doc(db, 'artifacts', appId, 'users', currentUserId);
         await setDoc(userProfileRef, { displayName: newDisplayName, lastUpdated: new Date() }, { merge: true });
-        playerDisplayName = newDisplayName;
+        
+        playerDisplayName = newDisplayName; // Mise à jour de l'état local
         if (displayNameValue) displayNameValue.textContent = playerDisplayName;
         if (characterNameInput) {
             characterNameInput.value = playerDisplayName;
-            characterNameInput.disabled = true;
+            characterNameInput.disabled = true; // Désactive l'input une fois le nom d'affichage défini
         }
+        
         window.showAlert(`Votre nom d'affichage "${newDisplayName}" a été enregistré.`, "success");
-        window.showScreen('characterScreen');
+        window.showScreen('characterScreen'); // Passe à l'écran de création de personnage
         console.log("User created and display name saved. Transitioning to characterScreen.");
     } catch (error) {
         console.error("Error creating user or saving display name:", error);
@@ -349,10 +367,11 @@ async function createUser() {
 }
 
 async function signInAnonymouslyUser() {
-    console.log("signInAnonymouslyUser function called.");
+    console.log("signInAnonymouslyUser function called (from Continuer sans sauvegarder button).");
     try {
         await signInAnonymously(auth);
         window.showAlert("Vous jouez maintenant en mode anonyme. Votre progression ne sera pas sauvegardée.", "info");
+        // onAuthStateChanged gérera la transition d'écran après la connexion anonyme
         console.log("Anonymous sign-in successful.");
     } catch (error) {
         console.error("Error signing in anonymously:", error);
@@ -365,14 +384,15 @@ async function signOutUser() {
     try {
         await signOut(auth);
         window.showAlert("Vous avez été déconnecté.", "info");
+        // Réinitialise l'état du jeu et les variables d'affichage
         currentStoryState = {};
         playerDisplayName = null;
         if (characterNameInput) {
             characterNameInput.value = '';
-            characterNameInput.disabled = false;
+            characterNameInput.disabled = false; // Réactive l'input pour un nouveau personnage
         }
-        window.showScreen('loginScreen');
-        if (displayNameInput) displayNameInput.value = '';
+        window.showScreen('loginScreen'); // Retourne à l'écran de connexion
+        if (displayNameInput) displayNameInput.value = ''; // Vide l'input du nom d'affichage
         console.log("User signed out. Resetting state and showing loginScreen.");
     } catch (error) {
         console.error("Error signing out:", error);
@@ -394,14 +414,14 @@ async function saveCharacter() {
         window.showAlert('Veuillez remplir tous les champs (Nom, Archétype, Description, Passé) pour votre personnage.', 'error');
         return;
     }
-    console.log("Character data collected. Initializing currentStoryState.");
+    console.log("Character data collected. Initializing currentStoryState with provided data.");
 
     currentStoryState = {
         playerName: characterName,
         playerArchetype: archetype,
         playerDescription: description,
         playerBackground: background,
-        gameMode: '',
+        gameMode: '', // Le mode de jeu sera défini à l'étape suivante
         history: [],
         inventory: [],
         attributes: {
@@ -421,19 +441,21 @@ async function saveCharacter() {
         majorWorldEvents: [],
     };
     
+    // Seulement sauvegarder si l'utilisateur est authentifié
     if (currentUserId) {
         try {
             console.log("Saving initial character state to Firestore for userId:", currentUserId);
             const userSessionRef = doc(db, 'artifacts', appId, 'users', currentUserId, 'sessions', 'current');
             await setDoc(userSessionRef, currentStoryState, { merge: true });
             window.showAlert('Personnage créé et sauvegardé !', 'success');
-            window.showScreen('modeScreen');
+            window.showScreen('modeScreen'); // Passe à l'écran de sélection de mode
             console.log("Character saved. Transitioning to modeScreen.");
         } catch (error) {
             console.error("Error saving initial character:", error);
             window.showAlert("Erreur lors de la sauvegarde du personnage. Veuillez réessayer.", "error");
         }
     } else {
+        // Cas rare où l'utilisateur n'est plus authentifié après avoir rempli le formulaire
         console.error("Error: currentUserId is null during saveCharacter. User not authenticated?");
         window.showAlert("Erreur: Utilisateur non authentifié. Veuillez vous connecter ou continuer anonymement d'abord.", "error");
         window.showScreen('loginScreen');
@@ -449,54 +471,62 @@ async function startGame() {
     }
     console.log("Game mode selected:", mode);
 
-    currentStoryState.gameMode = mode;
+    currentStoryState.gameMode = mode; // Met à jour le mode de jeu dans l'état de la session
     
-    window.showScreen('gameScreen');
+    window.showScreen('gameScreen'); // Affiche l'écran de jeu
     console.log("Transitioned to gameScreen.");
 
     if (narrativeDisplay) {
-        narrativeDisplay.innerHTML = '<div class="loading">Génération de votre aventure...</div>';
+        narrativeDisplay.innerHTML = '<div class="loading">Génération de votre aventure...</div>'; // Affiche un message de chargement
     } else {
-        console.error("narrativeDisplay element not found.");
+        console.error("narrativeDisplay element not found. Cannot show loading message.");
         window.showAlert("Erreur: l'élément d'affichage narratif est manquant.", "error");
         return;
     }
     
     console.log("Sending initial game start payload to backend.");
+    // Envoie la première requête à l'IA pour générer le début de l'histoire
     await sendToBackend(`Démarrer l'aventure en tant que ${currentStoryState.playerArchetype} : "${currentStoryState.playerDescription}", avec un passé "${currentStoryState.playerBackground}" en mode ${currentStoryState.gameMode}`, true);
 }
 
 function updateGameDisplay() {
     console.log("updateGameDisplay called. Current state:", currentStoryState);
+    // Met à jour le nom du joueur et l'ID dans la sidebar
     if (playerNameDisplay) playerNameDisplay.textContent = 
         `${currentStoryState.playerName} (${playerDisplayName || 'Anonyme'})`;
     
+    // Met à jour les attributs
     if (vigorValue) vigorValue.textContent = currentStoryState.attributes.vigor;
     if (ingenuityValue) ingenuityValue.textContent = currentStoryState.attributes.ingenuity;
     if (adaptationValue) adaptationValue.textContent = currentStoryState.attributes.adaptation;
     if (influenceValue) influenceValue.textContent = currentStoryState.attributes.influence;
     
+    // Met à jour la narration principale
     if (narrativeDisplay) {
         narrativeDisplay.innerHTML = currentStoryState.history
-            .filter(entry => entry.type === 'gemini')
+            .filter(entry => entry.type === 'gemini') // N'affiche que la narration de l'IA
             .map(entry => `<p>${entry.text}</p>`)
             .join('');
-        narrativeDisplay.scrollTop = narrativeDisplay.scrollHeight;
+        narrativeDisplay.scrollTop = narrativeDisplay.scrollHeight; // Défilement vers le bas
     } else {
-        console.warn("narrativeDisplay not found during updateGameDisplay.");
+        console.warn("narrativeDisplay not found during updateGameDisplay. Cannot update narrative.");
     }
 
+    // Met à jour l'inventaire
     updateListDisplay(inventoryGrid, currentStoryState.inventory, (item) => `${item.name} (${item.description})`, 'Aucun objet');
     if (inventoryCard) inventoryCard.style.display = currentStoryState.inventory.length > 0 ? 'block' : 'none';
 
+    // Met à jour les relations de faction
     if (currentStoryState.factionRelations) {
         if (gardeChroniqueRelation) gardeChroniqueRelation.textContent = currentStoryState.factionRelations.gardeChronique.relation;
         if (fluxLibresRelation) fluxLibresRelation.textContent = currentStoryState.factionRelations.fluxLibres.relation;
         if (resonancesObscuresRelation) resonancesObscuresRelation.textContent = currentStoryState.factionRelations.resonancesObscures.relation;
     }
+    // Met à jour les PNJ, Quêtes et Événements
     updateListDisplay(npcsList, currentStoryState.npcsMet, (npc) => `${npc.name} (${npc.relation || 'Inconnu'})`, 'Aucun PNJ');
     updateListDisplay(questsList, currentStoryState.activeQuests, (quest) => `${quest.name} [${quest.status}]`, 'Aucune quête');
     updateListDisplay(eventsList, currentStoryState.majorWorldEvents, (event) => `${event.description}`, 'Aucun événement');
+    console.log("Game display updated successfully.");
 }
 
 function appendStory(text) {
@@ -504,44 +534,46 @@ function appendStory(text) {
         console.error("narrativeDisplay element is null. Cannot append story.");
         return;
     }
+    // Remplace les <br> pour un meilleur formatage
     const formattedText = text.replace(/<br>/g, '<br><br>');
     const p = document.createElement('p');
     p.innerHTML = formattedText;
     narrativeDisplay.appendChild(p);
-    narrativeDisplay.scrollTop = narrativeDisplay.scrollHeight;
+    narrativeDisplay.scrollTop = narrativeDisplay.scrollHeight; // Défilement automatique
+    console.log("Story appended to narrative display.");
 }
 
 
 function showActions(options) {
     console.log("showActions called with options:", options);
     if (!actionsCard || !choicesContainer || !customActionTextarea || !takeCustomActionButton) {
-        console.error("Action elements not found in showActions.");
+        console.error("Action elements not found in showActions. Cannot display actions.");
         return;
     }
 
-    actionsCard.style.display = 'block';
-    choicesContainer.innerHTML = '';
+    actionsCard.style.display = 'block'; // S'assure que la carte d'actions est visible
+    choicesContainer.innerHTML = ''; // Vide les anciennes options
 
     if (options && options.length > 0) {
         console.log("Displaying multiple choice options.");
         options.forEach((option, index) => {
             const button = document.createElement('button');
-            button.className = 'choice-btn';
+            button.className = 'choice-btn btn'; // Ajoute la classe 'btn' pour le style
             button.textContent = option;
             button.addEventListener('click', () => sendToBackend(option));
             choicesContainer.appendChild(button);
         });
-        customActionTextarea.style.display = 'none';
-        takeCustomActionButton.style.display = 'none';
+        customActionTextarea.style.display = 'none'; // Cache l'input libre
+        takeCustomActionButton.style.display = 'none'; // Cache le bouton d'action libre
     } else {
         console.log("Displaying free text input.");
-        customActionTextarea.style.display = 'block';
-        takeCustomActionButton.style.display = 'block';
+        customActionTextarea.style.display = 'block'; // Affiche l'input libre
+        takeCustomActionButton.style.display = 'block'; // Affiche le bouton d'action libre
     }
 }
 
 function takeCustomAction() {
-    console.log("takeCustomAction function called.");
+    console.log("takeCustomAction function called (from Exécuter l'action button).");
     const customAction = customActionTextarea.value.trim();
     if (!customAction) {
         window.showAlert('Veuillez décrire votre action.', 'info');
@@ -549,7 +581,7 @@ function takeCustomAction() {
     }
     console.log("Custom action:", customAction);
     sendToBackend(customAction);
-    customActionTextarea.value = '';
+    customActionTextarea.value = ''; // Vide l'input après l'envoi
 }
 
 async function saveGame() {
@@ -563,10 +595,10 @@ async function saveGame() {
         await setDoc(userSessionRef, currentStoryState, { merge: true });
         
         const originalText = saveGameButton.textContent;
-        saveGameButton.textContent = '✅ Sauvegardé !';
+        saveGameButton.textContent = '✅ Sauvegardé !'; // Feedback visuel
         saveGameButton.classList.add('success');
         
-        setTimeout(() => {
+        setTimeout(() => { // Réinitialise le bouton après 2 secondes
             saveGameButton.textContent = originalText;
             saveGameButton.classList.remove('success');
         }, 2000);
@@ -582,8 +614,9 @@ async function saveGame() {
 function newAdventure() {
     console.log("newAdventure function called.");
     window.showAlert("Lancement d'une nouvelle aventure... Votre partie actuelle ne sera pas sauvegardée si vous n'êtes pas connecté.", "info");
-    currentStoryState = {}; // Reset game state
-    window.showScreen('characterScreen'); // Go back to character creation
+    currentStoryState = {}; // Réinitialise l'état du jeu
+    window.showScreen('characterScreen'); // Retourne à l'écran de création de personnage
+    // Réinitialise les champs du formulaire
     if (playerDisplayName) {
         characterNameInput.value = playerDisplayName;
         characterNameInput.disabled = true;
@@ -595,12 +628,12 @@ function newAdventure() {
     backgroundTextarea.value = '';
     archetypeSelect.value = '';
     gameModeSelect.value = '';
-    console.log("New adventure initiated. Resetting UI elements.");
+    console.log("New adventure initiated. Resetting UI elements and transitioning to characterScreen.");
 }
 
-function quitGame() { // This button should call signOutUser for proper flow
+function quitGame() { 
     console.log("quitGame function called. Redirecting to signOutUser.");
-    signOutUser();
+    signOutUser(); // Utilise la fonction de déconnexion pour quitter proprement
 }
 
 async function sendToBackend(action, isStart = false) {
@@ -618,15 +651,23 @@ async function sendToBackend(action, isStart = false) {
         return;
     }
 
+    // Affiche l'action du joueur dans l'historique de la narration
     if (!isStart && currentStoryState.playerName) {
         appendStory(`\n> ${currentStoryState.playerName} : ${action}\n`);
     }
 
+    // Désactive les éléments interactifs pendant le traitement de l'IA
     if (actionsCard) actionsCard.style.pointerEvents = 'none';
     if (takeCustomActionButton) takeCustomActionButton.textContent = 'Réflexion en cours...';
     if (saveGameButton) saveGameButton.disabled = true;
 
+    // Affiche un message de chargement dans la zone de narration
     if (narrativeDisplay) narrativeDisplay.innerHTML = '<div class="loading">L\'IA génère la suite de votre aventure...</div>';
+    else {
+        console.error("narrativeDisplay not found. Cannot show loading message.");
+        window.showAlert("Erreur interne : Élément narratif introuvable.", "error");
+        return;
+    }
 
 
     const payload = {
@@ -643,6 +684,7 @@ async function sendToBackend(action, isStart = false) {
     console.log("Payload sent to backend:", payload);
 
     try {
+        // Envoi de la requête à la fonction Netlify
         const response = await fetch('/.netlify/functions/gemini-narrator', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -658,18 +700,19 @@ async function sendToBackend(action, isStart = false) {
         const { narration, options, newState } = data;
         console.log("Response from backend:", data);
 
-        currentStoryState = newState;
+        currentStoryState = newState; // Met à jour l'état du jeu avec la réponse du backend
 
-        updateGameDisplay();
-        appendStory(narration);
-        showActions(options);
+        updateGameDisplay(); // Met à jour tous les éléments de l'UI (stats, inventaire, etc.)
+        appendStory(narration); // Ajoute la nouvelle narration
+        showActions(options); // Affiche les nouvelles options ou l'input libre
 
     } catch (error) {
         console.error('Error sending to backend:', error);
         window.showAlert("Une erreur est survenue. Le tissu de l'Echo Verse vacille... (Voir la console pour plus de détails)", "error");
         if (narrativeDisplay) narrativeDisplay.innerHTML = `<p class="error">Une erreur est survenue: ${error.message}. Veuillez réessayer.</p>`;
-        showActions([]);
+        showActions([]); // Affiche l'input libre en cas d'erreur
     } finally {
+        // Réactive les éléments interactifs
         if (actionsCard) actionsCard.style.pointerEvents = 'auto';
         if (takeCustomActionButton) takeCustomActionButton.textContent = 'Exécuter l\'action';
         if (saveGameButton) saveGameButton.disabled = false;
@@ -678,6 +721,7 @@ async function sendToBackend(action, isStart = false) {
 }
 
 // Fonction pour charger une session de jeu existante
+// Cette fonction est appelée par initFirebaseAuth si une session est détectée
 async function loadGameSession(userId) {
     console.log("loadGameSession called for userId:", userId);
     if (!userId) {
@@ -686,10 +730,11 @@ async function loadGameSession(userId) {
         return;
     }
     
-    // Logic for profile.html and history.html depends on this function.
-    // We need to differentiate the call depending on the current page.
+    // On doit distinguer l'appel selon la page pour laquelle la session est chargée
+    // (index.html, profile.html, history.html)
     const path = window.location.pathname;
 
+    // Logique pour index.html (la page de jeu principale)
     if (path === '/' || path.includes('index.html')) {
         try {
             console.log("Loading session for index.html from backend...");
@@ -700,32 +745,36 @@ async function loadGameSession(userId) {
             });
 
             if (!response.ok) {
+                // Si la session n'est pas trouvée (status 404), on démarre une nouvelle partie
                 if (response.status === 404) {
-                    console.warn("Session not found for this user, starting a new game.");
+                    console.warn("Session not found for this user, starting a new game (character creation screen).");
                     window.showScreen('characterScreen');
                 } else {
+                    // Pour toute autre erreur HTTP, on la propage
                     throw new Error(`Erreur HTTP: ${response.status} - ${await response.text()}`);
                 }
             } else {
+                // Session trouvée et chargée
                 const data = await response.json();
                 currentStoryState = data.newState;
                 console.log("Session loaded successfully. State:", currentStoryState);
 
                 window.showAlert(`Bienvenue de nouveau, ${currentStoryState.playerName || playerDisplayName} ! L'Echo Verse vous attend...`, "success");
 
-                updateGameDisplay();
-                appendStory(data.narration);
+                updateGameDisplay(); // Met à jour l'UI du jeu
+                appendStory(data.narration); // Affiche la dernière narration
 
-                window.showScreen('gameScreen');
-                showActions([]); // Show free input by default after load
+                window.showScreen('gameScreen'); // Affiche l'écran de jeu
+                showActions([]); // Affiche l'input libre par défaut après le chargement
                 console.log("Game screen displayed with loaded session.");
             }
         } catch (error) {
-            console.error('Error loading session:', error);
+            console.error('Error loading session for index.html:', error);
             window.showAlert("Impossible de charger la session. Veuillez démarrer une nouvelle partie.", "error");
-            window.showScreen('characterScreen');
+            window.showScreen('characterScreen'); // En cas d'erreur de chargement, proposer une nouvelle partie
         }
     } else if (path.includes('profile.html')) {
+        // Logique spécifique pour profile.html
         const profilePlayerName = document.getElementById('profile-player-name');
         if (userId) {
             console.log("Loading profile data for profile.html...");
@@ -740,13 +789,14 @@ async function loadGameSession(userId) {
                     const data = await response.json();
                     currentStoryState = data.newState;
                     console.log("Profile data loaded:", currentStoryState);
+                    // Mise à jour des éléments de la page de profil
                     if (profilePlayerName) profilePlayerName.textContent = currentStoryState.playerName || 'N/A';
                     if (document.getElementById('profile-player-archetype')) document.getElementById('profile-player-archetype').textContent = currentStoryState.playerArchetype || 'N/A';
                     if (document.getElementById('profile-player-description')) document.getElementById('profile-player-description').textContent = currentStoryState.playerDescription || 'N/A';
                     if (document.getElementById('profile-player-background')) document.getElementById('profile-player-background').textContent = currentStoryState.playerBackground || 'N/A';
                     if (document.getElementById('profile-game-mode')) document.getElementById('profile-game-mode').textContent = currentStoryState.gameMode || 'N/A';
                     if (document.getElementById('profile-vigor-value')) document.getElementById('profile-vigor-value').textContent = currentStoryState.attributes ? currentStoryState.attributes.vigor : 'N/A';
-                    if (document.getElementById('profile-ingenuit-value')) document.getElementById('profile-ingenuit-value').textContent = currentStoryState.attributes ? currentStoryState.attributes.ingenuity : 'N/A'; // Corrected ID and property name
+                    if (document.getElementById('profile-ingenuit-value')) document.getElementById('profile-ingenuit-value').textContent = currentStoryState.attributes ? currentStoryState.attributes.ingenuity : 'N/A';
                     if (document.getElementById('profile-adaptation-value')) document.getElementById('profile-adaptation-value').textContent = currentStoryState.attributes ? currentStoryState.attributes.adaptation : 'N/A';
                     if (document.getElementById('profile-influence-value')) document.getElementById('profile-influence-value').textContent = currentStoryState.attributes ? currentStoryState.attributes.influence : 'N/A';
                     updateListDisplay(document.getElementById('profile-inventory-list'), currentStoryState.inventory, (item) => `${item.name} (${item.description})`, 'Aucun objet');
@@ -770,6 +820,7 @@ async function loadGameSession(userId) {
             if (document.getElementById('profile-display-name')) document.getElementById('profile-display-name').textContent = 'Non connecté';
         }
     } else if (path.includes('history.html')) {
+        // Logique spécifique pour history.html
         const sessionsHistoryList = document.getElementById('sessions-history-list');
         if (userId) {
             console.log("Loading history data for history.html...");
@@ -837,7 +888,7 @@ document.addEventListener('keydown', function(e) {
         updateGameDisplay(); // Mettre à jour l'affichage
         
         window.showAlert('🎮 Code Konami activé ! Vos statistiques ont été boostées !', 'success');
-        konamiCode = [];
+        konamiCode = []; // Réinitialise le code Konami
     }
 });
 
@@ -845,18 +896,20 @@ document.addEventListener('keydown', function(e) {
 function resetGame() {
     window.showAlert('Êtes-vous sûr de vouloir réinitialiser complètement le jeu ? Cela supprimera toutes les données sauvegardées localement et sur le cloud pour cet utilisateur.', 'info');
     
+    // Logique de déconnexion et de réinitialisation
     if (auth) {
         signOut(auth).then(() => {
-            localStorage.removeItem('echoVerseSessionId');
-            currentStoryState = {};
+            localStorage.removeItem('echoVerseSessionId'); // Supprime l'ID de session locale
+            currentStoryState = {}; // Vide l'état du jeu
             window.showAlert('Jeu réinitialisé. Toutes les données ont été supprimées pour cet utilisateur.', 'success');
-            window.showScreen('loginScreen');
-            if (displayNameInput) displayNameInput.value = '';
+            window.showScreen('loginScreen'); // Retourne à l'écran de connexion
+            if (displayNameInput) displayNameInput.value = ''; // Vide le champ du nom d'affichage
         }).catch(error => {
             console.error("Erreur lors de la réinitialisation/déconnexion:", error);
             window.showAlert("Erreur lors de la réinitialisation du jeu. Veuillez vérifier votre connexion.", "error");
         });
     } else {
+        // Fallback si pas d'auth (par exemple, en mode dev local sans Firebase config)
         localStorage.removeItem('echoVerseSessionId');
         currentStoryState = {};
         window.showAlert('Jeu réinitialisé localement. Veuillez recharger la page.', 'success');
@@ -865,5 +918,5 @@ function resetGame() {
     }
 }
 
-// Ajouter la fonction reset au global pour le debugging (accessible via console)
+// Ajouter la fonction reset au global pour le debugging (accessible via console du navigateur)
 window.resetGame = resetGame;
