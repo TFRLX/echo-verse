@@ -21,6 +21,7 @@ body {
     background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); /* Dégradé de base */
     background-size: 400% 400%; /* Permet une animation de dégradé */
     animation: gradientShift 15s ease infinite; /* Anime le dégradé */
+    /* Ancien z-index: -1; a été retiré */
 }
 
 @keyframes gradientShift {
@@ -45,7 +46,7 @@ body {
 
 .background-container::before {
     background: radial-gradient(circle at 20% 80%, rgba(139, 233, 253, 0.2), transparent 70%),
-                radial-gradient(circle at 80% 20%, rgba(255, 121, 198, 0.2), transparent 70%);
+                        radial-gradient(circle at 80% 20%, rgba(255, 121, 198, 0.2), transparent 70%);
 }
 
 .background-container::after {
@@ -126,15 +127,12 @@ body {
     background-color: rgba(44, 44, 74, 0.95);
     min-width: 160px;
     box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.6);
-    z-index: 1; /* Assure qu'il est au-dessus des autres éléments */
+    z-index: 1;
     border-radius: 5px;
     padding: 10px 0;
     left: 50%; /* Centrer sous l'élément parent */
     transform: translateX(-50%);
     top: calc(100% + 10px); /* Espacement sous le bouton parent */
-    /* Correction de l'avertissement */
-    background-clip: padding-box;
-    -webkit-background-clip: padding-box;
 }
 
 .dropdown-content a {
@@ -228,20 +226,17 @@ h2 {
     text-shadow: 0 0 8px rgba(241, 250, 140, 0.4);
 }
 
-/* Styles pour les écrans */
 .screen {
-    display: none; /* Cache tous les écrans par défaut */
-    flex-direction: column; /* Mise en page en colonne pour le contenu des écrans */
-    flex-grow: 1; /* Permet à l'écran de prendre l'espace disponible */
+    display: none;
+    flex-direction: column;
+    flex-grow: 1;
 }
 
 .screen.active {
-    display: flex; /* Affiche uniquement l'écran actif */
+    display: flex;
 }
 
-/* Styles des inputs et boutons */
-#player-name-input, #player-archetype-select, #game-mode-select, #action-input-field,
-.input-group input, .input-group select, .input-group textarea {
+#player-name-input, #player-archetype-select, #game-mode-select, #action-input-field {
     width: calc(100% - 20px);
     padding: 12px;
     margin-bottom: 15px;
@@ -251,10 +246,9 @@ h2 {
     color: #f8f8f2;
     font-size: 1em;
     box-sizing: border-box; /* Inclure padding dans la largeur */
-    pointer-events: auto !important; /* Assure que l'input est cliquable */
 }
 
-button, .btn {
+button {
     background-color: #bd93f9;
     color: #282a36;
     padding: 12px 20px;
@@ -267,40 +261,13 @@ button, .btn {
     width: 100%;
     box-sizing: border-box;
     text-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
-    margin-bottom: 10px; /* Espace entre les boutons */
-    pointer-events: auto !important; /* Assure que le bouton est cliquable */
 }
 
-button:hover, .btn:hover {
+button:hover {
     background-color: #ff79c6;
     transform: translateY(-2px); /* Léger effet de soulèvement */
 }
 
-.btn-secondary {
-    background-color: #6272a4; /* Couleur secondaire */
-    color: #f8f8f2;
-}
-
-.btn-secondary:hover {
-    background-color: #44475a;
-}
-
-/* Styles pour les messages d'erreur et de succès */
-.error {
-    color: #ff5555; /* Rouge vif pour les erreurs */
-    font-weight: bold;
-    margin-top: 10px;
-    text-align: center;
-}
-
-.success {
-    color: #50fa7b; /* Vert vif pour le succès */
-    font-weight: bold;
-    margin-top: 10px;
-    text-align: center;
-}
-
-/* Styles pour la narration */
 #story-display {
     background-color: rgba(68, 71, 90, 0.7); /* Fond semi-transparent pour le texte */
     backdrop-filter: blur(3px); /* Léger flou pour le texte */
@@ -442,68 +409,107 @@ button:hover, .btn:hover {
     #game-area, .sidebar { padding: 15px; }
 }
 
-/* Styles pour la modal d'alerte */
+/* --- Styles pour la Modal d'Alerte Personnalisée --- */
 .modal-overlay {
-    display: none; /* Caché par défaut */
+    /* TRÈS IMPORTANT : Cache la modal par défaut */
+    display: none;
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.7); /* Fond semi-transparent */
-    display: flex;
+    display: flex; /* Utilisé par JS pour afficher la modal */
     justify-content: center;
     align-items: center;
-    z-index: 2000; /* Assure qu'elle est au-dessus de tout */
+    z-index: 2000; /* Assure que la modal est au-dessus de tout le reste */
+}
+
+.modal-overlay.active {
+    display: flex; /* La classe 'active' est ajoutée par JS pour la montrer */
 }
 
 .modal-content {
-    background-color: #282a36;
-    color: #f8f8f2;
+    background-color: #282a36; /* Couleur de fond sombre pour la modal */
     padding: 30px;
     border-radius: 8px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
-    width: 90%;
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.6);
     max-width: 400px;
-    position: relative;
+    width: 90%;
     text-align: center;
-    animation: fadeIn 0.3s ease-out;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: scale(0.9); }
-    to { opacity: 1; transform: scale(1); }
+    position: relative;
+    border: 1px solid #6272a4; /* Bordure subtile */
 }
 
 .modal-message {
     font-size: 1.1em;
-    margin-bottom: 20px;
+    margin-bottom: 25px;
+    color: #f8f8f2; /* Texte clair */
 }
 
 .modal-button {
-    background-color: #bd93f9;
+    background-color: #bd93f9; /* Bouton violet */
     color: #282a36;
     padding: 10px 20px;
     border: none;
     border-radius: 5px;
     cursor: pointer;
+    font-size: 1em;
     font-weight: bold;
-    transition: background-color 0.2s ease;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    width: auto; /* Permet au bouton d'avoir une largeur auto */
+    margin-top: 15px;
 }
 
 .modal-button:hover {
-    background-color: #ff79c6;
+    background-color: #ff79c6; /* Rose au survol */
+    transform: translateY(-1px);
 }
 
 .close-button {
     position: absolute;
     top: 10px;
     right: 15px;
+    color: #f8f8f2;
     font-size: 1.5em;
     cursor: pointer;
-    color: #f8f8f2;
+    transition: color 0.2s ease;
 }
 
 .close-button:hover {
-    color: #ff5555;
+    color: #ff79c6;
+}
+
+/* Styles pour les types d'alerte */
+.modal-content.info { border-color: #8be9fd; } /* Bleu clair */
+.modal-content.success { border-color: #50fa7b; } /* Vert vif */
+.modal-content.error { border-color: #ff5555; } /* Rouge */
+
+/* Styles pour le footer */
+.main-footer {
+    background-color: rgba(36, 36, 62, 0.8);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: #f8f8f2;
+    text-align: center;
+    padding: 20px;
+    font-size: 0.9em;
+    margin-top: auto; /* Pousse le footer en bas de la page */
+    width: 100%;
+    box-sizing: border-box;
+    border-top: 1px solid rgba(139, 233, 253, 0.2);
+}
+
+.main-footer p {
+    margin: 5px 0;
+}
+
+.main-footer a {
+    color: #bd93f9;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.main-footer a:hover {
+    color: #ff79c6;
 }
