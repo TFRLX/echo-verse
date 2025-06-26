@@ -1,339 +1,522 @@
-// --- Gestion de l'état de la partie ---
-let currentSessionId = localStorage.getItem('echoVerseSessionId');
-let currentStoryState = {}; // Sera chargé/mis à jour par le backend
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Echo Verse - Votre Aventure IA</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Polices Google pour un style moderne et futuriste -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Barre de Navigation Globale (conservée de notre version) -->
+    <nav class="main-nav">
+        <div class="nav-brand">
+            <a href="index.html">
+                <!-- Placeholder for your logo -->
+                <img src="https://placehold.co/150x50/1a1a2e/8be9fd?text=ECHO+VERSE+LOGO" alt="Logo Echo Verse" class="h-10">
+            </a>
+        </div>
+        <ul class="nav-links">
+            <li><a href="index.html" class="active">Jouer</a></li>
+            <li><a href="profile.html">Mon Profil</a></li>
+            <li><a href="history.html">Historique</a></li>
+            <li><a href="instructions.html">Instructions</a></li>
+            <li><a href="lore.html">L'Univers</a></li>
+            <li><a href="community.html">Communauté</a></li>
+            <li class="dropdown">
+                <a href="#" class="dropbtn">Soutien</a>
+                <div class="dropdown-content">
+                    <a href="contact.html">Nous Joindre</a>
+                    <a href="bug-report.html">Rapporter un Bug</a>
+                    <a href="updates.html">Mises à Jour</a>
+                    <a href="donate.html">Faire un Don</a>
+                </div>
+            </li>
+        </ul>
+    </nav>
 
-// Déclaration des variables globales qui seront initialisées dans window.onload
-let playerNameInput, playerArchetypeSelect, gameModeSelect, startAdventureButton,
-    startScreen, storyScreen, storyDisplay, optionsDisplay, freeTextInput,
-    actionInputField, submitActionButton,
-    vigorValue, ingenuityValue, adaptationValue, influenceValue, inventoryList,
-    gardeChroniqueRelation, fluxLibresRelation, resonancesObscuresRelation,
-    npcsList, questsList, eventsList;
+    <!-- Contenu Principal du Site (incluant votre jeu) -->
+    <div class="content-wrapper">
+        <!-- Header du jeu principal (style de Claude) -->
+        <div class="header">
+            <h1>Echo Verse</h1>
+            <p>Aventures narratives infinies générées par IA</p>
+        </div>
 
-console.log("Script.js chargé : Début de l'exécution du fichier.");
+        <div class="container">
+            <!-- Écran de connexion (Login Screen de Claude) -->
+            <div id="loginScreen" class="screen active">
+                <div class="card">
+                    <h2>Bienvenue dans Echo Verse</h2>
+                    <p style="margin: 20px 0;">Créez votre nom d'affichage unique pour commencer votre aventure.</p>
+                    
+                    <div class="input-group">
+                        <label for="displayName">Nom d'affichage :</label>
+                        <input type="text" id="displayName" placeholder="Entrez votre nom d'affichage" maxlength="20">
+                    </div>
+                    
+                    <button class="btn" id="createUserButton">Commencer l'aventure</button>
+                    <button class="btn btn-secondary" id="signInAnonButton">Continuer sans sauvegarder (Anonyme)</button>
+                    
+                    <div id="loginError" class="error" style="display: none;"></div>
+                </div>
+            </div>
+
+            <!-- Écran de création de personnage (Character Screen de Claude) -->
+            <div id="characterScreen" class="screen">
+                <div class="card">
+                    <h2>Création de votre personnage</h2>
+                    
+                    <div class="input-group">
+                        <label for="characterName">Nom du personnage :</label>
+                        <input type="text" id="characterName" placeholder="Nom de votre personnage" disabled> <!-- Disabled car pré-rempli par displayName -->
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="archetype">Archétype :</label>
+                        <select id="archetype">
+                            <option value="">Choisir un archétype</option>
+                            <optgroup label="Classes Martiales">
+                                <option value="Guerrier">Guerrier (Force, Combat)</option>
+                                <option value="Chevalier">Chevalier (Défense, Honneur)</option>
+                                <option value="Assasssin">Assassin (Discrétion, Attaque Rapide)</option>
+                                <option value="Barbare">Barbare (Brutalité, Résistance)</option>
+                                <option value="Archer">Archer (Précision, Distance)</option>
+                            </optgroup>
+                            <optgroup label="Classes Intellectuelles">
+                                <option value="Mage">Mage (Magie, Connaissance)</option>
+                                <option value="Inventeur">Inventeur (Technologie, Création)</option>
+                                <option value="Détective">Détective (Déduction, Observation)</option>
+                                <option value="Archéologue">Archéologue (Histoire, Exploration)</option>
+                                <option value="Scientifique">Scientifique (Logique, Expérimentation)</option>
+                            </optgroup>
+                            <optgroup label="Classes Sociales">
+                                <option value="Diplomate">Diplomate (Négociation, Persuasion)</option>
+                                <option value="Barde">Barde (Charisme, Inspiration)</option>
+                                <option value="Marchand">Marchand (Commerce, Influence)</option>
+                                <option value="Espion">Espion (Infiltration, Mensonge)</option>
+                                <option value="Médecin">Médecin (Soins, Connaissance Médicale)</option>
+                            </optgroup>
+                            <optgroup label="Classes Adaptatives">
+                                <option value="Rôdeur">Rôdeur (Survie, Nature)</option>
+                                <option value="Nomade">Nomade (Voyage, Autonomie)</option>
+                                <option value="Explorateur">Explorateur (Découverte, Adaptabilité)</option>
+                                <option value="Survivant">Survivant (Résilience, Déni de danger)</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="description">Description physique :</label>
+                        <textarea id="description" rows="3" placeholder="Décrivez l'apparence de votre personnage"></textarea>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="background">Passé du personnage :</label>
+                        <textarea id="background" rows="3" placeholder="Racontez l'histoire de votre personnage"></textarea>
+                    </div>
+                    
+                    <button class="btn" id="saveCharacterButton">Créer le personnage</button>
+                    <!-- Pas de bouton retour vers login car la création est liée à l'auth Firebase -->
+                </div>
+            </div>
+
+            <!-- Écran de sélection de mode (Mode Screen de Claude) -->
+            <div id="modeScreen" class="screen">
+                <div class="card">
+                    <h2>Choisissez votre aventure</h2>
+                    <p>Sélectionnez le type d'histoire que vous souhaitez vivre :</p>
+                    
+                    <div class="mode-grid">
+                        <!-- Les modes seront générés dynamiquement ou via des options hardcodées ici -->
+                        <select id="gameModeSelect">
+                            <option value="">Choisissez votre Mode de Jeu</option>
+                            <optgroup label="Aventures Épiques et Fantastiques">
+                                <option value="Fracture Dimensionnelle">Fracture Dimensionnelle (SF, Fantasy, Survie)</option>
+                                <option value="Chronique Cyberpunk">Chronique Cyberpunk (Villes Futuristes, Mystères)</option>
+                                <option value="Terres Sauvages">Terres Sauvages (Nature, Exploration, Dangers)</option>
+                                <option value="Odyssée Stellaire">Odyssée Stellaire (Espace, Intrigue Galactique)</option>
+                                <option value="Apocalypse Temporelle">Apocalypse Temporelle (Voyage dans le Temps, Chaos)</option>
+                                <option value="Légendes Anciennes">Légendes Anciennes (Fantasy, Magie, Royaumes Antiques)</option>
+                                <option value="Chroniques Vampiriques">Chroniques Vampiriques (Horreur Gothique, Romance)</option>
+                                <option value="Quête Divine">Quête Divine (Mythologie, Interaction avec les Dieux)</option>
+                            </optgroup>
+                            <optgroup label="Récits Contemporains et Humains">
+                                <option value="Drame Quotidien">Drame Quotidien (Vie Personnelle, Relations)</option>
+                                <option value="Romance et Passion">Romance et Passion (Développement d'une Relation)</option>
+                                <option value="Tour du Monde">Tour du Monde (Voyage, Découverte Culturelle)</option>
+                                <option value="Carrière Professionnelle">Carrière Professionnelle (Ambition, Intrigues de Bureau)</option>
+                                <option value="Défis Familiaux">Défis Familiaux (Conflits, Liens Familiaux)</option>
+                            </optgroup>
+                            <optgroup label="Thrillers et Stratégie">
+                                <option value="Enquête Criminelle">Enquête Criminelle (Déduction, Suspens)</option>
+                                <option value="Horreur Psychologique">Horreur Psychologique (Peur, Santé Mentale)</option>
+                                <option value="Micro-Gestion">Micro-Gestion (Entreprise, Communauté, Ressources)</option>
+                                <option value="Survie Extrême">Survie Extrême (Environnements Hostiles, Instinct)</option>
+                                <option value="Course Contre la Montre">Course Contre la Montre (Urgence, Décisions Rapides)</option>
+                                <option value="Complot Mondial">Complot Mondial (Espionnage, Secrets Internationaux)</option>
+                                <option value="Agent Double">Agent Double (Loyauté, Trahison, Infiltration)</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button class="btn" id="startGameButton">Démarrer l'Aventure</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Écran de jeu principal (Game Screen de Claude) -->
+            <div id="gameScreen" class="screen">
+                <div class="sidebar">
+                    <div class="card user-info-box">
+                        <h2>Info Utilisateur</h2>
+                        <p>Nom d'affichage: <span id="display-name-value">Chargement...</span></p>
+                        <p class="text-sm text-gray-400 mt-1">ID Utilisateur: <span id="user-id-display">Chargement...</span></p>
+                        <button id="signOutButton" class="btn btn-secondary mt-2">Se Déconnecter</button>
+                    </div>
+
+                    <!-- Informations du joueur -->
+                    <div class="card">
+                        <h3>👤 <span id="playerNameDisplay"></span></h3> <!-- Renommé pour éviter conflit -->
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-value" id="vigueur">N/A</div>
+                                <div>Vigueur</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="ingeniosite">N/A</div>
+                                <div>Ingéniosité</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="adaptation">N/A</div>
+                                <div>Adaptation</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="influence">N/A</div>
+                                <div>Influence</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Inventaire -->
+                    <div id="inventoryCard" class="card">
+                        <h3>🎒 Inventaire</h3>
+                        <div id="inventoryGrid" class="inventory-grid">
+                            <ul><li>Aucun objet</li></ul>
+                        </div>
+                    </div>
+
+                    <!-- Factions, PNJ, Quêtes, Événements (intégrés dans le style Card) -->
+                    <div class="card">
+                        <h3>Factions</h3>
+                        <ul>
+                            <li>Garde Chronique: <span id="garde-chronique-relation">N/A</span></li>
+                            <li>Flux Libres: <span id="flux-libres-relation">N/A</span></li>
+                            <li>Résonances Obscures: <span id="resonances-obscures-relation">N/A</span></li>
+                        </ul>
+                    </div>
+                    <div class="card">
+                        <h3>PNJ Rencontrés</h3>
+                        <ul id="npcs-list"><li>Aucun PNJ</li></ul>
+                    </div>
+                    <div class="card">
+                        <h3>Quêtes Actives</h3>
+                        <ul id="quests-list"><li>Aucune quête</li></ul>
+                    </div>
+                    <div class="card">
+                        <h3>Événements Mondiaux</h3>
+                        <ul id="events-list"><li>Aucun événement</li></ul>
+                    </div>
+                </div>
+
+                <!-- Section principale de l'histoire et actions -->
+                <div class="main-game-content">
+                    <!-- Narration -->
+                    <div class="card">
+                        <h3>📖 Histoire</h3>
+                        <div id="narrative" class="narrative-display">
+                            <div class="loading">Génération de votre aventure...</div>
+                        </div>
+                    </div>
+
+                    <!-- Choix d'actions -->
+                    <div id="actionsCard" class="card">
+                        <h3>⚡ Actions</h3>
+                        <div id="choices" class="choices-container"></div>
+                        
+                        <div class="input-group" style="margin-top: 20px;">
+                            <label for="customAction">Ou décrivez votre propre action :</label>
+                            <textarea id="customAction" rows="2" placeholder="Que voulez-vous faire ?"></textarea>
+                            <button class="btn" id="takeCustomActionButton" style="margin-top: 10px;">Exécuter l'action</button>
+                        </div>
+                    </div>
+
+                    <!-- Contrôles du jeu -->
+                    <div class="card">
+                        <button class="btn" id="saveGameButton">💾 Sauvegarder</button>
+                        <button class="btn btn-secondary" id="newAdventureButton">🔄 Nouvelle aventure</button>
+                        <button class="btn btn-secondary" id="quitGameButton">🚪 Quitter</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- La Modal Personnalisée (notre version) -->
+    <div id="custom-alert-modal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <p id="modal-message" class="modal-message"></p>
+            <button id="modal-ok-button" class="modal-button">OK</button>
+        </div>
+    </div>
+
+    <!-- Footer (conservé de notre version) -->
+    <footer class="main-footer">
+        <p>&copy; 2024 Echo Verse. Tous droits réservés. Reproduction ou utilisation non autorisée du contenu, des logos et des concepts strictement interdite.</p>
+        <p>Ce site utilise des technologies d'IA générative et de base de données. Pour plus d'informations, consultez nos <a href="#" class="text-blue-400 hover:underline">Conditions d'Utilisation</a> et notre <a href="#" class="text-blue-400 hover:underline">Politique de Confidentialité</a>.</p>
+    </footer>
+
+    <!-- Firebase SDKs (dépendances requises pour Firestore et Auth) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Variables globales fournies par l'environnement Canvas
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        // Initialiser Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Rendre ces variables disponibles globalement (pour script.js)
+        window.firebaseApp = app;
+        window.firebaseAuth = auth;
+        window.firestoreDb = db;
+        window.canvasAppId = appId; // Rendre l'ID de l'application Canvas disponible
+
+        let currentUserId = null; // ID de l'utilisateur Firebase
+        const userIdDisplay = document.getElementById('user-id-display');
+        const displayNameValue = document.getElementById('display-name-value');
+        const displayNameInput = document.getElementById('displayName'); // ID de Claude
+        const characterNameInput = document.getElementById('characterName'); // Nouveau ID pour le nom du personnage
+        const createUserButton = document.getElementById('createUserButton'); // Nouveau ID
+        const signInAnonButton = document.getElementById('signInAnonButton'); // Nouveau ID
+        const saveCharacterButton = document.getElementById('saveCharacterButton'); // Nouveau ID
+        const startGameButton = document.getElementById('startGameButton'); // Nouveau ID
+        const signOutButton = document.getElementById('signOutButton'); // Nouveau ID
+
+        const loginScreen = document.getElementById('loginScreen');
+        const characterScreen = document.getElementById('characterScreen');
+        const modeScreen = document.getElementById('modeScreen');
+        const gameScreen = document.getElementById('gameScreen');
 
 
-// Fonction utilitaire pour gérer les mises à jour des listes UI (inventaire, PNJ, quêtes, événements)
-function updateListDisplay(element, items, displayFunc) {
-    // Vérification pour s'assurer que l'élément existe avant de le manipuler
-    if (!element) {
-        console.error(`Element for list display not found:`, element);
-        return;
-    }
-    element.innerHTML = ''; // Vide la liste existante
-    if (items && items.length > 0) {
-        items.forEach(item => {
-            const li = document.createElement('li');
-            li.innerHTML = displayFunc(item); // Utilise une fonction de display spécifique pour chaque type d'élément
-            element.appendChild(li);
-        });
-    } else {
-        const li = document.createElement('li');
-        li.textContent = `Aucun ${element.id.replace('-list', '') === 'inventory' ? 'objet' : element.id.replace('-list', '') === 'npcs' ? 'PNJ' : element.id.replace('-list', '') === 'quests' ? 'quête' : 'événement'}`;
-        element.appendChild(li);
-    }
-}
+        // Global function for custom alerts (used by script.js as well)
+        window.showAlert = (message, type = 'info') => {
+            const customAlertModal = document.getElementById('custom-alert-modal');
+            const modalMessage = document.getElementById('modal-message');
+            const modalOkButton = document.getElementById('modal-ok-button');
+            const closeButton = document.querySelector('#custom-alert-modal .close-button'); // Plus spécifique
 
-
-// Fonctions de mise à jour de l'UI
-function appendStory(text) {
-    if (!storyDisplay) { console.error("storyDisplay element not found."); return; }
-    // Remplace les <br> par des sauts de ligne réels dans les balises <p> pour un meilleur rendu
-    const formattedText = text.replace(/<br>/g, '<br><br>');
-    const p = document.createElement('p');
-    p.innerHTML = formattedText;
-    storyDisplay.appendChild(p);
-    storyDisplay.scrollTop = storyDisplay.scrollHeight; // Défilement automatique
-}
-
-function displayOptions(options) {
-    if (!optionsDisplay || !freeTextInput) { console.error("Options or Free Text Input elements not found."); return; }
-    optionsDisplay.innerHTML = '';
-    freeTextInput.style.display = 'none';
-    optionsDisplay.style.display = 'flex';
-    options.forEach(option => {
-        const button = document.createElement('button');
-        button.textContent = option;
-        button.addEventListener('click', () => sendToBackend(option));
-        optionsDisplay.appendChild(button);
-    });
-}
-
-function displayFreeTextInput() {
-    if (!optionsDisplay || !freeTextInput || !actionInputField) { console.error("Free Text Input elements not found."); return; }
-    optionsDisplay.style.display = 'none';
-    freeTextInput.style.display = 'block';
-    actionInputField.value = '';
-    actionInputField.focus();
-}
-
-function updateAttributesDisplay() {
-    if (currentStoryState.attributes) {
-        if (vigorValue) vigorValue.textContent = currentStoryState.attributes.vigor;
-        if (ingenuityValue) ingenuityValue.textContent = currentStoryState.attributes.ingenuity;
-        if (adaptationValue) adaptationValue.textContent = currentStoryState.attributes.adaptation;
-        if (influenceValue) influenceValue.textContent = currentStoryState.attributes.influence;
-    }
-}
-
-function updateInventoryDisplay() {
-    if (!inventoryList) { console.error("inventoryList element not found."); return; }
-    updateListDisplay(inventoryList, currentStoryState.inventory, (item) => `${item.name} (${item.description})`);
-}
-
-function updateFactionRelationsDisplay() {
-    if (currentStoryState.factionRelations) {
-        if (gardeChroniqueRelation) gardeChroniqueRelation.textContent = currentStoryState.factionRelations.gardeChronique.relation;
-        if (fluxLibresRelation) fluxLibresRelation.textContent = currentStoryState.factionRelations.fluxLibres.relation;
-        if (resonancesObscuresRelation) resonancesObscuresRelation.textContent = currentStoryState.factionRelations.resonancesObscures.relation;
-    }
-}
-
-function updateNPCsDisplay() {
-    if (!npcsList) { console.error("npcsList element not found."); return; }
-    updateListDisplay(npcsList, currentStoryState.npcsMet, (npc) => `${npc.name} (${npc.relation || 'Inconnu'})`);
-}
-
-function updateQuestsDisplay() {
-    if (!questsList) { console.error("questsList element not found."); return; }
-    updateListDisplay(questsList, currentStoryState.activeQuests.filter(q => q.status === 'Active'), (quest) => `${quest.name} [${quest.status}]`);
-}
-
-function updateEventsDisplay() {
-    if (!eventsList) { console.error("eventsList element not found."); return; }
-    updateListDisplay(eventsList, currentStoryState.majorWorldEvents, (event) => `${event.description}`);
-}
-
-
-// --- Communication avec le Backend (Netlify Function) ---
-async function sendToBackend(action, isStart = false) {
-    if (!currentSessionId && !isStart) {
-        alert("Erreur de session. Veuillez recharger la page ou démarrer une nouvelle partie.");
-        return;
-    }
-
-    // Afficher l'action du joueur dans l'historique
-    if (!isStart) { // Ne pas afficher l'action 'start' qui n'est pas une vraie action de jeu
-        appendStory(`\n> ${currentStoryState.playerName || 'Vous'} : ${action}\n`);
-    }
-
-    // Désactiver les entrées pendant le traitement
-    if (optionsDisplay) optionsDisplay.style.pointerEvents = 'none';
-    if (freeTextInput) freeTextInput.style.pointerEvents = 'none';
-    if (submitActionButton) submitActionButton.textContent = 'Réflexion en cours...';
-
-    const payload = {
-        playerName: currentStoryState.playerName,
-        playerArchetype: currentStoryState.playerArchetype,
-        gameMode: currentStoryState.gameMode, // Nouveau: Envoyer le mode de jeu
-        playerAction: action,
-        isStart: isStart,
-        sessionId: currentSessionId,
-    };
-
-    try {
-        const response = await fetch('/.netlify/functions/gemini-narrator', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
-        });
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Erreur HTTP: ${response.status} - ${errorText}`);
-        }
-
-        const data = await response.json();
-        const { narration, options, newState } = data; // Le backend envoie le newState complet
-
-        currentStoryState = newState; // METTRE À JOUR L'ÉTAT LOCAL AVEC LE NOUVEL ÉTAT
-
-        // Mise à jour de l'UI avec le nouvel état
-        appendStory(narration);
-        updateAttributesDisplay();
-        updateInventoryDisplay();
-        updateFactionRelationsDisplay();
-        updateNPCsDisplay();
-        updateQuestsDisplay();
-        updateEventsDisplay();
-
-
-        if (options && options.length > 0) {
-            displayOptions(options);
-        } else {
-            displayFreeTextInput();
-        }
-
-    } catch (error) {
-        console.error('Erreur lors de l\'envoi au backend:', error);
-        appendStory("<p style='color: red;'>Une erreur est survenue. Le tissu de l'Echo Verse vacille... (Voir la console pour plus de détails)</p>");
-        displayFreeTextInput();
-    } finally {
-        // Réactiver les entrées
-        if (optionsDisplay) optionsDisplay.style.pointerEvents = 'auto';
-        if (freeTextInput) freeTextInput.style.pointerEvents = 'auto';
-        if (submitActionButton) submitActionButton.textContent = 'Agir';
-    }
-}
-
-
-// --- Événements du Démarrage (Déplacés à l'intérieur de window.onload) ---
-// Charger une session existante au chargement de la page (si ID de session existe)
-window.onload = async () => {
-    console.log("window.onload exécuté : Tentative d'initialisation des éléments DOM et des écouteurs d'événements.");
-
-    // Initialiser les variables en accédant aux éléments du DOM après le chargement complet de la page
-    playerNameInput = document.getElementById('player-name-input');
-    playerArchetypeSelect = document.getElementById('player-archetype-select');
-    gameModeSelect = document.getElementById('game-mode-select');
-    startAdventureButton = document.getElementById('start-adventure-button');
-    startScreen = document.getElementById('start-screen');
-    storyScreen = document.getElementById('story-screen');
-    storyDisplay = document.getElementById('story-display');
-    optionsDisplay = document.getElementById('options-display');
-    freeTextInput = document.getElementById('free-text-input');
-    actionInputField = document.getElementById('action-input-field');
-    submitActionButton = document.getElementById('submit-action-button');
-
-    vigorValue = document.getElementById('vigor-value');
-    ingenuityValue = document.getElementById('ingenuity-value');
-    adaptationValue = document.getElementById('adaptation-value');
-    influenceValue = document.getElementById('influence-value');
-    inventoryList = document.getElementById('inventory-list');
-    gardeChroniqueRelation = document.getElementById('garde-chronique-relation');
-    fluxLibresRelation = document.getElementById('flux-libres-relation');
-    resonancesObscuresRelation = document.getElementById('resonances-obscures-relation');
-    npcsList = document.getElementById('npcs-list');
-    questsList = document.getElementById('quests-list');
-    eventsList = document.getElementById('events-list');
-
-    // Vérification de la présence des éléments critiques
-    if (!playerNameInput) console.error("Erreur: playerNameInput non trouvé!");
-    if (!playerArchetypeSelect) console.error("Erreur: playerArchetypeSelect non trouvé!");
-    if (!gameModeSelect) console.error("Erreur: gameModeSelect non trouvé!");
-    if (!startAdventureButton) console.error("Erreur: startAdventureButton non trouvé!");
-    if (!startScreen) console.error("Erreur: startScreen non trouvé!");
-    if (!storyScreen) console.error("Erreur: storyScreen non trouvé!");
-
-
-    // Attach event listeners here to ensure DOM elements are fully loaded
-    if (startAdventureButton) { // S'assurer que le bouton existe avant d'ajouter l'écouteur
-        console.log("Attaching click listener to startAdventureButton.");
-        startAdventureButton.addEventListener('click', () => {
-            console.log("startAdventureButton cliqué!");
-            const playerName = playerNameInput.value.trim();
-            const playerArchetype = playerArchetypeSelect.value;
-            const gameMode = gameModeSelect.value; // Récupérer le mode de jeu sélectionné
-
-            if (!playerName || !playerArchetype || !gameMode) {
-                alert("Veuillez entrer votre nom, choisir un archétype et un mode de jeu.");
+            if (!customAlertModal || !modalMessage || !modalOkButton || !closeButton) {
+                console.error("Custom alert modal elements not found.");
+                alert(message); // Fallback to native alert
                 return;
             }
 
-            // Initialiser ou charger la session ID
-            if (!currentSessionId) {
-                currentSessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                localStorage.setItem('echoVerseSessionId', currentSessionId);
-            }
+            modalMessage.textContent = message;
+            customAlertModal.classList.add('active'); // Add active class for animation
+            
+            // Reset and apply type classes
+            modalMessage.parentNode.classList.remove('error', 'success', 'info');
+            modalMessage.parentNode.classList.add(type);
 
-            // Mettre à jour l'état local avec le nom, l'archétype ET LE MODE DE JEU
-            currentStoryState.playerName = playerName;
-            currentStoryState.playerArchetype = playerArchetype;
-            currentStoryState.gameMode = gameMode;
+            customAlertModal.style.display = 'flex'; // Ensure overlay is visible
 
-            if (startScreen) startScreen.classList.remove('active');
-            if (storyScreen) storyScreen.classList.add('active');
+            const closeModal = () => {
+                customAlertModal.style.display = 'none';
+                customAlertModal.classList.remove('active'); // Remove active class
+            };
 
-            // Envoyer la requête de démarrage au backend
-            sendToBackend(`Démarrer l'aventure en tant que ${playerArchetype} en mode ${gameMode}`, true);
-        });
-    } else {
-        console.error("startAdventureButton element not found, cannot attach event listener.");
-    }
+            modalOkButton.onclick = closeModal;
+            closeButton.onclick = closeModal;
+            customAlertModal.onclick = (event) => {
+                if (event.target === customAlertModal) {
+                    closeModal();
+                }
+            };
+        };
 
-
-    if (submitActionButton) { // S'assurer que le bouton existe avant d'ajouter l'écouteur
-        console.log("Attaching click listener to submitActionButton.");
-        submitActionButton.addEventListener('click', () => {
-            console.log("submitActionButton cliqué!");
-            const action = actionInputField.value.trim();
-            if (action) {
-                sendToBackend(action);
-            } else {
-                alert("Veuillez décrire votre action.");
-            }
-        });
-    } else {
-        console.error("submitActionButton element not found, cannot attach event listener.");
-    }
-
-
-    // Permettre d'envoyer l'action avec "Entrée"
-    if (actionInputField) { // S'assurer que le champ existe avant d'ajouter l'écouteur
-        console.log("Attaching keypress listener to actionInputField.");
-        actionInputField.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) { // Shift+Enter pour un saut de ligne
-                e.preventDefault(); // Empêche le saut de ligne par défaut du textarea
-                if (submitActionButton) submitActionButton.click();
-            }
-        });
-    } else {
-        console.error("actionInputField element not found, cannot attach event listener.");
-    }
-
-
-    // Existing session loading logic
-    if (currentSessionId) {
-        console.log("Session ID existante détectée, tentant de charger la session.");
-        // Tente de charger l'état depuis le backend. Si la session n'est pas trouvée (par ex. première visite après avoir vidé la DB),
-        // le backend renverra 404, et le frontend basculera sur l'écran de démarrage.
-        try {
-            const response = await fetch('/.netlify/functions/gemini-narrator', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ sessionId: currentSessionId, isStart: false, playerAction: "Charger session" }),
+        // Function to manage screen display (loading, auth, start, game)
+        window.showScreen = (screenId) => {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
             });
+            const targetScreen = document.getElementById(screenId);
+            if (targetScreen) {
+                targetScreen.classList.add('active');
+            } else {
+                console.error(`Screen with ID ${screenId} not found.`);
+            }
+        };
 
-            if (!response.ok) {
-                if (response.status === 404) {
-                    console.warn("Session non trouvée, démarrage d'une nouvelle partie.");
-                    localStorage.removeItem('echoVerseSessionId'); // Supprime l'ID de session invalide
-                    currentSessionId = null; // Réinitialise
-                    if (startScreen) startScreen.classList.add('active');
-                    if (storyScreen) storyScreen.classList.remove('active');
+        // Listener for Firebase authentication state changes
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUserId = user.uid;
+                window.currentUserId = user.uid;
+                if (userIdDisplay) userIdDisplay.textContent = currentUserId;
+                console.log("Firebase Authentifié:", currentUserId);
+
+                const userProfileRef = doc(db, 'artifacts', appId, 'users', currentUserId);
+                const userProfileSnap = await getDoc(userProfileRef);
+
+                if (userProfileSnap.exists() && userProfileSnap.data().displayName) {
+                    const savedDisplayName = userProfileSnap.data().displayName;
+                    window.playerDisplayName = savedDisplayName;
+                    if (displayNameValue) displayNameValue.textContent = savedDisplayName;
+                    if (characterNameInput) {
+                        characterNameInput.value = savedDisplayName;
+                        characterNameInput.disabled = true;
+                    }
+                    
+                    // Attempt to load game session
+                    if (window.loadGameSession) {
+                        await window.loadGameSession(currentUserId);
+                    } else {
+                        console.warn("window.loadGameSession not yet available from script.js. Deferring session load.");
+                        window.showScreen('modeScreen'); // Fallback to mode selection screen
+                    }
+
                 } else {
-                    throw new Error(`Erreur HTTP: ${response.status} - ${await response.text()}`);
+                    window.playerDisplayName = null;
+                    if (displayNameValue) displayNameValue.textContent = 'Non défini';
+                    window.showScreen('loginScreen'); // Show login screen for display name
+                    window.showAlert("Choisissez un nom d'affichage unique pour votre voyage dans l'Echo Verse. Il ne pourra pas être changé ensuite.", "info");
                 }
             } else {
-                const data = await response.json();
-                currentStoryState = data.newState; // Charger l'état complet
-                appendStory(`Bienvenue de nouveau, ${currentStoryState.playerName} ! L'Echo Verse vous attend...`);
-                appendStory(data.narration); // Afficher la dernière narration enregistrée (ou un message de bienvenue générique)
-
-                // Mettre à jour toutes les UI
-                updateAttributesDisplay();
-                updateInventoryDisplay();
-                updateFactionRelationsDisplay();
-                updateNPCsDisplay();
-                updateQuestsDisplay();
-                updateEventsDisplay();
-
-                if (startScreen) startScreen.classList.remove('active');
-                if (storyScreen) storyScreen.classList.add('active');
-                displayFreeTextInput(); // Afficher l'input libre par default après le chargement
+                currentUserId = null;
+                window.currentUserId = null;
+                window.playerDisplayName = null;
+                if (userIdDisplay) userIdDisplay.textContent = 'Non connecté';
+                if (displayNameValue) displayNameValue.textContent = 'Non connecté';
+                console.log("Firebase Non Authentifié. Affichage de l'écran de connexion.");
+                window.showScreen('loginScreen');
+                if (characterNameInput) {
+                    characterNameInput.value = '';
+                    characterNameInput.disabled = false;
+                }
+                window.showAlert("Veuillez vous connecter pour sauvegarder votre progression. Vous pouvez également continuer anonymement, mais votre partie ne sera pas sauvegardée.", "info");
             }
-        } catch (error) {
-            console.error('Erreur lors du chargement de la session:', error);
-            alert("Impossible de charger la session. Une nouvelle partie va démarrer.");
-            localStorage.removeItem('echoVerseSessionId');
-            currentSessionId = null;
-            if (startScreen) startScreen.classList.add('active');
-            if (storyScreen) storyScreen.classList.remove('active');
+        });
+
+        // Event listeners for login/auth screen
+        if (createUserButton) {
+            createUserButton.addEventListener('click', async () => {
+                const newDisplayName = displayNameInput.value.trim();
+                if (newDisplayName.length < 3 || newDisplayName.length > 20) {
+                    window.showAlert("Le nom d'affichage doit contenir entre 3 et 20 caractères.", "error");
+                    return;
+                }
+
+                if (currentUserId) { // If already anonymously signed in, just update profile
+                    const userProfileRef = doc(db, 'artifacts', appId, 'users', currentUserId);
+                    try {
+                        await setDoc(userProfileRef, { displayName: newDisplayName, lastUpdated: new Date() }, { merge: true });
+                        window.playerDisplayName = newDisplayName;
+                        if (displayNameValue) displayNameValue.textContent = newDisplayName;
+                        if (characterNameInput) {
+                            characterNameInput.value = newDisplayName;
+                            characterNameInput.disabled = true;
+                        }
+                        window.showAlert(`Votre nom d'affichage "${newDisplayName}" a été enregistré.`, "success");
+                        window.showScreen('characterScreen'); // Go to character creation
+                    } catch (error) {
+                        console.error("Erreur lors de l'enregistrement du nom d'affichage:", error);
+                        window.showAlert("Erreur lors de l'enregistrement du nom d'affichage. Veuillez réessayer.", "error");
+                    }
+                } else { // Sign in anonymously first, then set display name
+                    try {
+                        const userCredential = await signInAnonymously(auth);
+                        currentUserId = userCredential.user.uid;
+                        window.currentUserId = currentUserId; // Update global
+                        const userProfileRef = doc(db, 'artifacts', appId, 'users', currentUserId);
+                        await setDoc(userProfileRef, { displayName: newDisplayName, lastUpdated: new Date() }, { merge: true });
+                        window.playerDisplayName = newDisplayName;
+                        if (displayNameValue) displayNameValue.textContent = newDisplayName;
+                        if (characterNameInput) {
+                            characterNameInput.value = newDisplayName;
+                            characterNameInput.disabled = true;
+                        }
+                        window.showAlert(`Votre nom d'affichage "${newDisplayName}" a été enregistré.`, "success");
+                        window.showScreen('characterScreen'); // Go to character creation
+                    } catch (error) {
+                        console.error("Erreur de connexion anonyme et d'enregistrement du nom:", error);
+                        window.showAlert("Erreur lors de la connexion/enregistrement. Veuillez réessayer.", "error");
+                    }
+                }
+            });
         }
-    } else {
-        console.log("Aucune session ID existante, affichage de l'écran de démarrage.");
-        // Si pas de session, afficher l'écran de démarrage
-        if (startScreen) startScreen.classList.add('active');
-        if (storyScreen) storyScreen.classList.remove('active');
-    }
-};
+
+        if (signInAnonButton) {
+            signInAnonButton.addEventListener('click', async () => {
+                try {
+                    await signInAnonymously(auth);
+                    window.showAlert("Vous jouez maintenant en mode anonyme. Votre progression ne sera pas sauvegardée.", "info");
+                    // onAuthStateChanged will handle screen transition after anonymous sign-in
+                } catch (error) {
+                    console.error("Erreur de connexion anonyme:", error);
+                    window.showAlert("Erreur de connexion anonyme. Veuillez réessayer.", "error");
+                }
+            });
+        }
+
+        if (signOutButton) {
+            signOutButton.addEventListener('click', async () => {
+                try {
+                    await signOut(auth);
+                    window.showAlert("Vous avez été déconnecté.", "info");
+                    // Reset local data and UI for non-authenticated state
+                    localStorage.removeItem('echoVerseSessionId'); // Clear any local session ID
+                    window.currentStoryState = {}; // Clear game state
+                    window.playerDisplayName = null;
+                    if (characterNameInput) {
+                        characterNameInput.value = '';
+                        characterNameInput.disabled = false;
+                    }
+                    window.showScreen('loginScreen'); // Return to login screen
+                    // Reset display name input state
+                    if (displayNameInput) displayNameInput.value = '';
+                } catch (error) {
+                    console.error("Erreur lors de la déconnexion:", error);
+                    window.showAlert("Erreur lors de la déconnexion. Veuillez réessayer.", "error");
+                }
+            });
+        }
+        
+        // Initial authentication attempt on page load
+        (async () => {
+            window.showScreen('loading-screen'); // Show loading screen immediately
+            try {
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.error("Erreur d'authentification initiale (tentative):", error);
+                // If initial authentication fails, onAuthStateChanged will handle the fallback to login-screen
+            }
+        })();
+
+    </script>
+    <script src="script.js"></script>
+</body>
+</html>
