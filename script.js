@@ -69,12 +69,16 @@ window.showAlert = (message, type = 'info') => {
 
 // Fonction pour gérer l'affichage des différents écrans du jeu
 window.showScreen = (screenId) => {
+    console.log(`Attempting to show screen: ${screenId}`);
     document.querySelectorAll('.screen').forEach(screen => {
         screen.classList.remove('active');
+        screen.style.display = 'none'; // Explicitly hide
     });
     const targetScreen = document.getElementById(screenId);
     if (targetScreen) {
         targetScreen.classList.add('active');
+        targetScreen.style.display = 'flex'; // Explicitly show
+        console.log(`Screen ${screenId} is now active and visible.`);
     } else {
         console.error(`Screen with ID ${screenId} not found.`);
     }
@@ -106,6 +110,7 @@ function updateListDisplay(element, items, displayFunc, defaultText = 'Aucun') {
 
 // --- Initialisation du DOM et Attachement des Écouteurs d'Événements ---
 document.addEventListener('DOMContentLoaded', function() {
+    console.log("DOMContentLoaded fired. Retrieving DOM elements...");
     // Récupération de tous les éléments DOM
     displayNameInput = document.getElementById('displayName');
     characterNameInput = document.getElementById('characterName');
@@ -152,17 +157,74 @@ document.addEventListener('DOMContentLoaded', function() {
     questsList = document.getElementById('quests-list');
     eventsList = document.getElementById('events-list');
 
-    console.log("DOM Loaded. All elements retrieved.");
+    // Vérification des éléments cruciaux pour le débogage
+    console.log("Elements retrieved:");
+    console.log("loginScreen:", loginScreen);
+    console.log("createUserButton:", createUserButton);
+    console.log("signInAnonButton:", signInAnonButton);
+    console.log("characterScreen:", characterScreen);
+    console.log("saveCharacterButton:", saveCharacterButton);
+    console.log("modeScreen:", modeScreen);
+    console.log("startGameButton:", startGameButton);
+    console.log("gameScreen:", gameScreen);
+
 
     // Attacher les écouteurs d'événements
-    if (createUserButton) createUserButton.addEventListener('click', createUser);
-    if (signInAnonButton) signInAnonButton.addEventListener('click', signInAnonymouslyUser);
-    if (saveCharacterButton) saveCharacterButton.addEventListener('click', saveCharacter);
-    if (startGameButton) startGameButton.addEventListener('click', startGame);
-    if (takeCustomActionButton) takeCustomActionButton.addEventListener('click', takeCustomAction);
-    if (newAdventureButton) newAdventureButton.addEventListener('click', newAdventure);
-    if (quitGameButton) quitGameButton.addEventListener('click', quitGame);
-    if (saveGameButton) saveGameButton.addEventListener('click', saveGame);
+    if (createUserButton) {
+        createUserButton.addEventListener('click', createUser);
+        console.log("Event listener attached to createUserButton.");
+    } else {
+        console.error("createUserButton not found. Cannot attach listener.");
+    }
+    if (signInAnonButton) {
+        signInAnonButton.addEventListener('click', signInAnonymouslyUser);
+        console.log("Event listener attached to signInAnonButton.");
+    } else {
+        console.error("signInAnonButton not found. Cannot attach listener.");
+    }
+    if (saveCharacterButton) {
+        saveCharacterButton.addEventListener('click', saveCharacter);
+        console.log("Event listener attached to saveCharacterButton.");
+    } else {
+        console.error("saveCharacterButton not found. Cannot attach listener.");
+    }
+    if (startGameButton) {
+        startGameButton.addEventListener('click', startGame);
+        console.log("Event listener attached to startGameButton.");
+    } else {
+        console.error("startGameButton not found. Cannot attach listener.");
+    }
+    if (takeCustomActionButton) {
+        takeCustomActionButton.addEventListener('click', takeCustomAction);
+        console.log("Event listener attached to takeCustomActionButton.");
+    } else {
+        console.error("takeCustomActionButton not found. Cannot attach listener.");
+    }
+    if (newAdventureButton) {
+        newAdventureButton.addEventListener('click', newAdventure);
+        console.log("Event listener attached to newAdventureButton.");
+    } else {
+        console.error("newAdventureButton not found. Cannot attach listener.");
+    }
+    if (quitGameButton) {
+        quitGameButton.addEventListener('click', signOutUser); // Changed to signOutUser
+        console.log("Event listener attached to quitGameButton (signOutUser).");
+    } else {
+        console.error("quitGameButton not found. Cannot attach listener.");
+    }
+    if (saveGameButton) {
+        saveGameButton.addEventListener('click', saveGame);
+        console.log("Event listener attached to saveGameButton.");
+    } else {
+        console.error("saveGameButton not found. Cannot attach listener.");
+    }
+    if (signOutButton) { // Ensure signOutButton has a listener
+        signOutButton.addEventListener('click', signOutUser);
+        console.log("Event listener attached to signOutButton.");
+    } else {
+        console.error("signOutButton not found. Cannot attach listener.");
+    }
+    
     if (customActionTextarea) {
         customActionTextarea.addEventListener('keypress', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -170,6 +232,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 takeCustomActionButton.click();
             }
         });
+        console.log("Event listener attached to customActionTextarea (keypress).");
+    } else {
+        console.error("customActionTextarea not found. Cannot attach keypress listener.");
     }
 
     // Lancement initial de l'authentification Firebase
@@ -179,11 +244,12 @@ document.addEventListener('DOMContentLoaded', function() {
 // --- Fonctions d'Authentification Firebase ---
 
 async function initFirebaseAuth() {
+    console.log("initFirebaseAuth called.");
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             currentUserId = user.uid;
             if (userIdDisplay) userIdDisplay.textContent = currentUserId;
-            console.log("Firebase Authentifié:", currentUserId);
+            console.log("Firebase Authentified, User ID:", currentUserId);
 
             const userProfileRef = doc(db, 'artifacts', appId, 'users', currentUserId);
             const userProfileSnap = await getDoc(userProfileRef);
@@ -195,10 +261,12 @@ async function initFirebaseAuth() {
                     characterNameInput.value = playerDisplayName;
                     characterNameInput.disabled = true;
                 }
+                console.log(`User profile found: DisplayName=${playerDisplayName}. Attempting to load game session.`);
                 await loadGameSession(currentUserId); // Tente de charger la session après l'authentification
             } else {
                 playerDisplayName = null;
                 if (displayNameValue) displayNameValue.textContent = 'Non défini';
+                console.log("User profile or display name not found. Showing loginScreen.");
                 window.showScreen('loginScreen');
                 window.showAlert("Choisissez un nom d'affichage unique pour votre voyage dans l'Echo Verse. Il ne pourra pas être changé ensuite.", "info");
             }
@@ -207,7 +275,7 @@ async function initFirebaseAuth() {
             playerDisplayName = null;
             if (userIdDisplay) userIdDisplay.textContent = 'Non connecté';
             if (displayNameValue) displayNameValue.textContent = 'Non connecté';
-            console.log("Firebase Non Authentifié. Affichage de l'écran de connexion.");
+            console.log("Firebase Not Authenticated. Showing loginScreen.");
             window.showScreen('loginScreen');
             if (characterNameInput) {
                 characterNameInput.value = '';
@@ -220,30 +288,38 @@ async function initFirebaseAuth() {
     // Tentative d'authentification initiale (avec token Canvas ou anonyme)
     try {
         if (initialAuthToken) {
+            console.log("Attempting signInWithCustomToken...");
             await signInWithCustomToken(auth, initialAuthToken);
         } else {
+            console.log("Attempting signInAnonymously...");
             await signInAnonymously(auth);
         }
     } catch (error) {
-        console.error("Erreur d'authentification initiale (tentative):", error);
+        console.error("Initial authentication attempt failed:", error);
         // onAuthStateChanged gérera le basculement vers loginScreen en cas d'échec
     }
 }
 
 async function createUser() {
+    console.log("createUser function called.");
     const newDisplayName = displayNameInput.value.trim();
     if (newDisplayName.length < 3 || newDisplayName.length > 20) {
-        document.getElementById('loginError').textContent = "Le nom d'affichage doit contenir entre 3 et 20 caractères.";
-        document.getElementById('loginError').style.display = 'block';
+        const loginErrorElement = document.getElementById('loginError');
+        if (loginErrorElement) {
+            loginErrorElement.textContent = "Le nom d'affichage doit contenir entre 3 et 20 caractères.";
+            loginErrorElement.style.display = 'block';
+        }
+        console.warn("Display name validation failed.");
         return;
     }
-    document.getElementById('loginError').style.display = 'none';
+    const loginErrorElement = document.getElementById('loginError');
+    if (loginErrorElement) loginErrorElement.style.display = 'none';
 
     try {
-        // Sign in anonymously first if not already (onAuthStateChanged will update currentUserId)
+        console.log("Attempting to create user with display name:", newDisplayName);
         if (!currentUserId) {
+            console.log("No currentUserId, signing in anonymously first...");
             await signInAnonymously(auth);
-            // Wait for onAuthStateChanged to update currentUserId
             await new Promise(resolve => {
                 const unsubscribe = onAuthStateChanged(auth, user => {
                     if (user) {
@@ -252,11 +328,12 @@ async function createUser() {
                     }
                 });
             });
+            console.log("Anonymous sign-in complete:", currentUserId);
         }
         
         const userProfileRef = doc(db, 'artifacts', appId, 'users', currentUserId);
         await setDoc(userProfileRef, { displayName: newDisplayName, lastUpdated: new Date() }, { merge: true });
-        playerDisplayName = newDisplayName; // Update local state
+        playerDisplayName = newDisplayName;
         if (displayNameValue) displayNameValue.textContent = playerDisplayName;
         if (characterNameInput) {
             characterNameInput.value = playerDisplayName;
@@ -264,24 +341,27 @@ async function createUser() {
         }
         window.showAlert(`Votre nom d'affichage "${newDisplayName}" a été enregistré.`, "success");
         window.showScreen('characterScreen');
+        console.log("User created and display name saved. Transitioning to characterScreen.");
     } catch (error) {
-        console.error("Erreur lors de la création de l'utilisateur ou de l'enregistrement du nom:", error);
+        console.error("Error creating user or saving display name:", error);
         window.showAlert("Erreur lors de la connexion/enregistrement. Veuillez réessayer.", "error");
     }
 }
 
 async function signInAnonymouslyUser() {
+    console.log("signInAnonymouslyUser function called.");
     try {
         await signInAnonymously(auth);
         window.showAlert("Vous jouez maintenant en mode anonyme. Votre progression ne sera pas sauvegardée.", "info");
-        // onAuthStateChanged gérera la transition d'écran
+        console.log("Anonymous sign-in successful.");
     } catch (error) {
-        console.error("Erreur de connexion anonyme:", error);
+        console.error("Error signing in anonymously:", error);
         window.showAlert("Erreur de connexion anonyme. Veuillez réessayer.", "error");
     }
 }
 
 async function signOutUser() {
+    console.log("signOutUser function called.");
     try {
         await signOut(auth);
         window.showAlert("Vous avez été déconnecté.", "info");
@@ -293,8 +373,9 @@ async function signOutUser() {
         }
         window.showScreen('loginScreen');
         if (displayNameInput) displayNameInput.value = '';
+        console.log("User signed out. Resetting state and showing loginScreen.");
     } catch (error) {
-        console.error("Erreur lors de la déconnexion:", error);
+        console.error("Error signing out:", error);
         window.showAlert("Erreur lors de la déconnexion. Veuillez réessayer.", "error");
     }
 }
@@ -303,6 +384,7 @@ async function signOutUser() {
 // --- Fonctions de Gestion du Jeu ---
 
 async function saveCharacter() {
+    console.log("saveCharacter function called.");
     const characterName = characterNameInput.value.trim();
     const archetype = archetypeSelect.value;
     const description = descriptionTextarea.value.trim();
@@ -312,6 +394,7 @@ async function saveCharacter() {
         window.showAlert('Veuillez remplir tous les champs (Nom, Archétype, Description, Passé) pour votre personnage.', 'error');
         return;
     }
+    console.log("Character data collected. Initializing currentStoryState.");
 
     currentStoryState = {
         playerName: characterName,
@@ -340,37 +423,51 @@ async function saveCharacter() {
     
     if (currentUserId) {
         try {
+            console.log("Saving initial character state to Firestore for userId:", currentUserId);
             const userSessionRef = doc(db, 'artifacts', appId, 'users', currentUserId, 'sessions', 'current');
             await setDoc(userSessionRef, currentStoryState, { merge: true });
             window.showAlert('Personnage créé et sauvegardé !', 'success');
             window.showScreen('modeScreen');
+            console.log("Character saved. Transitioning to modeScreen.");
         } catch (error) {
-            console.error("Erreur lors de la sauvegarde du personnage initial:", error);
+            console.error("Error saving initial character:", error);
             window.showAlert("Erreur lors de la sauvegarde du personnage. Veuillez réessayer.", "error");
         }
     } else {
+        console.error("Error: currentUserId is null during saveCharacter. User not authenticated?");
         window.showAlert("Erreur: Utilisateur non authentifié. Veuillez vous connecter ou continuer anonymement d'abord.", "error");
         window.showScreen('loginScreen');
     }
 }
 
 async function startGame() {
+    console.log("startGame function called.");
     const mode = gameModeSelect.value;
     if (!mode) {
         window.showAlert('Veuillez choisir un mode de jeu pour démarrer l\'aventure.', 'info');
         return;
     }
+    console.log("Game mode selected:", mode);
 
     currentStoryState.gameMode = mode;
     
     window.showScreen('gameScreen');
+    console.log("Transitioned to gameScreen.");
 
-    narrativeDisplay.innerHTML = '<div class="loading">Génération de votre aventure...</div>';
+    if (narrativeDisplay) {
+        narrativeDisplay.innerHTML = '<div class="loading">Génération de votre aventure...</div>';
+    } else {
+        console.error("narrativeDisplay element not found.");
+        window.showAlert("Erreur: l'élément d'affichage narratif est manquant.", "error");
+        return;
+    }
     
+    console.log("Sending initial game start payload to backend.");
     await sendToBackend(`Démarrer l'aventure en tant que ${currentStoryState.playerArchetype} : "${currentStoryState.playerDescription}", avec un passé "${currentStoryState.playerBackground}" en mode ${currentStoryState.gameMode}`, true);
 }
 
 function updateGameDisplay() {
+    console.log("updateGameDisplay called. Current state:", currentStoryState);
     if (playerNameDisplay) playerNameDisplay.textContent = 
         `${currentStoryState.playerName} (${playerDisplayName || 'Anonyme'})`;
     
@@ -379,11 +476,15 @@ function updateGameDisplay() {
     if (adaptationValue) adaptationValue.textContent = currentStoryState.attributes.adaptation;
     if (influenceValue) influenceValue.textContent = currentStoryState.attributes.influence;
     
-    if (narrativeDisplay) narrativeDisplay.innerHTML = currentStoryState.history
-        .filter(entry => entry.type === 'gemini')
-        .map(entry => `<p>${entry.text}</p>`)
-        .join('');
-    narrativeDisplay.scrollTop = narrativeDisplay.scrollHeight;
+    if (narrativeDisplay) {
+        narrativeDisplay.innerHTML = currentStoryState.history
+            .filter(entry => entry.type === 'gemini')
+            .map(entry => `<p>${entry.text}</p>`)
+            .join('');
+        narrativeDisplay.scrollTop = narrativeDisplay.scrollHeight;
+    } else {
+        console.warn("narrativeDisplay not found during updateGameDisplay.");
+    }
 
     updateListDisplay(inventoryGrid, currentStoryState.inventory, (item) => `${item.name} (${item.description})`, 'Aucun objet');
     if (inventoryCard) inventoryCard.style.display = currentStoryState.inventory.length > 0 ? 'block' : 'none';
@@ -398,9 +499,23 @@ function updateGameDisplay() {
     updateListDisplay(eventsList, currentStoryState.majorWorldEvents, (event) => `${event.description}`, 'Aucun événement');
 }
 
+function appendStory(text) {
+    if (!narrativeDisplay) {
+        console.error("narrativeDisplay element is null. Cannot append story.");
+        return;
+    }
+    const formattedText = text.replace(/<br>/g, '<br><br>');
+    const p = document.createElement('p');
+    p.innerHTML = formattedText;
+    narrativeDisplay.appendChild(p);
+    narrativeDisplay.scrollTop = narrativeDisplay.scrollHeight;
+}
+
+
 function showActions(options) {
+    console.log("showActions called with options:", options);
     if (!actionsCard || !choicesContainer || !customActionTextarea || !takeCustomActionButton) {
-        console.error("Action elements not found.");
+        console.error("Action elements not found in showActions.");
         return;
     }
 
@@ -408,6 +523,7 @@ function showActions(options) {
     choicesContainer.innerHTML = '';
 
     if (options && options.length > 0) {
+        console.log("Displaying multiple choice options.");
         options.forEach((option, index) => {
             const button = document.createElement('button');
             button.className = 'choice-btn';
@@ -418,22 +534,26 @@ function showActions(options) {
         customActionTextarea.style.display = 'none';
         takeCustomActionButton.style.display = 'none';
     } else {
+        console.log("Displaying free text input.");
         customActionTextarea.style.display = 'block';
         takeCustomActionButton.style.display = 'block';
     }
 }
 
 function takeCustomAction() {
+    console.log("takeCustomAction function called.");
     const customAction = customActionTextarea.value.trim();
     if (!customAction) {
         window.showAlert('Veuillez décrire votre action.', 'info');
         return;
     }
+    console.log("Custom action:", customAction);
     sendToBackend(customAction);
     customActionTextarea.value = '';
 }
 
 async function saveGame() {
+    console.log("saveGame function called.");
     if (!currentUserId) {
         window.showAlert("Vous devez être connecté pour sauvegarder votre partie.", "error");
         return;
@@ -452,16 +572,18 @@ async function saveGame() {
         }, 2000);
 
         window.showAlert('Partie sauvegardée avec succès !', 'success');
+        console.log("Game saved successfully.");
     } catch (error) {
-        console.error("Erreur lors de la sauvegarde:", error);
+        console.error("Error saving game:", error);
         window.showAlert("Erreur lors de la sauvegarde de la partie. Veuillez réessayer.", "error");
     }
 }
 
 function newAdventure() {
+    console.log("newAdventure function called.");
     window.showAlert("Lancement d'une nouvelle aventure... Votre partie actuelle ne sera pas sauvegardée si vous n'êtes pas connecté.", "info");
-    currentStoryState = {};
-    window.showScreen('characterScreen');
+    currentStoryState = {}; // Reset game state
+    window.showScreen('characterScreen'); // Go back to character creation
     if (playerDisplayName) {
         characterNameInput.value = playerDisplayName;
         characterNameInput.disabled = true;
@@ -473,26 +595,26 @@ function newAdventure() {
     backgroundTextarea.value = '';
     archetypeSelect.value = '';
     gameModeSelect.value = '';
+    console.log("New adventure initiated. Resetting UI elements.");
 }
 
-function quitGame() {
-    window.showAlert("Déconnexion... Votre progression actuelle sera perdue si elle n'a pas été sauvegardée.", "info");
-    if (auth) {
-        signOut(auth); // Sign out will trigger onAuthStateChanged, which handles screen transition
-    } else {
-        window.showScreen('loginScreen');
-    }
+function quitGame() { // This button should call signOutUser for proper flow
+    console.log("quitGame function called. Redirecting to signOutUser.");
+    signOutUser();
 }
 
 async function sendToBackend(action, isStart = false) {
+    console.log(`sendToBackend called. Action: "${action}", isStart: ${isStart}`);
     if (!currentUserId) {
         window.showAlert("Vous n'êtes pas connecté. Veuillez vous connecter ou jouer anonymement pour commencer.", "error");
         window.showScreen('loginScreen');
+        console.warn("sendToBackend aborted: No currentUserId.");
         return;
     }
     if (!playerDisplayName) {
         window.showAlert("Veuillez choisir un nom d'affichage avant de commencer l'aventure.", "error");
         window.showScreen('loginScreen');
+        console.warn("sendToBackend aborted: No playerDisplayName.");
         return;
     }
 
@@ -504,7 +626,7 @@ async function sendToBackend(action, isStart = false) {
     if (takeCustomActionButton) takeCustomActionButton.textContent = 'Réflexion en cours...';
     if (saveGameButton) saveGameButton.disabled = true;
 
-    narrativeDisplay.innerHTML = '<div class="loading">L\'IA génère la suite de votre aventure...</div>';
+    if (narrativeDisplay) narrativeDisplay.innerHTML = '<div class="loading">L\'IA génère la suite de votre aventure...</div>';
 
 
     const payload = {
@@ -518,6 +640,7 @@ async function sendToBackend(action, isStart = false) {
         playerAction: action,
         isStart: isStart,
     };
+    console.log("Payload sent to backend:", payload);
 
     try {
         const response = await fetch('/.netlify/functions/gemini-narrator', {
@@ -533,6 +656,7 @@ async function sendToBackend(action, isStart = false) {
 
         const data = await response.json();
         const { narration, options, newState } = data;
+        console.log("Response from backend:", data);
 
         currentStoryState = newState;
 
@@ -541,19 +665,21 @@ async function sendToBackend(action, isStart = false) {
         showActions(options);
 
     } catch (error) {
-        console.error('Erreur lors de l\'envoi au backend:', error);
+        console.error('Error sending to backend:', error);
         window.showAlert("Une erreur est survenue. Le tissu de l'Echo Verse vacille... (Voir la console pour plus de détails)", "error");
-        narrativeDisplay.innerHTML = `<p class="error">Une erreur est survenue: ${error.message}. Veuillez réessayer.</p>`;
+        if (narrativeDisplay) narrativeDisplay.innerHTML = `<p class="error">Une erreur est survenue: ${error.message}. Veuillez réessayer.</p>`;
         showActions([]);
     } finally {
         if (actionsCard) actionsCard.style.pointerEvents = 'auto';
         if (takeCustomActionButton) takeCustomActionButton.textContent = 'Exécuter l\'action';
         if (saveGameButton) saveGameButton.disabled = false;
+        console.log("Backend request complete. Re-enabling actions.");
     }
 }
 
 // Fonction pour charger une session de jeu existante
 async function loadGameSession(userId) {
+    console.log("loadGameSession called for userId:", userId);
     if (!userId) {
         console.warn("loadGameSession called without userId. Cannot load session.");
         window.showScreen('loginScreen');
@@ -566,6 +692,7 @@ async function loadGameSession(userId) {
 
     if (path === '/' || path.includes('index.html')) {
         try {
+            console.log("Loading session for index.html from backend...");
             const response = await fetch('/.netlify/functions/gemini-narrator', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -574,7 +701,7 @@ async function loadGameSession(userId) {
 
             if (!response.ok) {
                 if (response.status === 404) {
-                    console.warn("Session non trouvée pour cet utilisateur, démarrage d'une nouvelle partie.");
+                    console.warn("Session not found for this user, starting a new game.");
                     window.showScreen('characterScreen');
                 } else {
                     throw new Error(`Erreur HTTP: ${response.status} - ${await response.text()}`);
@@ -582,23 +709,26 @@ async function loadGameSession(userId) {
             } else {
                 const data = await response.json();
                 currentStoryState = data.newState;
+                console.log("Session loaded successfully. State:", currentStoryState);
 
-                window.showAlert(`Bienvenue de nouveau, ${currentStoryState.playerName} ! L'Echo Verse vous attend...`, "success");
+                window.showAlert(`Bienvenue de nouveau, ${currentStoryState.playerName || playerDisplayName} ! L'Echo Verse vous attend...`, "success");
 
                 updateGameDisplay();
                 appendStory(data.narration);
 
                 window.showScreen('gameScreen');
                 showActions([]); // Show free input by default after load
+                console.log("Game screen displayed with loaded session.");
             }
         } catch (error) {
-            console.error('Erreur lors du chargement de la session:', error);
+            console.error('Error loading session:', error);
             window.showAlert("Impossible de charger la session. Veuillez démarrer une nouvelle partie.", "error");
             window.showScreen('characterScreen');
         }
     } else if (path.includes('profile.html')) {
         const profilePlayerName = document.getElementById('profile-player-name');
         if (userId) {
+            console.log("Loading profile data for profile.html...");
             try {
                 const response = await fetch('/.netlify/functions/gemini-narrator', {
                     method: 'POST',
@@ -609,13 +739,14 @@ async function loadGameSession(userId) {
                 if (response.ok) {
                     const data = await response.json();
                     currentStoryState = data.newState;
+                    console.log("Profile data loaded:", currentStoryState);
                     if (profilePlayerName) profilePlayerName.textContent = currentStoryState.playerName || 'N/A';
                     if (document.getElementById('profile-player-archetype')) document.getElementById('profile-player-archetype').textContent = currentStoryState.playerArchetype || 'N/A';
                     if (document.getElementById('profile-player-description')) document.getElementById('profile-player-description').textContent = currentStoryState.playerDescription || 'N/A';
                     if (document.getElementById('profile-player-background')) document.getElementById('profile-player-background').textContent = currentStoryState.playerBackground || 'N/A';
                     if (document.getElementById('profile-game-mode')) document.getElementById('profile-game-mode').textContent = currentStoryState.gameMode || 'N/A';
                     if (document.getElementById('profile-vigor-value')) document.getElementById('profile-vigor-value').textContent = currentStoryState.attributes ? currentStoryState.attributes.vigor : 'N/A';
-                    if (document.getElementById('profile-ingenuit-value')) document.getElementById('profile-ingenuit-value').textContent = currentStoryState.attributes ? currentStoryState.attributes.ingenity : 'N/A';
+                    if (document.getElementById('profile-ingenuit-value')) document.getElementById('profile-ingenuit-value').textContent = currentStoryState.attributes ? currentStoryState.attributes.ingenuity : 'N/A'; // Corrected ID and property name
                     if (document.getElementById('profile-adaptation-value')) document.getElementById('profile-adaptation-value').textContent = currentStoryState.attributes ? currentStoryState.attributes.adaptation : 'N/A';
                     if (document.getElementById('profile-influence-value')) document.getElementById('profile-influence-value').textContent = currentStoryState.attributes ? currentStoryState.attributes.influence : 'N/A';
                     updateListDisplay(document.getElementById('profile-inventory-list'), currentStoryState.inventory, (item) => `${item.name} (${item.description})`, 'Aucun objet');
@@ -627,11 +758,11 @@ async function loadGameSession(userId) {
                     updateListDisplay(document.getElementById('profile-events-list'), currentStoryState.majorWorldEvents, (event) => `${event.description}`, 'Aucun événement');
 
                 } else {
-                    console.error('Impossible de charger les données du profil:', await response.text());
+                    console.error('Failed to load profile data:', await response.text());
                     window.showAlert('Impossible de charger les données de votre profil.', "error");
                 }
             } catch (error) {
-                console.error('Erreur lors du chargement du profil:', error);
+                console.error('Error loading profile:', error);
                 window.showAlert('Erreur lors du chargement des données de profil.', "error");
             }
         } else {
@@ -641,6 +772,7 @@ async function loadGameSession(userId) {
     } else if (path.includes('history.html')) {
         const sessionsHistoryList = document.getElementById('sessions-history-list');
         if (userId) {
+            console.log("Loading history data for history.html...");
             try {
                  const response = await fetch('/.netlify/functions/gemini-narrator', {
                     method: 'POST',
@@ -651,6 +783,7 @@ async function loadGameSession(userId) {
                 if (response.ok) {
                     const data = await response.json();
                     currentStoryState = data.newState;
+                    console.log("History data loaded:", currentStoryState);
                     if (sessionsHistoryList) {
                         sessionsHistoryList.innerHTML = '';
                         if (currentStoryState.history && currentStoryState.history.length > 0) {
@@ -664,11 +797,11 @@ async function loadGameSession(userId) {
                         }
                     }
                 } else {
-                    console.error('Impossible de charger les données de l\'historique:', await response.text());
+                    console.error('Failed to load history data:', await response.text());
                     window.showAlert('Impossible de charger les données de votre historique.', "error");
                 }
             } catch (error) {
-                console.error('Erreur lors du chargement de l\'historique:', error);
+                console.error('Error loading history:', error);
                 window.showAlert('Erreur lors du chargement des données d\'historique.', "error");
             }
         } else {
