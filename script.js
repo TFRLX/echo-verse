@@ -6,7 +6,7 @@ import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnap
 // Variables globales de l'environnement Canvas (seront injectées au runtime)
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? initialAuthToken : null; // Correction: utilisez la variable initialAuthToken
 
 // Initialiser Firebase (une seule fois pour toute l'application)
 let app;
@@ -16,6 +16,7 @@ let db;
 // NOUVELLE VÉRIFICATION DE LA CLÉ API
 if (!firebaseConfig.apiKey || firebaseConfig.apiKey.trim() === '') {
     console.error("Firebase API Key is missing or empty in firebaseConfig.");
+    // Affiche la modal, mais la logique ci-dessous doit gérer la transition d'écran
     window.showAlert("Erreur de configuration Firebase: Clé API manquante ou invalide. Veuillez vérifier la variable '__firebase_config' sur Netlify et assurez-vous que 'apiKey' est correctement configurée dans votre projet Firebase.", "error");
 } else {
     try {
@@ -99,6 +100,12 @@ window.showScreen = (screenId) => {
     if (targetScreen) {
         targetScreen.classList.add('active');
         targetScreen.style.display = 'flex'; // Afficher explicitement
+        // Assurez-vous que la modal est cachée lorsque vous changez d'écran principal
+        const customAlertModal = document.getElementById('custom-alert-modal');
+        if (customAlertModal) {
+            customAlertModal.style.display = 'none';
+            customAlertModal.classList.remove('active');
+        }
         console.log(`Screen ${screenId} is now active and visible.`);
     } else {
         console.error(`Screen with ID ${screenId} not found.`);
@@ -303,7 +310,8 @@ async function initFirebaseAuth() {
                 if (displayNameValue) displayNameValue.textContent = 'Non défini';
                 console.log("User profile or display name not found. Showing loginScreen.");
                 window.showScreen('loginScreen');
-                window.showAlert("Choisissez un nom d'affichage unique pour votre voyage dans l'Echo Verse. Il ne pourra pas être changé ensuite.", "info");
+                // Retiré l'alerte ici pour éviter qu'elle ne bloque l'écran d'abord
+                // window.showAlert("Choisissez un nom d'affichage unique pour votre voyage dans l'Echo Verse. Il ne pourra pas être changé ensuite.", "info");
             }
         } else {
             // Utilisateur déconnecté ou n'a jamais été authentifié
@@ -317,7 +325,8 @@ async function initFirebaseAuth() {
                 characterNameInput.value = '';
                 characterNameInput.disabled = false; // Réactive l'input si pas de nom d'affichage
             }
-            window.showAlert("Veuillez vous connecter pour sauvegarder votre progression. Vous pouvez également continuer anonymement, mais votre partie ne sera pas sauvegardée.", "info");
+            // Retiré l'alerte ici pour éviter qu'elle ne bloque l'écran d'abord
+            // window.showAlert("Veuillez vous connecter pour sauvegarder votre progression. Vous pouvez également continuer anonymement, mais votre partie ne sera pas sauvegardée.", "info");
         }
     });
 
@@ -492,7 +501,7 @@ async function saveCharacter() {
             console.log("Saving initial character state to Firestore for userId:", currentUserId);
             const userSessionRef = doc(db, 'artifacts', appId, 'users', currentUserId, 'sessions', 'current');
             await setDoc(userSessionRef, currentStoryState, { merge: true });
-            window.showAlert('Personnage créé et sauvegardé !', 'success');
+            window.showAlert('Personnage créé et sauvegardé !', "success");
             window.showScreen('modeScreen'); // Passe à l'écran de sélection de mode
             console.log("Character saved. Transitioning to modeScreen.");
         } catch (error) {
@@ -511,7 +520,7 @@ async function startGame() {
     console.log("startGame function called.");
     const mode = gameModeSelect.value;
     if (!mode) {
-        window.showAlert('Veuillez choisir un mode de jeu pour démarrer l\'aventure.', 'info');
+        window.showAlert('Veuillez choisir un mode de jeu pour démarrer l\'aventure.', "info");
         return;
     }
     console.log("Game mode selected:", mode);
@@ -621,7 +630,7 @@ function takeCustomAction() {
     console.log("takeCustomAction function called (from Exécuter l'action button).");
     const customAction = customActionTextarea.value.trim();
     if (!customAction) {
-        window.showAlert('Veuillez décrire votre action.', 'info');
+        window.showAlert('Veuillez décrire votre action.', "info");
         return;
     }
     console.log("Custom action:", customAction);
@@ -649,7 +658,7 @@ async function saveGame() {
             saveGameButton.classList.remove('success');
         }, 2000);
 
-        window.showAlert('Partie sauvegardée avec succès !', 'success');
+        window.showAlert('Partie sauvegardée avec succès !', "success");
         console.log("Game saved successfully.");
     } catch (error) {
         console.error("Error saving game:", error);
@@ -934,21 +943,21 @@ document.addEventListener('keydown', function(e) {
         
         updateGameDisplay(); // Mettre à jour l'affichage
         
-        window.showAlert('🎮 Code Konami activé ! Vos statistiques ont été boostées !', 'success');
+        window.showAlert('🎮 Code Konami activé ! Vos statistiques ont été boostées !', "success");
         konamiCode = []; // Réinitialise le code Konami
     }
 });
 
 // Fonction pour réinitialiser complètement le jeu (pour développement)
 function resetGame() {
-    window.showAlert('Êtes-vous sûr de vouloir réinitialiser complètement le jeu ? Cela supprimera toutes les données sauvegardées localement et sur le cloud pour cet utilisateur.', 'info');
+    window.showAlert('Êtes-vous sûr de vouloir réinitialiser complètement le jeu ? Cela supprimera toutes les données sauvegardées localement et sur le cloud pour cet utilisateur.', "info");
     
     // Logique de déconnexion et de réinitialisation
     if (auth) {
         signOut(auth).then(() => {
             localStorage.removeItem('echoVerseSessionId'); // Supprime l'ID de session locale
             currentStoryState = {}; // Vide l'état du jeu
-            window.showAlert('Jeu réinitialisé. Toutes les données ont été supprimées pour cet utilisateur.', 'success');
+            window.showAlert('Jeu réinitialisé. Toutes les données ont été supprimées pour cet utilisateur.', "success");
             window.showScreen('loginScreen'); // Retourne à l'écran de connexion
             if (displayNameInput) displayNameInput.value = ''; // Vide le champ du nom d'affichage
         }).catch(error => {
@@ -959,7 +968,7 @@ function resetGame() {
         // Fallback si pas d'auth (par exemple, en mode dev local sans Firebase config)
         localStorage.removeItem('echoVerseSessionId');
         currentStoryState = {};
-        window.showAlert('Jeu réinitialisé localement. Veuillez recharger la page.', 'success');
+        window.showAlert('Jeu réinitialisé localement. Veuillez recharger la page.', "success");
         window.showScreen('loginScreen');
         if (displayNameInput) displayNameInput.value = '';
     }
