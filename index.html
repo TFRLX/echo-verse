@@ -4,17 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Echo Verse - Aventures Infinies par IA</title>
-    <!-- Importation des polices Google Fonts pour un style futuriste -->
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Réinitialisation de base pour tous les éléments */
+        /* Styles CSS globaux et variables */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
-        /* Variables CSS pour faciliter la gestion des couleurs et des tailles */
         :root {
             --primary-bg: #0a0a0a;
             --secondary-bg: #1a1a1a;
@@ -27,196 +25,143 @@
             --success-color: #00ff88;
             --warning-color: #ffaa00;
             --error-color: #ff4444;
+            --font-orbitron: 'Orbitron', sans-serif;
+            --font-rajdhani: 'Rajdhani', sans-serif;
         }
 
-        /* Styles du corps de la page */
         body {
-            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%); /* Dégradé de fond */
-            font-family: 'Rajdhani', sans-serif; /* Police principale */
-            color: var(--text-primary); /* Couleur du texte par défaut */
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            color: var(--text-primary);
+            font-family: var(--font-rajdhani);
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
-            min-height: 100vh; /* Hauteur minimale de 100% de la fenêtre */
+            min-height: 100vh;
             padding: 20px;
-            overflow-x: hidden; /* Empêche le défilement horizontal */
+            overflow-y: auto; /* Permet le défilement vertical */
         }
 
-        /* Styles de l'en-tête */
-        header {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 30px;
-            background-color: rgba(0, 0, 0, 0.5); /* Fond semi-transparent */
-            border-bottom: 1px solid var(--border-color); /* Bordure accentuée */
-            z-index: 100;
-        }
-
-        .logo {
-            font-family: 'Orbitron', sans-serif; /* Police Orbitron pour le logo */
-            font-size: 1.8em;
-            color: var(--accent-color); /* Couleur accentuée pour le logo */
-            text-shadow: 0 0 10px var(--accent-color); /* Ombre lumineuse */
-        }
-
-        .loading-indicator {
-            color: var(--text-secondary); /* Couleur du texte de l'indicateur de chargement */
-            font-size: 0.9em;
-            opacity: 0; /* Caché par défaut */
-            transition: opacity 0.3s ease-in-out; /* Transition douce pour l'opacité */
-        }
-
-        .loading-indicator.visible {
-            opacity: 1; /* Visible lorsque la classe 'visible' est ajoutée */
-        }
-
-        /* Styles du conteneur principal du jeu */
-        .game-container {
-            background: var(--card-bg); /* Fond de carte semi-transparent */
-            border: 1px solid var(--border-color); /* Bordure accentuée */
-            border-radius: 15px; /* Coins arrondis */
-            box-shadow: 0 0 20px rgba(0, 217, 255, 0.2), 0 0 40px rgba(0, 217, 255, 0.1); /* Ombres lumineuses */
+        .container {
+            background-color: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            box-shadow: 0 0 30px rgba(0, 217, 255, 0.2);
             padding: 30px;
             max-width: 900px;
             width: 100%;
             text-align: center;
-            position: relative;
-            z-index: 10;
+            position: relative; /* Pour positionner les modales */
             display: flex;
             flex-direction: column;
-            gap: 20px; /* Espacement entre les éléments */
-        }
-
-        /* Styles de la section de démarrage du jeu */
-        #startScreen {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
             gap: 20px;
         }
 
-        #startScreen h1 {
-            font-family: 'Orbitron', sans-serif;
+        /* Titre du jeu */
+        h1 {
+            font-family: var(--font-orbitron);
+            color: var(--accent-color);
             font-size: 3em;
-            color: var(--accent-color);
-            text-shadow: 0 0 15px var(--accent-color);
             margin-bottom: 10px;
+            text-shadow: 0 0 15px rgba(0, 217, 255, 0.6);
         }
 
-        #startScreen p {
-            font-size: 1.1em;
+        /* Sous-titre/description */
+        .subtitle {
             color: var(--text-secondary);
-            line-height: 1.6;
+            font-size: 1.1em;
             margin-bottom: 20px;
-            max-width: 600px;
+            line-height: 1.5;
         }
 
-        /* Styles des champs de saisie */
-        .input-group {
-            width: 100%;
-            max-width: 400px;
-            margin: 0 auto;
-            text-align: left;
+        /* Styles pour les sections du jeu (accueil, jeu principal, inventaire, etc.) */
+        .game-section {
+            display: none; /* Caché par défaut, affiché via JS */
+            flex-direction: column;
+            gap: 20px;
         }
 
-        .input-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: var(--accent-color);
-            font-weight: bold;
+        .game-section.active {
+            display: flex;
         }
 
-        .input-group input[type="text"] {
-            width: 100%;
-            padding: 12px 15px;
+        /* Section d'accueil */
+        #home-section input[type="text"] {
+            width: calc(100% - 20px);
+            padding: 15px;
+            margin: 20px 0;
             border: 1px solid var(--border-color);
-            border-radius: 8px;
-            background-color: var(--secondary-bg);
+            background-color: var(--card-bg);
             color: var(--text-primary);
-            font-size: 1em;
+            border-radius: 10px;
+            font-size: 1.1em;
             outline: none;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            transition: border-color 0.3s, box-shadow 0.3s;
         }
 
-        .input-group input[type="text"]:focus {
+        #home-section input[type="text"]:focus {
             border-color: var(--accent-color);
             box-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
         }
 
-        /* Styles des boutons */
-        .button {
-            background: linear-gradient(90deg, var(--accent-color) 0%, var(--accent-secondary) 100%); /* Dégradé pour le bouton */
-            color: #fff;
-            padding: 14px 28px;
+        /* Boutons stylisés */
+        .btn {
+            background: linear-gradient(90deg, var(--accent-color) 0%, var(--accent-secondary) 100%);
+            color: var(--text-primary);
+            padding: 15px 30px;
             border: none;
-            border-radius: 8px;
-            font-size: 1.1em;
-            font-weight: bold;
+            border-radius: 10px;
+            font-size: 1.2em;
+            font-family: var(--font-orbitron);
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(0, 217, 255, 0.4);
+            box-shadow: 0 5px 15px rgba(0, 217, 255, 0.3);
             text-transform: uppercase;
             letter-spacing: 1px;
-            position: relative;
-            overflow: hidden;
-            z-index: 1;
+            display: inline-block;
         }
 
-        .button:hover {
+        .btn:hover {
             transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(0, 217, 255, 0.6);
-            opacity: 0.9;
+            box-shadow: 0 8px 20px rgba(0, 217, 255, 0.5);
         }
 
-        .button:active {
+        .btn:active {
             transform: translateY(0);
-            box-shadow: 0 2px 5px rgba(0, 217, 255, 0.4);
+            box-shadow: 0 3px 10px rgba(0, 217, 255, 0.2);
         }
 
-        .button::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.2);
-            transition: all 0.4s ease;
-            z-index: -1;
+        /* Boutons secondaires pour les actions */
+        .btn-secondary {
+            background: var(--card-bg);
+            border: 1px solid var(--accent-color);
+            color: var(--accent-color);
+            box-shadow: none;
         }
 
-        .button:hover::before {
-            left: 0;
+        .btn-secondary:hover {
+            background: rgba(0, 217, 255, 0.1);
+            color: var(--text-primary);
+            box-shadow: 0 0 10px rgba(0, 217, 255, 0.3);
         }
 
-        /* Styles de l'écran de jeu */
-        #gameScreen {
-            display: none; /* Caché par défaut */
-            flex-direction: column;
-            gap: 20px;
+        /* Zone de l'histoire et du gameplay */
+        #gameplay-section {
             text-align: left;
         }
 
         #storyContent {
-            max-height: 400px; /* Hauteur maximale pour l'historique */
-            overflow-y: auto; /* Défilement si le contenu dépasse */
-            background-color: rgba(0, 0, 0, 0.5);
-            border-radius: 10px;
-            padding: 20px;
+            background-color: var(--card-bg);
+            border-radius: 15px;
+            padding: 25px;
+            max-height: 400px;
+            overflow-y: auto;
             border: 1px solid var(--border-color);
             box-shadow: inset 0 0 10px rgba(0, 217, 255, 0.1);
-            line-height: 1.6;
-            color: var(--text-secondary);
         }
 
+        /* Entrées d'histoire individuelles */
         .story-entry {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             padding-bottom: 15px;
             border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
         }
@@ -227,444 +172,549 @@
             padding-bottom: 0;
         }
 
-        .story-entry strong {
+        .story-entry h3 {
             color: var(--accent-color);
+            font-family: var(--font-orbitron);
+            margin-bottom: 10px;
+            font-size: 1.3em;
         }
 
-        .story-entry em {
-            color: var(--accent-secondary);
-            font-style: normal;
-        }
-
-        #actionInput {
-            width: 100%;
-            padding: 12px 15px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            background-color: var(--secondary-bg);
-            color: var(--text-primary);
+        .story-entry p {
+            color: var(--text-secondary);
+            line-height: 1.6;
             font-size: 1em;
-            outline: none;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
-            margin-top: 10px;
+            margin-bottom: 5px;
         }
 
-        #actionInput:focus {
+        .player-action {
+            font-style: italic;
+            color: var(--accent-secondary);
+            margin-top: 10px;
+            padding-left: 10px;
+            border-left: 3px solid var(--accent-secondary);
+        }
+
+
+        /* Zone d'action du joueur */
+        .action-area {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap; /* Permet le retour à la ligne sur petits écrans */
+        }
+
+        .action-area input {
+            flex-grow: 1;
+            padding: 15px;
+            border: 1px solid var(--border-color);
+            background-color: var(--card-bg);
+            color: var(--text-primary);
+            border-radius: 10px;
+            font-size: 1.1em;
+            outline: none;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            min-width: 200px; /* Assure une taille minimale */
+        }
+
+        .action-area input:focus {
             border-color: var(--accent-color);
             box-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
         }
 
-        /* Styles pour la barre d'état du jeu (points de vie, inventaire) */
-        #gameState {
-            display: flex;
-            justify-content: space-around;
-            padding: 10px 0;
-            border-top: 1px solid var(--border-color);
-            border-bottom: 1px solid var(--border-color);
-            margin-top: 20px;
-            background-color: rgba(0, 0, 0, 0.3);
-            border-radius: 10px;
-            padding: 15px;
+        .action-area button {
+            padding: 15px 25px;
+            white-space: nowrap; /* Empêche le texte du bouton de se couper */
         }
 
-        .state-item {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 0.95em;
-            color: var(--text-primary);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .state-item span {
-            color: var(--accent-color);
-        }
-
-        /* Styles pour le modal d'alerte */
-        .modal-overlay {
+        /* Indicateur de chargement */
+        #loadingStory {
             display: none; /* Caché par défaut */
+            color: var(--accent-color);
+            font-size: 1.2em;
+            margin-top: 20px;
+            animation: pulse 1.5s infinite alternate;
+        }
+
+        @keyframes pulse {
+            from {
+                opacity: 0.7;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Section de l'état du jeu (compétences, inventaire, etc.) */
+        #gameStateSection {
+            background-color: var(--card-bg);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            text-align: left;
+            margin-top: 20px;
+            max-height: 300px; /* Hauteur maximale pour le défilement */
+            overflow-y: auto; /* Permet le défilement */
+        }
+
+        #gameStateSection h3 {
+            color: var(--accent-color);
+            font-family: var(--font-orbitron);
+            margin-bottom: 15px;
+            font-size: 1.4em;
+            text-align: center;
+        }
+
+        #gameStateSection .game-state-item {
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.05);
+        }
+
+        #gameStateSection .game-state-item strong {
+            color: var(--accent-secondary);
+            margin-right: 5px;
+        }
+
+        /* Overlay pour les modales (alertes personnalisées) */
+        .modal-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.7);
+            background-color: rgba(0, 0, 0, 0.7);
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 1000;
+            z-index: 1000; /* Assure que la modale est au-dessus du reste */
         }
 
         .modal-content {
-            background: var(--card-bg);
-            border: 1px solid var(--accent-secondary);
+            background-color: var(--secondary-bg);
+            border: 1px solid var(--border-color);
             border-radius: 15px;
             padding: 30px;
-            max-width: 500px;
+            max-width: 400px;
             width: 90%;
             text-align: center;
-            box-shadow: 0 0 25px rgba(255, 107, 53, 0.4);
-            animation: fadeIn 0.3s ease-out;
+            box-shadow: 0 0 30px rgba(0, 217, 255, 0.4);
         }
 
         .modal-content h3 {
-            font-family: 'Orbitron', sans-serif;
-            color: var(--accent-secondary);
+            color: var(--error-color);
+            font-family: var(--font-orbitron);
             margin-bottom: 15px;
-            font-size: 1.8em;
+            font-size: 1.5em;
+        }
+        .modal-content.success h3 {
+            color: var(--success-color);
+        }
+        .modal-content.warning h3 {
+            color: var(--warning-color);
         }
 
+
         .modal-content p {
-            color: var(--text-secondary);
+            color: var(--text-primary);
             margin-bottom: 25px;
             line-height: 1.5;
         }
 
         .modal-content button {
-            background: linear-gradient(90deg, var(--accent-secondary) 0%, #ff8c42 100%);
+            background: linear-gradient(90deg, var(--accent-color) 0%, var(--accent-secondary) 100%);
+            color: var(--text-primary);
             padding: 10px 20px;
             border: none;
-            border-radius: 5px;
-            color: white;
-            font-weight: bold;
+            border-radius: 8px;
+            font-size: 1.1em;
             cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            transition: all 0.3s ease;
         }
 
         .modal-content button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(255, 107, 53, 0.5);
+            box-shadow: 0 5px 15px rgba(0, 217, 255, 0.3);
         }
 
-        /* Animations */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Media Queries pour la responsivité */
+        /* Styles spécifiques pour les petits écrans */
         @media (max-width: 768px) {
-            #startScreen h1 {
-                font-size: 2.5em;
+            h1 {
+                font-size: 2.2em;
             }
-            .button {
-                padding: 12px 20px;
+
+            .subtitle {
                 font-size: 1em;
             }
-            .game-container {
+
+            .container {
                 padding: 20px;
             }
+
+            .btn {
+                width: 100%;
+                padding: 12px 20px;
+            }
+
+            .action-area {
+                flex-direction: column;
+            }
+
+            .action-area input {
+                width: 100%;
+            }
+
+            .action-area button {
+                width: 100%;
+            }
+
             #storyContent {
                 max-height: 300px;
             }
-            .state-item {
-                font-size: 0.8em;
-            }
-        }
-
-        @media (max-width: 480px) {
-            #startScreen h1 {
-                font-size: 2em;
-            }
-            header {
-                padding: 10px 15px;
-            }
-            .logo {
-                font-size: 1.5em;
-            }
-            .state-item {
-                font-size: 0.7em;
-                flex-direction: column;
-                gap: 5px;
-            }
-            #gameState {
-                flex-wrap: wrap;
-                gap: 10px;
-            }
         }
     </style>
-    <!-- Importation des bibliothèques Firebase -->
+</head>
+<body>
+    <div class="container">
+        <h1>Echo Verse</h1>
+        <p class="subtitle">Plongez dans des aventures infinies générées par l'Intelligence Artificielle. Chaque choix façonne votre destinée dans un univers narratif sans limites.</p>
+
+        <!-- Section d'accueil -->
+        <div id="home-section" class="game-section active">
+            <input type="text" id="playerNameInput" placeholder="Entrez votre nom d'aventurier">
+            <button class="btn" onclick="startGame()">COMMENCER L'AVENTURE</button>
+        </div>
+
+        <!-- Section de gameplay principal -->
+        <div id="gameplay-section" class="game-section">
+            <div id="storyContent">
+                <!-- L'histoire sera ajoutée ici dynamiquement -->
+            </div>
+            <div id="loadingStory">Chargement de l'histoire...</div>
+
+            <div class="action-area">
+                <input type="text" id="actionInput" placeholder="Décrivez votre prochaine action..." onkeypress="handleKeyPress(event)">
+                <button class="btn btn-secondary" onclick="performAction()">Agir</button>
+            </div>
+
+            <!-- Section de l'état du jeu (inventaire, compétences, etc.) -->
+            <div id="gameStateSection">
+                <h3>État de l'aventure</h3>
+                <div id="gameStateDetails">
+                    <div class="game-state-item"><strong>Joueur:</strong> <span id="displayPlayerName"></span></div>
+                    <div class="game-state-item"><strong>Lieu actuel:</strong> <span id="displayCurrentLocation">Inconnu</span></div>
+                    <div class="game-state-item"><strong>Inventaire:</strong> <span id="displayInventory">Vide</span></div>
+                    <div class="game-state-item"><strong>Santé:</strong> <span id="displayHealth">100%</span></div>
+                    <div class="game-state-item"><strong>Compétences:</strong> <span id="displaySkills">Aucune</span></div>
+                </div>
+            </div>
+
+            <button class="btn btn-secondary" style="margin-top: 20px;" onclick="resetGame()">Recommencer l'aventure</button>
+        </div>
+
+    </div>
+
     <script type="module">
+        // Importe les fonctions nécessaires de Firebase SDK
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Variables globales pour Firebase (seront initialisées plus tard)
-        let app, db, auth;
-        let currentUserId = null; // ID de l'utilisateur actuel
+        // Déclaration des variables globales pour Firebase et l'état du jeu
+        let app;
+        let db;
+        let auth;
+        let userId = 'anonymous'; // Default userId, will be updated after auth
+        let playerName = '';
+        let currentStoryId = null; // ID du document Firestore pour l'histoire actuelle
 
-        // Initialisation de Firebase une fois le DOM chargé
-        window.onload = async function() {
+        // Variables Firebase globales disponibles via l'environnement Canvas
+        // __app_id et __firebase_config sont des variables spéciales fournies par l'environnement Canvas.
+        // Si elles ne sont pas définies (par exemple, si vous exécutez le fichier HTML localement sans Canvas),
+        // nous utilisons des valeurs par défaut.
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        // Fonction d'initialisation de Firebase
+        async function initializeFirebase() {
             try {
-                // Récupération des variables globales fournies par l'environnement Canvas
-                const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-                const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-                const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+                // Vérifie si la configuration Firebase est fournie et n'est pas vide
+                if (Object.keys(firebaseConfig).length === 0) {
+                    console.warn("Configuration Firebase non disponible. Le stockage des données ne fonctionnera pas.");
+                    showAlert('Avertissement', 'Le stockage du jeu ne sera pas disponible car Firebase n\'est pas configuré.', 'warning');
+                    return; // Quitte si aucune configuration n'est fournie
+                }
 
-                // Initialisation de l'application Firebase
                 app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
 
-                // Authentification de l'utilisateur
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                } else {
-                    await signInAnonymously(auth);
+                // Tentative d'authentification initiale
+                try {
+                    if (initialAuthToken) {
+                        console.log("Tentative de connexion avec jeton personnalisé...");
+                        await signInWithCustomToken(auth, initialAuthToken);
+                        console.log("Connexion avec jeton personnalisé réussie.");
+                    } else {
+                        console.log("Aucun jeton personnalisé fourni, tentative de connexion anonyme...");
+                        await signInAnonymously(auth);
+                        console.log("Connexion anonyme réussie.");
+                    }
+                } catch (authError) {
+                    console.error("Erreur lors de la tentative d'authentification initiale:", authError);
+                    // Si l'erreur est liée à un jeton invalide ou à des revendications, tente une connexion anonyme
+                    if (authError.code === 'auth/invalid-custom-token' || authError.code === 'auth/invalid-claims') {
+                        showAlert('Erreur d\'authentification', 'Votre jeton de connexion est invalide ou expiré. Tentative de connexion anonyme...');
+                        try {
+                            await signInAnonymously(auth);
+                            console.log("Reconnexion anonyme réussie après échec du jeton.");
+                        } catch (anonAuthError) {
+                            console.error("Erreur de connexion anonyme:", anonAuthError);
+                            showAlert('Erreur grave', 'Impossible de se connecter au service d\'authentification Firebase. Le jeu ne pourra pas sauvegarder.');
+                        }
+                    } else {
+                        // Pour d'autres types d'erreurs d'authentification
+                        showAlert('Erreur d\'authentification', 'Impossible de se connecter au service Firebase. Le jeu pourrait ne pas fonctionner correctement.');
+                    }
                 }
 
-                // Écoute des changements d'état d'authentification pour obtenir l'ID utilisateur
+                // Maintenant, configurez l'écouteur d'état d'authentification
                 onAuthStateChanged(auth, (user) => {
                     if (user) {
-                        currentUserId = user.uid;
-                        console.log("Utilisateur Firebase connecté:", currentUserId);
-                        // Vous pouvez stocker currentUserId ou l'afficher si nécessaire
+                        userId = user.uid;
+                        console.log("Utilisateur Firebase authentifié:", userId);
+                        // Si le joueur a déjà un nom, tenter de charger sa partie
+                        // (playerName sera défini après que l'utilisateur ait cliqué sur "Commencer l'aventure")
+                        if (playerName) {
+                            loadGame();
+                        }
                     } else {
-                        currentUserId = null;
-                        console.log("Utilisateur Firebase déconnecté.");
+                        userId = 'anonymous'; // Retour à 'anonymous' si aucun utilisateur n'est authentifié
+                        console.log("Aucun utilisateur Firebase authentifié (état actuel).");
                     }
                 });
 
-                console.log("Firebase initialisé avec succès !");
+                console.log("Firebase initialisé et tentative d'authentification effectuée.");
 
-                // Démarrer le jeu si l'utilisateur est déjà dans une session de jeu sauvegardée
-                // (logique à implémenter si la sauvegarde/reprise de jeu est ajoutée)
             } catch (error) {
-                console.error("Erreur lors de l'initialisation de Firebase:", error);
-                showAlert('Erreur', 'Impossible de connecter les services de jeu. Veuillez réessayer.');
+                console.error("Erreur critique lors de l'initialisation de Firebase (avant authentification):", error);
+                showAlert('Erreur critique', 'Impossible d\'initialiser Firebase. Le stockage des données sera désactivé.', 'error');
             }
-            // Appeler la fonction de démarrage du jeu de l'interface utilisateur une fois que tout est prêt
-            initializeGameUI();
-        };
-
-        // Fonction pour afficher des messages d'alerte personnalisés
-        function showAlert(title, message) {
-            document.getElementById('modalTitle').textContent = title;
-            document.getElementById('modalMessage').textContent = message;
-            document.getElementById('alertModal').style.display = 'flex'; // Afficher le modal
         }
 
-        // Fonction pour fermer le modal d'alerte
-        function closeAlert() {
-            document.getElementById('alertModal').style.display = 'none'; // Cacher le modal
+        // Appelle l'initialisation de Firebase au chargement du script
+        initializeFirebase();
+
+        // Fonction pour afficher une modale d'alerte personnalisée
+        function showAlert(title, message, type = 'error') {
+            const overlay = document.createElement('div');
+            overlay.className = 'modal-overlay';
+            overlay.innerHTML = `
+                <div class="modal-content ${type}">
+                    <h3>${title}</h3>
+                    <p>${message}</p>
+                    <button id="modalCloseBtn">OK</button>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+
+            document.getElementById('modalCloseBtn').onclick = () => {
+                document.body.removeChild(overlay);
+            };
         }
 
-        // État du jeu (peut être sauvegardé plus tard avec Firebase)
-        let gameState = {
-            playerName: '',
-            health: 100,
-            sanity: 100,
-            inventory: []
-        };
-
-        // Initialisation de l'interface utilisateur du jeu
-        function initializeGameUI() {
-            // Associer l'événement click au bouton "Commencer l'aventure"
-            document.getElementById('startGameButton').addEventListener('click', startGame);
-            // Associer l'événement click au bouton "Effectuer l'action"
-            document.getElementById('performActionButton').addEventListener('click', performAction);
-            // Associer l'événement keypress (Entrée) au champ d'action
-            document.getElementById('actionInput').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    performAction();
-                }
-            });
-            // Associer l'événement click au bouton de fermeture du modal
-            document.getElementById('closeModalButton').addEventListener('click', closeAlert);
+        // Gérer la touche Entrée pour soumettre l'action
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                performAction();
+            }
         }
 
-        // Fonction pour démarrer l'aventure
-        async function startGame() {
-            const playerName = document.getElementById('playerNameInput').value.trim();
-
-            if (!playerName) {
-                showAlert('Erreur', 'Veuillez entrer votre nom d\'aventurier.');
+        // Charger l'état du jeu depuis Firestore
+        async function loadGame() {
+            // Vérifie si Firebase est correctement initialisé et que l'userId est défini
+            if (!db || !userId || !playerName) {
+                console.log("Firebase ou PlayerName non prêt pour charger le jeu. Le stockage est peut-être désactivé.");
+                // Si Firebase n'est pas prêt, démarrer une nouvelle aventure sans chargement
+                startNewAdventure();
                 return;
             }
 
-            gameState.playerName = playerName; // Stocke le nom du joueur dans l'état du jeu
+            const gameDocRef = doc(db, `artifacts/${appId}/users/${userId}/echoVerseGames`, playerName);
+            onSnapshot(gameDocRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    const savedGameState = docSnap.data();
+                    console.log("Partie sauvegardée chargée:", savedGameState);
+                    // Restaurer l'état du jeu
+                    document.getElementById('storyContent').innerHTML = savedGameState.storyHTML;
+                    updateGameState(savedGameState.gameState);
+                    currentStoryId = savedGameState.currentStoryId; // Restaurer l'ID de l'histoire actuelle
+                    showAlert('Partie chargée', `Bienvenue de retour, ${playerName} ! Votre aventure a été rechargée.`, 'success');
+                } else {
+                    console.log("Aucune partie sauvegardée trouvée pour", playerName);
+                    // Si aucune partie sauvegardée, démarrer une nouvelle aventure
+                    startNewAdventure();
+                }
+                // Afficher la section de gameplay une fois le chargement (ou nouveau départ) effectué
+                document.getElementById('home-section').classList.remove('active');
+                document.getElementById('gameplay-section').classList.add('active');
+            }, (error) => {
+                console.error("Erreur lors du chargement de la partie:", error);
+                showAlert('Erreur de chargement', 'Impossible de charger la partie. Démarrage d\'une nouvelle aventure.');
+                startNewAdventure(); // Démarrer une nouvelle aventure en cas d'erreur
+            });
+        }
 
-            // Afficher l'indicateur de chargement
-            document.getElementById('loadingIndicator').classList.add('visible');
-            document.getElementById('startGameButton').disabled = true; // Désactiver le bouton
-
+        // Sauvegarder l'état du jeu dans Firestore
+        async function saveGame(storyHTML, gameState) {
+            // Vérifie si Firebase est correctement initialisé et que l'userId est défini
+            if (!db || !userId || !playerName) {
+                console.warn("Impossible de sauvegarder : Firebase ou PlayerName non prêt. Le stockage est peut-être désactivé.");
+                return;
+            }
             try {
-                // Générer l'histoire initiale via l'API Gemini
-                const initialStory = await generateInitialStory();
-                displayStoryEntry(initialStory, null); // Afficher la première entrée de l'histoire
-                updateGameState(gameState); // Mettre à jour l'affichage de l'état du jeu
-
-                // Cacher l'écran de démarrage et afficher l'écran de jeu
-                document.getElementById('startScreen').style.display = 'none';
-                document.getElementById('gameScreen').style.display = 'flex';
-
+                const gameDocRef = doc(db, `artifacts/${appId}/users/${userId}/echoVerseGames`, playerName);
+                await setDoc(gameDocRef, {
+                    playerName: playerName,
+                    storyHTML: storyHTML,
+                    gameState: gameState,
+                    lastUpdated: new Date(),
+                    currentStoryId: currentStoryId // Sauvegarder l'ID de l'histoire actuelle
+                });
+                console.log("Partie sauvegardée avec succès pour:", playerName);
             } catch (error) {
-                showAlert('Erreur', 'Impossible de démarrer l\'aventure. Veuillez réessayer.');
-                console.error('Erreur lors du démarrage de l\'aventure:', error);
-            } finally {
-                // Masquer l'indicateur de chargement et réactiver le bouton
-                document.getElementById('loadingIndicator').classList.remove('visible');
-                document.getElementById('startGameButton').disabled = false;
+                console.error("Erreur lors de la sauvegarde de la partie:", error);
+                showAlert('Erreur de sauvegarde', 'Impossible de sauvegarder votre progression.');
             }
         }
+
+        // Démarrer le jeu (appelé par le bouton "COMMENCER L'AVENTURE")
+        async function startGame() {
+            playerName = document.getElementById('playerNameInput').value.trim();
+            if (!playerName) {
+                showAlert('Erreur', 'Veuillez entrer un nom pour commencer votre aventure.');
+                return;
+            }
+
+            document.getElementById('displayPlayerName').textContent = playerName;
+
+            // Si Firebase est configuré et authentifié, tente de charger/sauvegarder. Sinon, démarre sans sauvegarde.
+            if (db && auth.currentUser && auth.currentUser.uid === userId) {
+                 loadGame(); // Tente de charger ou démarre une nouvelle partie si aucune n'est trouvée
+            } else if (Object.keys(firebaseConfig).length > 0) {
+                // Si Firebase est configuré mais l'authentification n'est pas encore prête, attendre l'état de Firebase
+                // Cette branche devrait être moins fréquente avec le initializeFirebase refactorisé
+                console.log("Firebase configuré mais authentification non prête. Attente de l'état d'authentification...");
+                showAlert('Info', 'Initialisation des services de sauvegarde en cours. Veuillez patienter.', 'warning');
+                // L'écouteur `onAuthStateChanged` dans `initializeFirebase` gérera l'appel à `loadGame()` ou `startNewAdventure()`
+                // une fois l'authentification établie.
+            }
+            else {
+                // Si Firebase n'est pas configuré du tout, démarrer directement une nouvelle aventure sans sauvegarde
+                console.log("Firebase non configuré, démarrage d'une nouvelle aventure sans sauvegarde.");
+                document.getElementById('home-section').classList.remove('active');
+                document.getElementById('gameplay-section').classList.add('active');
+                startNewAdventure();
+            }
+        }
+
+        // Démarrer une nouvelle aventure
+        async function startNewAdventure() {
+            document.getElementById('loadingStory').style.display = 'block';
+            document.getElementById('storyContent').innerHTML = ''; // Nettoie l'ancienne histoire
+            resetGameState(); // Réinitialise l'état du jeu
+
+            try {
+                const initialStory = await generateInitialStory();
+                displayStoryEntry(initialStory, null);
+                // Sauvegarder l'état initial uniquement si Firebase est configuré et authentifié
+                if (db && auth.currentUser) {
+                    saveGame(document.getElementById('storyContent').innerHTML, {
+                        playerName: playerName,
+                        currentLocation: 'Un endroit inconnu',
+                        inventory: [],
+                        health: 100,
+                        skills: []
+                    });
+                } else {
+                    console.warn("Firebase non prêt ou non configuré. La partie ne sera pas sauvegardée.");
+                }
+            } catch (error) {
+                showAlert('Erreur', 'Impossible de démarrer l\'aventure. Veuillez réessayer.');
+                console.error('Erreur lors du démarrage:', error);
+            }
+
+            document.getElementById('loadingStory').style.display = 'none';
+        }
+
+        // Réinitialiser le jeu (bouton "Recommencer l'aventure")
+        async function resetGame() {
+            // Utilise la modale personnalisée au lieu de window.confirm()
+            showConfirmModal("Confirmation", "Êtes-vous sûr de vouloir recommencer ? Votre progression actuelle sera perdue.", async () => {
+                document.getElementById('storyContent').innerHTML = ''; // Efface l'histoire
+                document.getElementById('actionInput').value = ''; // Efface l'input
+                resetGameState(); // Réinitialise l'état du jeu
+
+                document.getElementById('home-section').classList.add('active'); // Retour à l'écran d'accueil
+                document.getElementById('gameplay-section').classList.remove('active');
+
+                // Conserver le nom du joueur dans l'input pour un nouveau départ rapide, mais effacer la variable
+                const tempPlayerName = playerName;
+                playerName = '';
+                currentStoryId = null; // Réinitialise l'ID de l'histoire
+
+                // Optionnel: Supprimer la sauvegarde Firestore pour ce joueur, seulement si Firebase est actif
+                if (db && userId && tempPlayerName) {
+                    try {
+                        const gameDocRef = doc(db, `artifacts/${appId}/users/${userId}/echoVerseGames`, tempPlayerName);
+                        await deleteDoc(gameDocRef);
+                        console.log("Ancienne sauvegarde supprimée.");
+                    } catch (error) {
+                        console.error("Erreur lors de la suppression de la sauvegarde:", error);
+                        showAlert('Erreur de suppression', 'Impossible de supprimer l\'ancienne sauvegarde.');
+                    }
+                }
+                showAlert('Aventure réinitialisée', 'Une nouvelle aventure vous attend !', 'warning');
+            });
+        }
+
+        // Ajout d'une modale de confirmation personnalisée
+        function showConfirmModal(title, message, onConfirmCallback) {
+            const overlay = document.createElement('div');
+            overlay.className = 'modal-overlay';
+            overlay.innerHTML = `
+                <div class="modal-content warning">
+                    <h3>${title}</h3>
+                    <p>${message}</p>
+                    <button id="modalConfirmBtn" class="btn">Oui</button>
+                    <button id="modalCancelBtn" class="btn btn-secondary" style="margin-left: 10px;">Non</button>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+
+            document.getElementById('modalConfirmBtn').onclick = () => {
+                document.body.removeChild(overlay);
+                if (onConfirmCallback) {
+                    onConfirmCallback();
+                }
+            };
+            document.getElementById('modalCancelBtn').onclick = () => {
+                document.body.removeChild(overlay);
+            };
+        }
+
 
         // Fonction pour générer l'histoire initiale via l'API Gemini
         async function generateInitialStory() {
-            const prompt = `Vous êtes un maître de jeu pour un jeu d'aventure textuel "Echo Verse". Créez le début d'une aventure mystérieuse et intrigante pour un joueur nommé ${gameState.playerName}. Le joueur se réveille dans un endroit inconnu, sans souvenirs. Décrivez l'environnement immédiat et la première énigme ou le premier choix qu'il doit faire. Le texte doit être immersif et engageant. N'incluez pas de phrases comme "Bienvenue dans Echo Verse". Terminez par une question ouverte invitant à la première action du joueur.`;
+            const initialPrompt = `Tu es le maître de jeu d'une aventure textuelle RPG. Crée une introduction fascinante pour un jeu d'aventure. Le joueur s'appelle ${playerName}. Commence par un paragraphe descriptif, puis propose le lieu actuel et des éléments initiaux de son inventaire, sa santé et ses compétences.
+            Réponds au format JSON avec les clés suivantes : 'story' (texte de l'histoire), 'gameState' (objet avec 'currentLocation', 'inventory' (tableau de chaînes), 'health' (nombre), 'skills' (tableau de chaînes)).`
+            ;
 
-            let chatHistory = [];
-            chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-
-            const payload = { contents: chatHistory };
-            const apiKey = ""; // La clé API sera automatiquement fournie par l'environnement Canvas
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-
-            try {
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    console.error('Erreur API:', errorData);
-                    throw new Error(`Erreur HTTP: ${response.status} - ${JSON.stringify(errorData)}`);
-                }
-
-                const result = await response.json();
-
-                if (result.candidates && result.candidates.length > 0 &&
-                    result.candidates[0].content && result.candidates[0].content.parts &&
-                    result.candidates[0].content.parts.length > 0) {
-                    return result.candidates[0].content.parts[0].text;
-                } else {
-                    console.error('Réponse de l\'API inattendue:', result);
-                    throw new Error('La structure de la réponse de l\'IA est inattendue.');
-                }
-            } catch (error) {
-                console.error('Erreur lors de l\'appel à l\'API Gemini (histoire initiale):', error);
-                throw error; // Propage l'erreur pour la gestion globale
-            }
+            // Appel à l'API Gemini
+            return callGeminiAPI(initialPrompt);
         }
 
-        // Fonction pour traiter l'action du joueur via l'API Gemini
-        async function processAction(action) {
-            const currentStory = document.getElementById('storyContent').innerText; // Récupère le texte actuel de l'histoire
-
-            const prompt = `En tant que maître de jeu de "Echo Verse", le joueur nommé ${gameState.playerName} a effectué l'action suivante : "${action}".
-            L'histoire actuelle est : "${currentStory}".
-            Décrivez les conséquences de cette action sur l'environnement et le joueur. Mettez à jour l'état du jeu (santé, lucidité, inventaire) en fonction de l'action. Générez une nouvelle partie de l'histoire.
-            Formatez votre réponse comme un objet JSON STRICTEMENT, avec les champs suivants :
-            {
-                "story": "Texte de la nouvelle partie de l'histoire.",
-                "gameState": {
-                    "health": Nouvelle valeur de santé (nombre entier),
-                    "sanity": Nouvelle valeur de lucidité (nombre entier),
-                    "inventory": ["Objet 1", "Objet 2"] (tableau de chaînes de caractères)
-                }
-            }
-            Assurez-vous que l'objet JSON est complet et valide. Si le joueur meurt, indiquez-le dans l'histoire et réglez la santé à 0. Terminez la partie 'story' par une question ouverte pour la prochaine action, sauf si le jeu est terminé.`;
-
-            let chatHistory = [];
-            chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-
-            const payload = {
-                contents: chatHistory,
-                generationConfig: {
-                    responseMimeType: "application/json", // Demande une réponse JSON
-                    responseSchema: { // Schéma pour la réponse JSON attendue
-                        type: "OBJECT",
-                        properties: {
-                            "story": { "type": "STRING" },
-                            "gameState": {
-                                "type": "OBJECT",
-                                "properties": {
-                                    "health": { "type": "NUMBER" },
-                                    "sanity": { "type": "NUMBER" },
-                                    "inventory": {
-                                        "type": "ARRAY",
-                                        "items": { "type": "STRING" }
-                                    }
-                                },
-                                "required": ["health", "sanity", "inventory"] // Champs requis dans gameState
-                            }
-                        },
-                        "required": ["story", "gameState"] // Champs requis dans la réponse principale
-                    }
-                }
-            };
-
-            const apiKey = ""; // La clé API sera automatiquement fournie par l'environnement Canvas
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-
-            try {
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    console.error('Erreur API:', errorData);
-                    throw new Error(`Erreur HTTP: ${response.status} - ${JSON.stringify(errorData)}`);
-                }
-
-                const result = await response.json();
-
-                if (result.candidates && result.candidates.length > 0 &&
-                    result.candidates[0].content && result.candidates[0].content.parts &&
-                    result.candidates[0].content.parts.length > 0) {
-                    const jsonResponse = JSON.parse(result.candidates[0].content.parts[0].text);
-                    return jsonResponse;
-                } else {
-                    console.error('Réponse de l\'API inattendue:', result);
-                    throw new Error('La structure de la réponse de l\'IA est inattendue ou invalide.');
-                }
-            } catch (error) {
-                console.error('Erreur lors de l\'appel à l\'API Gemini (action):', error);
-                throw error; // Propage l'erreur pour la gestion globale
-            }
-        }
-
-        // Fonction pour afficher une nouvelle entrée d'histoire
-        function displayStoryEntry(story, action) {
-            const storyContentDiv = document.getElementById('storyContent');
-            const newEntry = document.createElement('div');
-            newEntry.classList.add('story-entry');
-
-            let entryHtml = '';
-            if (action) {
-                entryHtml += `<strong>Votre action :</strong> <em>${action}</em><br><br>`;
-            }
-            entryHtml += `${story}`;
-            newEntry.innerHTML = entryHtml;
-
-            storyContentDiv.appendChild(newEntry);
-            // Défiler jusqu'à la dernière entrée pour que le joueur voie le nouveau texte
-            storyContentDiv.scrollTop = storyContentDiv.scrollHeight;
-        }
-
-        // Fonction pour mettre à jour l'affichage de l'état du jeu
-        function updateGameState(newState) {
-            gameState.health = newState.health;
-            gameState.sanity = newState.sanity;
-            gameState.inventory = newState.inventory;
-
-            document.getElementById('healthDisplay').textContent = gameState.health;
-            document.getElementById('sanityDisplay').textContent = gameState.sanity;
-            document.getElementById('inventoryDisplay').textContent = gameState.inventory.length > 0 ? gameState.inventory.join(', ') : 'Rien';
-
-            // Gérer la fin du jeu si la santé est à 0 ou moins
-            if (gameState.health <= 0) {
-                showAlert('Fin de l\'aventure', 'Votre santé est tombée à zéro. C\'est la fin de votre voyage.');
-                document.getElementById('actionInput').disabled = true;
-                document.getElementById('performActionButton').disabled = true;
-            }
-        }
-
-        // Fonction pour effectuer une action du joueur
+        // Effectuer une action et obtenir la suite de l'histoire
         async function performAction() {
             const action = document.getElementById('actionInput').value.trim();
 
@@ -673,72 +723,154 @@
                 return;
             }
 
-            document.getElementById('loadingIndicator').classList.add('visible');
-            document.getElementById('actionInput').value = ''; // Effacer le champ de saisie
-            document.getElementById('performActionButton').disabled = true; // Désactiver le bouton pendant le chargement
+            document.getElementById('loadingStory').style.display = 'block';
+            document.getElementById('actionInput').value = '';
 
             try {
-                // Traiter l'action via l'API Gemini
-                const response = await processAction(action);
+                // Récupérer le contenu de l'histoire actuelle pour le contexte
+                const storyContentDiv = document.getElementById('storyContent');
+                // Prendre le texte de toutes les entrées d'histoire pour avoir un contexte complet
+                const storyContext = Array.from(storyContentDiv.children)
+                                          .map(entry => entry.innerText.trim())
+                                          .join('\n\n'); // Joindre avec des doubles sauts de ligne pour la clarté
+
+                const prompt = `Le joueur s'appelle ${playerName}. L'histoire actuelle est : "${storyContext}".
+                Le joueur décide de : "${action}".
+                En tant que maître de jeu, continue l'histoire en tenant compte de cette action. Décris les conséquences de l'action du joueur et fais avancer l'intrigue.
+                Mets à jour l'état du jeu si nécessaire (lieu, inventaire, santé, compétences).
+                Réponds au format JSON avec les clés suivantes : 'story' (nouveau texte de l'histoire), 'gameState' (objet avec 'currentLocation', 'inventory' (tableau de chaînes), 'health' (nombre), 'skills' (tableau de chaînes)).`;
+
+                const response = await callGeminiAPI(prompt);
                 displayStoryEntry(response.story, action);
                 updateGameState(response.gameState);
+
+                // Sauvegarder l'état après chaque action, seulement si Firebase est configuré et authentifié
+                if (db && auth.currentUser) {
+                    saveGame(document.getElementById('storyContent').innerHTML, response.gameState);
+                } else {
+                    console.warn("Firebase non prêt ou non configuré. La partie ne sera pas sauvegardée après cette action.");
+                }
+
+
             } catch (error) {
                 showAlert('Erreur', 'Erreur lors du traitement de votre action. Veuillez réessayer.');
                 console.error('Erreur lors de l\'action:', error);
-            } finally {
-                // Masquer l'indicateur de chargement et réactiver le bouton
-                document.getElementById('loadingIndicator').classList.remove('visible');
-                document.getElementById('performActionButton').disabled = false;
+            }
+
+            document.getElementById('loadingStory').style.display = 'none';
+        }
+
+        // Fonction générique pour appeler l'API Gemini
+        async function callGeminiAPI(prompt) {
+            // Clé API vide pour que Canvas la fournisse au runtime
+            // Ne pas modifier cette ligne, la clé est injectée automatiquement par l'environnement Canvas.
+            const apiKey = "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+            // Chat history pour le payload
+            let chatHistory = [];
+            chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+
+            const payload = {
+                contents: chatHistory,
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "OBJECT",
+                        properties: {
+                            "story": { "type": "STRING" },
+                            "gameState": {
+                                "type": "OBJECT",
+                                "properties": {
+                                    "currentLocation": { "type": "STRING" },
+                                    "inventory": { "type": "ARRAY", "items": { "type": "STRING" } },
+                                    "health": { "type": "NUMBER" },
+                                    "skills": { "type": "ARRAY", "items": { "type": "STRING" } }
+                                },
+                                "required": ["currentLocation", "inventory", "health", "skills"]
+                            }
+                        },
+                        "required": ["story", "gameState"]
+                    }
+                }
+            };
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errorBody = await response.text();
+                    console.error("Erreur de l'API Gemini, statut:", response.status, "Corps:", errorBody);
+                    throw new Error(`Erreur HTTP: ${response.status} - ${errorBody}`);
+                }
+
+                const result = await response.json();
+                console.log("Réponse brute de l'API:", result);
+
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const text = result.candidates[0].content.parts[0].text;
+                    // Tente de parser le texte comme JSON
+                    const parsedJson = JSON.parse(text);
+                    return parsedJson;
+                } else {
+                    console.error("Structure de réponse inattendue de l'API Gemini:", result);
+                    throw new Error("Réponse de l'IA mal formée ou vide.");
+                }
+            } catch (error) {
+                console.error("Erreur lors de l'appel à l'API Gemini:", error);
+                throw error; // Rejette l'erreur pour qu'elle soit gérée par l'appelant
             }
         }
+
+
+        // Afficher une entrée d'histoire dans le journal
+        function displayStoryEntry(story, action) {
+            const storyContentDiv = document.getElementById('storyContent');
+            const newEntry = document.createElement('div');
+            newEntry.className = 'story-entry';
+
+            // Ajoute l'action du joueur si elle existe
+            if (action) {
+                const actionPara = document.createElement('p');
+                actionPara.className = 'player-action';
+                actionPara.innerHTML = `&gt; ${action}`;
+                newEntry.appendChild(actionPara);
+            }
+
+            const storyPara = document.createElement('p');
+            storyPara.innerHTML = story.replace(/\n/g, '<br>'); // Remplace les retours à la ligne par des <br>
+            newEntry.appendChild(storyPara);
+
+            storyContentDiv.appendChild(newEntry);
+            // Faire défiler vers le bas pour voir la dernière entrée
+            storyContentDiv.scrollTop = storyContentDiv.scrollHeight;
+        }
+
+        // Mettre à jour l'affichage de l'état du jeu
+        function updateGameState(gameState) {
+            if (!gameState) return; // S'assurer que gameState n'est pas nul
+
+            document.getElementById('displayCurrentLocation').textContent = gameState.currentLocation || 'Inconnu';
+            document.getElementById('displayInventory').textContent = gameState.inventory && gameState.inventory.length > 0 ? gameState.inventory.join(', ') : 'Vide';
+            document.getElementById('displayHealth').textContent = `${gameState.health || 100}%`;
+            document.getElementById('displaySkills').textContent = gameState.skills && gameState.skills.length > 0 ? gameState.skills.join(', ') : 'Aucune';
+        }
+
+        // Réinitialiser l'état du jeu à ses valeurs par défaut
+        function resetGameState() {
+            document.getElementById('displayPlayerName').textContent = '';
+            document.getElementById('displayCurrentLocation').textContent = 'Inconnu';
+            document.getElementById('displayInventory').textContent = 'Vide';
+            document.getElementById('displayHealth').textContent = '100%';
+            document.getElementById('displaySkills').textContent = 'Aucune';
+        }
+
     </script>
-</head>
-<body>
-    <!-- En-tête du jeu -->
-    <header>
-        <div class="logo">Echo Verse</div>
-        <div id="loadingIndicator" class="loading-indicator">Chargement...</div>
-    </header>
-
-    <!-- Conteneur principal du jeu -->
-    <div class="game-container">
-        <!-- Écran de démarrage -->
-        <section id="startScreen">
-            <h1>Echo Verse</h1>
-            <p>Plongez dans des aventures infinies générées par l'Intelligence Artificielle. Chaque choix façonne votre destinée dans un univers narratif sans limites.</p>
-            <div class="input-group">
-                <label for="playerNameInput">Nom d'aventurier</label>
-                <input type="text" id="playerNameInput" placeholder="Entrez votre nom..." maxlength="50">
-            </div>
-            <button id="startGameButton" class="button">Commencer l'aventure</button>
-        </section>
-
-        <!-- Écran de jeu (caché par défaut) -->
-        <section id="gameScreen">
-            <h2>Votre aventure</h2>
-            <div id="storyContent">
-                <!-- Les entrées d'histoire seront ajoutées ici par JavaScript -->
-            </div>
-            <div id="gameState">
-                <div class="state-item">Santé: <span id="healthDisplay">100</span></div>
-                <div class="state-item">Lucidité: <span id="sanityDisplay">100</span></div>
-                <div class="state-item">Inventaire: <span id="inventoryDisplay">Rien</span></div>
-            </div>
-            <div class="input-group">
-                <label for="actionInput">Que voulez-vous faire ?</label>
-                <input type="text" id="actionInput" placeholder="Décrivez votre prochaine action..." maxlength="200">
-            </div>
-            <button id="performActionButton" class="button">Effectuer l'action</button>
-        </section>
-    </div>
-
-    <!-- Modal d'alerte (caché par défaut) -->
-    <div id="alertModal" class="modal-overlay">
-        <div class="modal-content">
-            <h3 id="modalTitle">Titre de l'alerte</h3>
-            <p id="modalMessage">Message de l'alerte</p>
-            <button id="closeModalButton">OK</button>
-        </div>
-    </div>
 </body>
 </html>
