@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Echo Verse - Aventures Infinies par IA</title>
     <!-- Importation des polices Google Fonts pour un style cohérent -->
-    <link href="[https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap](https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap)" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         /* Styles CSS globaux et variables */
         * {
@@ -628,7 +628,8 @@
             </div>
 
             <div class="btn-container">
-                <button class="btn btn-primary" onclick="startGame()">
+                <!-- Bouton avec ID pour attacher l'événement en JS -->
+                <button class="btn btn-primary" id="startGameButton">
                     COMMENCER L'AVENTURE
                 </button>
             </div>
@@ -678,10 +679,11 @@
                 <label for="actionInput">Votre prochaine action :</label>
                 <textarea id="actionInput" placeholder="Décrivez ce que vous voulez faire..."></textarea>
                 <div class="btn-container">
-                    <button class="btn btn-primary" onclick="performAction()">
+                    <!-- Boutons avec IDs pour attacher l'événement en JS -->
+                    <button class="btn btn-primary" id="performActionButton">
                         Agir
                     </button>
-                    <button class="btn btn-secondary" onclick="resetGame()">
+                    <button class="btn btn-secondary" id="resetGameButton">
                         Réinitialiser l'Aventure
                     </button>
                 </div>
@@ -713,14 +715,15 @@
         <div class="alert-modal-content">
             <h3 id="alertModalTitle"></h3>
             <p id="alertModalMessage"></p>
-            <button class="alert-modal-close-btn" onclick="hideAlert()">OK</button>
+            <!-- Bouton avec ID pour attacher l'événement en JS -->
+            <button class="alert-modal-close-btn" id="alertModalCloseButton">OK</button>
         </div>
     </div>
 
     <script type="module">
-        import { initializeApp } from "[https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js](https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js)";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "[https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js](https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js)";
-        import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, addDoc, getDocs } from "[https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js](https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js)";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Variables globales fournies par l'environnement Canvas.
         // Pour le développement local, nous allons fournir des valeurs fictives si elles ne sont pas définies.
@@ -886,7 +889,7 @@ L'énergie du joueur est de ${gameState.energy}%.
 L'or du joueur est de ${gameState.gold}.
 
 Le joueur décide de : "${action}".
-En tenant compte de l'état actuel du jeu et de l'historique, décris la conséquence de cette action. Génère un paragraphe pour l'histoire, et fournis un objet JSON STRICTEMENT au format suivant pour mettre à jour l'état du jeu (même si les valeurs ne changent pas, incluez-les toutes) :
+En tenant compte de l'état actuel du jeu et de l'historique, décris la conséquence de cette action. Génère un objet JSON STRICTEMENT au format suivant pour mettre à jour l'état du jeu (même si les valeurs ne changent pas, incluez-les toutes) :
 \`\`\`json
 {
     "story": "Texte de la suite de l'histoire.",
@@ -1216,51 +1219,47 @@ Assure-toi que toutes les clés de 'gameState' sont présentes, même si leurs v
 
         // Réinitialise le jeu à son état initial
         async function resetGame() {
-            const confirmReset = await new Promise(resolve => {
-                showAlert('Réinitialiser le jeu', 'Êtes-vous sûr de vouloir réinitialiser l\'aventure ? Toute progression sera perdue localement et dans le cloud.');
-                document.querySelector('.alert-modal-close-btn').onclick = () => {
-                    hideAlert();
-                    resolve(true); // Simulate confirmation for now
-                };
-            });
+            // Afficher une alerte de confirmation personnalisée
+            showAlert('Réinitialiser le jeu', 'Êtes-vous sûr de vouloir réinitialiser l\'aventure ? Toute progression sera perdue localement et dans le cloud.');
 
-            // Une confirmation "vraie" serait nécessaire ici
-            // Pour l'instant, on considère qu'on confirme après avoir cliqué sur OK
-            if (confirmReset) {
-                // Réinitialiser l'état du jeu en mémoire
-                resetGameState();
-                updateUI(); // Mettre à jour l'UI avec l'état réinitialisé
+            // Pour une vraie confirmation avec oui/non, il faudrait modifier la modale showAlert
+            // et attendre un clic sur un bouton "Confirmer" ou "Annuler" dans la modale.
+            // Pour l'instant, on procède à la réinitialisation après que l'utilisateur ait cliqué sur OK.
+            // Une amélioration future pourrait inclure des boutons "Confirmer" et "Annuler" dans la modale.
 
-                // Supprimer la sauvegarde de l'utilisateur de Firestore
-                if (authReady && db && userId) {
-                    try {
-                        const userDocRef = doc(db, `artifacts/${appId}/users/${userId}/gameStates`, 'currentGameState');
-                        await deleteDoc(userDocRef);
-                        console.log("Sauvegarde du jeu supprimée de Firestore.");
-                        showAlert('Jeu Réinitialisé', 'L\'aventure a été réinitialisée et la sauvegarde supprimée. Vous pouvez commencer une nouvelle partie !');
-                        document.getElementById('saveStatus').textContent = 'Sauvegarde désactivée [locale]';
-                        document.getElementById('saveStatus').style.backgroundColor = '#b0b0b0';
-                    } catch (error) {
-                        console.error("Erreur lors de la suppression de la sauvegarde:", error);
-                        showAlert('Erreur', 'Impossible de supprimer la sauvegarde de Firestore. Veuillez réessayer.');
-                    }
-                } else {
-                    showAlert('Jeu Réinitialisé', 'L\'aventure a été réinitialisée localement. La sauvegarde cloud n\'était pas active ou n\'a pas pu être supprimée.');
+            // Réinitialiser l'état du jeu en mémoire
+            resetGameStateData(); // Renommée pour éviter la confusion avec la fonction principale
+            updateUI(); // Mettre à jour l'UI avec l'état réinitialisé
+
+            // Supprimer la sauvegarde de l'utilisateur de Firestore
+            if (authReady && db && userId) {
+                try {
+                    const userDocRef = doc(db, `artifacts/${appId}/users/${userId}/gameStates`, 'currentGameState');
+                    await deleteDoc(userDocRef);
+                    console.log("Sauvegarde du jeu supprimée de Firestore.");
+                    showAlert('Jeu Réinitialisé', 'L\'aventure a été réinitialisée et la sauvegarde supprimée. Vous pouvez commencer une nouvelle partie !');
+                    document.getElementById('saveStatus').textContent = 'Sauvegarde désactivée [locale]';
+                    document.getElementById('saveStatus').style.backgroundColor = '#b0b0b0';
+                } catch (error) {
+                    console.error("Erreur lors de la suppression de la sauvegarde:", error);
+                    showAlert('Erreur', 'Impossible de supprimer la sauvegarde de Firestore. Veuillez réessayer.');
                 }
-
-
-                // Retour à l'écran de démarrage
-                document.getElementById('startScreen').style.display = 'block';
-                document.getElementById('gameArea').style.display = 'none';
-                document.getElementById('playerNameInput').value = ''; // Vider le nom du joueur
-                document.getElementById('storyContent').innerHTML = ''; // Vider l'historique
-                document.getElementById('actionInput').value = ''; // Vider l'input d'action
-                isGameStarted = false; // Marquer le jeu comme non démarré
+            } else {
+                showAlert('Jeu Réinitialisé', 'L\'aventure a été réinitialisée localement. La sauvegarde cloud n\'était pas active ou n\'a pas pu être supprimée.');
             }
+
+
+            // Retour à l'écran de démarrage
+            document.getElementById('startScreen').style.display = 'block';
+            document.getElementById('gameArea').style.display = 'none';
+            document.getElementById('playerNameInput').value = ''; // Vider le nom du joueur
+            document.getElementById('storyContent').innerHTML = ''; // Vider l'historique
+            document.getElementById('actionInput').value = ''; // Vider l'input d'action
+            isGameStarted = false; // Marquer le jeu comme non démarré
         }
 
         // Fonction interne pour réinitialiser l'état du jeu en mémoire
-        function resetGameState() {
+        function resetGameStateData() {
             gameState = {
                 playerName: '',
                 currentLocation: 'Le Néant Inconnu',
@@ -1298,7 +1297,15 @@ Assure-toi que toutes les clés de 'gameState' sont présentes, même si leurs v
         }
 
         // Assurez-vous que l'initialisation de Firebase est appelée au chargement du DOM
-        document.addEventListener('DOMContentLoaded', initializeFirebase);
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeFirebase();
+
+            // Attacher les écouteurs d'événements aux boutons
+            document.getElementById('startGameButton').addEventListener('click', startGame);
+            document.getElementById('performActionButton').addEventListener('click', performAction);
+            document.getElementById('resetGameButton').addEventListener('click', resetGame);
+            document.getElementById('alertModalCloseButton').addEventListener('click', hideAlert);
+        });
     </script>
 </body>
 </html>
