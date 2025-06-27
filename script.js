@@ -948,7 +948,569 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
-// Fonction pour réinitialiser complètement le jeu (pour développement)
+// Fonction pour réinitia// Importations des modules Firebase
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, collection, query, where, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+// Variables globales fournies par l'environnement Canvas
+const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+// Initialisation de Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+// État global de l'application
+let gameState = {
+    userId: null, // L'ID de l'utilisateur Firebase
+    displayName: "Invité",
+    character: null,
+    selectedMode: null,
+    storyHistory: [],
+    stats: {
+        health: 100,
+        maxHealth: 100,
+        energy: 100,
+        maxEnergy: 100,
+        gold: 50
+    },
+    inventory: [],
+    // 'quickActions' pour les actions suggérées par l'IA ou par défaut
+    quickActions: [
+        { text: 'Examiner les environs', icon: '👁️' },
+        { text: 'Parler à quelqu\'un', icon: '💬' },
+        { text: 'Chercher des indices', icon: '🔍' },
+        { text: 'Se reposer', icon: '😴' }
+    ]
+};
+
+let isAuthReady = false; // Indicateur pour savoir si l'authentification est prête
+
+// --- Fonctions d'interface utilisateur ---
+
+/**
+ * Affiche un écran spécifique et masque les autres.
+ * @param {string} screenId L'ID de l'écran à afficher.
+ */
+function showScreen(screenId) {
+    document.querySelectorAll('.screen').forEach(screen => {
+        screen.classList.remove('active');
+    });
+    document.getElementById(screenId).classList.add('active');
+}
+
+/**
+ * Affiche une modale d'alerte personnalisée.
+ * @param {string} title Le titre de l'alerte.
+ * @param {string} message Le message de l'alerte.
+ */
+function showAlert(title, message) {
+    document.getElementById('alertModalTitle').textContent = title;
+    document.getElementById('alertModalMessage').textContent = message;
+    document.getElementById('alertModalOverlay').style.display = 'flex';
+}
+
+/**
+ * Masque la modale d'alerte.
+ */
+function hideAlert() {
+    document.getElementById('alertModalOverlay').style.display = 'none';
+}
+
+/**
+ * Met à jour l'affichage des informations utilisateur dans le header.
+ */
+function updateUserDisplay() {
+    document.getElementById('userDisplay').textContent = gameState.displayName || "Invité";
+    document.getElementById('userIdDisplay').textContent = gameState.userId ? `ID: ${gameState.userId}` : '';
+}
+
+/**
+ * Met à jour l'affichage des statistiques.
+ */
+function updateStatsDisplay() {
+    document.getElementById('health').textContent = `${gameState.stats.health}/${gameState.stats.maxHealth}`;
+    document.getElementById('energy').textContent = `${gameState.stats.energy}/${gameState.stats.maxEnergy}`;
+    document.getElementById('gold').textContent = gameState.stats.gold;
+}
+
+/**
+ * Met à jour l'affichage de l'inventaire.
+ */
+function updateInventoryDisplay() {
+    const inventoryContent = document.getElementById('inventoryContent');
+    inventoryContent.innerHTML = ''; // Nettoie l'inventaire précédent
+    if (gameState.inventory && gameState.inventory.length > 0) {
+        gameState.inventory.forEach(item => {
+            const p = document.createElement('p');
+            p.style.color = 'var(--text-primary)';
+            p.textContent = item;
+            inventoryContent.appendChild(p);
+        });
+    } else {
+        inventoryContent.innerHTML = '<p style="color: var(--text-secondary); font-style: italic;">Vide</p>';
+    }
+}
+
+/**
+ * Met à jour l'affichage des actions rapides.
+ */
+function updateQuickActionsDisplay() {
+    const container = document.getElementById('quickActionsContainer');
+    container.innerHTML = ''; // Nettoie les actions précédentes
+    gameState.quickActions.forEach(action => {
+        const button = document.createElement('button');
+        button.className = 'quick-action-btn';
+        button.textContent = `${action.icon || ''} ${action.text}`;
+        button.onclick = () => setQuickAction(action.text);
+        container.appendChild(button);
+    });
+}
+
+/**
+ * Affiche une nouvelle entrée dans l'historique de l'histoire.
+ * @param {string} story Le texte de l'histoire.
+ * @param {string | null} action L'action du joueur qui a mené à cette histoire, ou null si c'est le début.
+ */
+function displayStoryEntry(story, action) {
+    const storyContentDiv = document.getElementById('storyContent');
+    const newEntry = document.createElement('div');
+    newEntry.className = 'story-entry';
+
+    if (action) {
+        const actionP = document.createElement('p');
+        actionP.className = 'action-text';
+        actionP.textContent = `> Vous: "${action}"`;
+        newEntry.appendChild(actionP);
+    }
+
+    const storyP = document.createElement('p');
+    storyP.className = 'story-text';
+    storyP.textContent = story;
+    newEntry.appendChild(storyP);
+
+    storyContentDiv.prepend(newEntry); // Ajoute la nouvelle entrée en haut
+    // Optionnel: Faire défiler vers le haut pour voir la nouvelle histoire
+    // storyContentDiv.scrollTop = 0; // or storyContentDiv.scrollHeight to scroll to bottom
+}
+
+// --- Fonctions de gestion de l'état du jeu et Firebase ---
+
+/**
+ * Sauvegarde l'état du jeu dans Firestore.
+ */
+async function saveGameState() {
+    if (!gameState.userId) {
+        console.warn("Impossible de sauvegarder : userId non défini.");
+        return;
+    }
+    try {
+        // Le chemin du document Firestore pour les données privées de l'utilisateur
+        const userDocRef = doc(db, `artifacts/${appId}/users/${gameState.userId}/gameState`, 'current');
+        // Nettoie l'objet gameState pour éviter de sauvegarder des données sensibles ou non sérialisables
+        const dataToSave = { ...gameState };
+        delete dataToSave.userId; // userId est déjà dans le chemin du document
+        await setDoc(userDocRef, dataToSave, { merge: true }); // merge: true pour mettre à jour sans écraser
+        console.log("État du jeu sauvegardé avec succès.");
+    } catch (error) {
+        console.error("Erreur lors de la sauvegarde de l'état du jeu:", error);
+        showAlert('Erreur de Sauvegarde', 'Impossible de sauvegarder votre progression.');
+    }
+}
+
+/**
+ * Charge l'état du jeu depuis Firestore.
+ */
+async function loadGameState() {
+    if (!gameState.userId) {
+        console.warn("Impossible de charger : userId non défini.");
+        return;
+    }
+    try {
+        const userDocRef = doc(db, `artifacts/${appId}/users/${gameState.userId}/gameState`, 'current');
+        const docSnap = await getDoc(userDocRef);
+
+        if (docSnap.exists()) {
+            const loadedData = docSnap.data();
+            // Fusionne les données chargées avec l'état actuel, en priorisant les données chargées
+            gameState = { 
+                ...gameState, // Maintient userId et les valeurs par défaut
+                ...loadedData // Écrase avec les données de Firestore
+            };
+            console.log("État du jeu chargé avec succès:", gameState);
+            // Si un personnage est chargé, on passe directement à l'écran de mode ou de jeu
+            if (gameState.character) {
+                showScreen(gameState.selectedMode ? 'gameScreen' : 'modeScreen');
+                if (gameState.selectedMode) {
+                    // Si déjà en jeu, réafficher l'historique
+                    document.getElementById('storyContent').innerHTML = ''; // Nettoyer avant d'ajouter
+                    gameState.storyHistory.slice().reverse().forEach(entry => { // Inverse pour afficher du plus ancien au plus récent
+                        displayStoryEntry(entry.story, entry.action);
+                    });
+                }
+            } else {
+                showScreen('characterScreen'); // Sinon, créer un personnage
+            }
+        } else {
+            console.log("Aucun état de jeu sauvegardé trouvé, début d'une nouvelle session.");
+            showScreen('characterScreen'); // Pas de données, commencer par la création
+        }
+        updateUserDisplay();
+        updateStatsDisplay();
+        updateInventoryDisplay();
+        updateQuickActionsDisplay(); // S'assurer que les actions rapides sont affichées
+    } catch (error) {
+        console.error("Erreur lors du chargement de l'état du jeu:", error);
+        showAlert('Erreur de Chargement', 'Impossible de charger votre progression.');
+        showScreen('loginScreen'); // En cas d'erreur grave, revenir à l'écran de connexion
+    }
+}
+
+/**
+ * Initialise un listener Firestore pour les mises à jour en temps réel de l'état du jeu.
+ * Cela permet de réagir aux changements même s'ils viennent d'ailleurs (utile pour le futur multi-joueurs ou admin).
+ */
+function setupFirestoreListener() {
+    if (!gameState.userId || !isAuthReady) {
+        console.warn("Impossible de configurer le listener Firestore: authentification non prête ou userId manquant.");
+        return;
+    }
+    const userDocRef = doc(db, `artifacts/${appId}/users/${gameState.userId}/gameState`, 'current');
+    onSnapshot(userDocRef, (docSnap) => {
+        if (docSnap.exists()) {
+            const liveData = docSnap.data();
+            // On ne met à jour que les parties de l'état qui peuvent changer dynamiquement
+            // Éviter de changer l'écran si on est déjà sur le bon
+            const currentScreen = document.querySelector('.screen.active').id;
+            if (currentScreen !== 'loginScreen' && currentScreen !== 'characterScreen') {
+                gameState = { ...gameState, ...liveData }; // Fusionne les données en temps réel
+                updateStatsDisplay();
+                updateInventoryDisplay();
+                // Pour l'histoire, on peut ajouter la dernière entrée si elle n'est pas déjà là.
+                // Cela nécessiterait une logique plus fine pour les mises à jour d'historique.
+                // Pour l'instant, un simple rechargement complet de l'historique est plus simple.
+                document.getElementById('storyContent').innerHTML = '';
+                gameState.storyHistory.slice().reverse().forEach(entry => {
+                    displayStoryEntry(entry.story, entry.action);
+                });
+                updateQuickActionsDisplay(); // Mettre à jour les actions rapides au cas où l'IA les modifierait
+            }
+            console.log("Mise à jour Firestore en temps réel détectée:", liveData);
+        }
+    }, (error) => {
+        console.error("Erreur lors de l'écoute Firestore:", error);
+        showAlert('Erreur de Connexion', 'La connexion aux données du jeu a été perdue.');
+    });
+}
+
+
+// --- Fonctions d'authentification et de flux de jeu ---
+
+/**
+ * Gère la connexion de l'utilisateur.
+ */
+async function login() {
+    const displayNameInput = document.getElementById('displayName');
+    const displayName = displayNameInput.value.trim();
+    
+    if (!displayName) {
+        showAlert('Erreur', 'Veuillez entrer un nom d\'aventurier.');
+        return;
+    }
+
+    gameState.displayName = displayName;
+    // Si l'utilisateur est déjà authentifié anonymement, met à jour son profil avec le displayName
+    if (auth.currentUser) {
+        await saveDisplayName(auth.currentUser.uid, displayName);
+        await loadGameState(); // Tente de charger les données de l'utilisateur authentifié
+    } else {
+        // Devrait être géré par onAuthStateChanged qui redirige après l'authentification initiale
+        showAlert('Erreur Système', 'La session utilisateur n\'a pas pu être initialisée. Veuillez rafraîchir la page.');
+    }
+}
+
+/**
+ * Sauvegarde le nom d'affichage de l'utilisateur dans Firestore.
+ * @param {string} uid L'UID de l'utilisateur.
+ * @param {string} displayName Le nom d'affichage.
+ */
+async function saveDisplayName(uid, displayName) {
+    try {
+        const userDocRef = doc(db, `artifacts/${appId}/users/${uid}`, 'profile');
+        await setDoc(userDocRef, { displayName: displayName }, { merge: true });
+        console.log("Nom d'affichage sauvegardé.");
+    } catch (error) {
+        console.error("Erreur lors de la sauvegarde du nom d'affichage:", error);
+    }
+}
+
+/**
+ * Crée un nouveau personnage et le sauvegarde dans Firestore.
+ */
+async function createCharacter() {
+    const name = document.getElementById('characterName').value.trim();
+    const archetype = document.getElementById('characterArchetype').value;
+    const description = document.getElementById('characterDescription').value.trim();
+    const background = document.getElementById('characterBackground').value.trim();
+
+    if (!name || !archetype || !description || !background) {
+        showAlert('Erreur', 'Veuillez remplir tous les champs pour créer votre personnage.');
+        return;
+    }
+
+    gameState.character = {
+        name,
+        archetype,
+        description,
+        background,
+        createdAt: new Date().toISOString()
+    };
+
+    await saveGameState(); // Sauvegarde le personnage comme partie de l'état du jeu
+    showScreen('modeScreen');
+}
+
+let selectedModeCard = null; // Pour gérer la sélection visuelle de la carte du mode
+
+/**
+ * Gère la sélection d'un mode de jeu.
+ * @param {string} mode Le mode de jeu sélectionné.
+ * @param {HTMLElement} cardElement L'élément HTML de la carte du mode.
+ */
+function selectMode(mode, cardElement) {
+    // Retirer la sélection précédente
+    document.querySelectorAll('.mode-card').forEach(card => {
+        card.classList.remove('selected');
+    });
+
+    // Sélectionner le nouveau mode
+    cardElement.classList.add('selected');
+    gameState.selectedMode = mode;
+    selectedModeCard = cardElement; // Stocke la carte sélectionnée
+    
+    document.getElementById('startGameBtn').disabled = false;
+}
+
+/**
+ * Définit le texte de l'action rapide dans le champ de saisie.
+ * @param {string} action Le texte de l'action rapide.
+ */
+function setQuickAction(action) {
+    document.getElementById('actionInput').value = action;
+}
+
+/**
+ * Démarre une nouvelle partie.
+ * Réinitialise l'état du jeu et redirige vers l'écran de création de personnage.
+ */
+async function newGame() {
+    if (confirm("Voulez-vous vraiment commencer une nouvelle partie ? Votre progression actuelle sera perdue.")) {
+        gameState.character = null;
+        gameState.selectedMode = null;
+        gameState.storyHistory = [];
+        gameState.stats = { health: 100, maxHealth: 100, energy: 100, maxEnergy: 100, gold: 50 };
+        gameState.inventory = [];
+        // Reset quick actions to default if they were modified by AI
+        gameState.quickActions = [
+            { text: 'Examiner les environs', icon: '👁️' },
+            { text: 'Parler à quelqu\'un', icon: '💬' },
+            { text: 'Chercher des indices', icon: '🔍' },
+            { text: 'Se reposer', icon: '😴' }
+        ];
+        await saveGameState(); // Sauvegarde l'état réinitialisé
+        document.getElementById('storyContent').innerHTML = `<div class="loading" id="loadingStory" style="display: none;"><div class="spinner"></div><p>L'IA tisse votre histoire...</p></div>`;
+        document.getElementById('actionInput').value = '';
+        if (selectedModeCard) {
+            selectedModeCard.classList.remove('selected'); // Désélectionne la carte du mode
+        }
+        document.getElementById('startGameBtn').disabled = true;
+        showScreen('characterScreen');
+        updateStatsDisplay();
+        updateInventoryDisplay();
+        updateQuickActionsDisplay();
+    }
+}
+
+
+/**
+ * Démarre l'aventure en générant l'histoire initiale via l'IA.
+ */
+async function startGame() {
+    if (!gameState.selectedMode) {
+        showAlert('Erreur', 'Veuillez sélectionner un mode de jeu.');
+        return;
+    }
+
+    showScreen('gameScreen');
+    document.getElementById('loadingStory').style.display = 'block';
+
+    try {
+        // Construisez le prompt pour l'IA
+        const prompt = `Génère le début d'une aventure interactive dans un style ${gameState.selectedMode} pour le personnage suivant :
+        Nom: ${gameState.character.name}
+        Archétype: ${gameState.character.archetype}
+        Description physique: ${gameState.character.description}
+        Histoire personnelle: ${gameState.character.background}
+        
+        Commence l'histoire, décris la scène initiale et propose au joueur les premières options d'action.`
+
+        // Appel à votre fonction Netlify (gemini-narrator.js)
+        const response = await fetch('/.netlify/functions/gemini-narrator', { // Assurez-vous que ce chemin est correct
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: 'initialStory', prompt: prompt })
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Erreur du serveur: ${response.status} ${response.statusText} - ${errorText}`);
+        }
+
+        const result = await response.json();
+        
+        if (result && result.story) {
+            gameState.storyHistory.push({ story: result.story, timestamp: new Date().toISOString() });
+            displayStoryEntry(result.story, null);
+            await saveGameState(); // Sauvegarde l'histoire initiale
+        } else {
+            console.error("Réponse de la fonction Netlify inattendue pour l'histoire initiale:", result);
+            throw new Error("L'IA n'a pas pu générer l'histoire initiale.");
+        }
+    } catch (error) {
+        showAlert('Erreur', `Impossible de démarrer l'aventure: ${error.message}. Veuillez réessayer.`);
+        console.error('Erreur lors du démarrage de l\'aventure:', error);
+    } finally {
+        document.getElementById('loadingStory').style.display = 'none';
+    }
+}
+
+/**
+ * Traite l'action du joueur et génère la suite de l'histoire via l'IA.
+ */
+async function performAction() {
+    const action = document.getElementById('actionInput').value.trim();
+    
+    if (!action) {
+        showAlert('Erreur', 'Veuillez décrire votre action.');
+        return;
+    }
+
+    document.getElementById('loadingStory').style.display = 'block';
+    document.getElementById('actionInput').value = '';
+
+    try {
+        // Préparez les données à envoyer à votre fonction Netlify
+        const requestBody = {
+            type: 'processAction',
+            action: action,
+            character: gameState.character,
+            currentStats: gameState.stats,
+            currentInventory: gameState.inventory,
+            storyHistory: gameState.storyHistory // Envoyer l'historique pour le contexte
+        };
+
+        // Appel à votre fonction Netlify (gemini-narrator.js)
+        const response = await fetch('/.netlify/functions/gemini-narrator', { // Assurez-vous que ce chemin est correct
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestBody)
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Erreur du serveur: ${response.status} ${response.statusText} - ${errorText}`);
+        }
+
+        const result = await response.json(); // La fonction Netlify devrait retourner un objet JSON
+
+        if (result && result.story) {
+            // Met à jour l'état du jeu avec les données reçues de l'IA
+            Object.assign(gameState.stats, result.gameStateUpdate?.stats || {});
+            gameState.inventory = result.gameStateUpdate?.inventory || gameState.inventory;
+            gameState.quickActions = result.quickActions || gameState.quickActions;
+
+            gameState.storyHistory.push({ action: action, story: result.story, timestamp: new Date().toISOString() });
+            displayStoryEntry(result.story, action);
+            
+            await saveGameState(); // Sauvegarde le nouvel état du jeu
+            updateStatsDisplay();
+            updateInventoryDisplay();
+            updateQuickActionsDisplay(); // Met à jour les actions rapides
+        } else {
+            console.error("Réponse de la fonction Netlify inattendue pour l'action:", result);
+            throw new Error("L'IA n'a pas pu traiter votre action.");
+        }
+    } catch (error) {
+        showAlert('Erreur', `Erreur lors du traitement de votre action: ${error.message}. Veuillez réessayer.`);
+        console.error('Erreur lors de l\'action:', error);
+        // Retourne une histoire d'erreur avec un état de jeu inchangé si l'appel échoue
+        displayStoryEntry("Une distorsion temporelle semble avoir affecté la réalité... ou la connexion est instable. Veuillez réessayer votre action.", action);
+    } finally {
+        document.getElementById('loadingStory').style.display = 'none';
+    }
+}
+
+
+// --- Initialisation de l'application ---
+
+// Attendre que l'authentification Firebase soit prête
+onAuthStateChanged(auth, async (user) => {
+    if (user) {
+        // Utilisateur connecté (anonyme ou via custom token)
+        gameState.userId = user.uid;
+        document.getElementById('userIdDisplay').textContent = `ID: ${user.uid}`;
+        
+        // Tente de charger le nom d'affichage du profil utilisateur
+        try {
+            const profileDocRef = doc(db, `artifacts/${appId}/users/${user.uid}`, 'profile');
+            const profileSnap = await getDoc(profileDocRef);
+            if (profileSnap.exists() && profileSnap.data().displayName) {
+                gameState.displayName = profileSnap.data().displayName;
+            }
+        } catch (error) {
+            console.error("Erreur lors du chargement du profil:", error);
+        }
+
+        updateUserDisplay();
+        isAuthReady = true;
+        setupFirestoreListener(); // Active le listener après l'authentification
+        
+        // Si l'utilisateur n'est pas encore sur l'écran de jeu ou de création/mode,
+        // on charge son état de jeu. Si déjà sur loginScreen, on reste pour qu'il entre son nom.
+        if (document.querySelector('.screen.active').id === 'loginScreen') {
+            await loadGameState();
+        } else {
+            // Si déjà sur un autre écran (ex: refresh pendant la création), juste assurer l'affichage
+            updateStatsDisplay();
+            updateInventoryDisplay();
+            updateQuickActionsDisplay();
+        }
+
+    } else {
+        // Pas d'utilisateur connecté, se connecter anonymement ou avec le token fourni
+        isAuthReady = false;
+        try {
+            if (initialAuthToken) {
+                await signInWithCustomToken(auth, initialAuthToken);
+                console.log("Connecté avec un jeton personnalisé.");
+            } else {
+                await signInAnonymously(auth);
+                console.log("Connecté anonymement.");
+            }
+        } catch (error) {
+            console.error("Erreur d'authentification Firebase:", error);
+            showAlert('Erreur d\'Authentification', 'Impossible de se connecter au service. Veuillez vérifier votre connexion internet.');
+        }
+        showScreen('loginScreen'); // Afficher l'écran de connexion si non connecté
+    }
+});
+
+// Appeler cette fonction une fois le DOM chargé pour mettre à jour les actions rapides initiales
+document.addEventListener('DOMContentLoaded', updateQuickActionsDisplay);
+liser complètement le jeu (pour développement)
 function resetGame() {
     window.showAlert('Êtes-vous sûr de vouloir réinitialiser complètement le jeu ? Cela supprimera toutes les données sauvegardées localement et sur le cloud pour cet utilisateur.', "info");
     

@@ -1,515 +1,506 @@
-/* polices */
+/* Styles CSS globaux */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --primary-bg: #0a0a0a;
+    --secondary-bg: #1a1a1a;
+    --card-bg: rgba(30, 30, 30, 0.8);
+    --accent-color: #00d9ff;
+    --accent-secondary: #ff6b35;
+    --text-primary: #ffffff;
+    --text-secondary: #b0b0b0;
+    --border-color: rgba(0, 217, 255, 0.3);
+    --success-color: #00ff88;
+    --warning-color: #ffaa00;
+    --error-color: #ff4444;
+}
+
 body {
-    font-family: 'Rajdhani', sans-serif; /* Police principale */
-    background-color: #1a1a2e;
-    color: #e0e0e0;
-    margin: 0;
-    padding: 0; /* Important de supprimer le padding par défaut du body */
-    display: flex;
-    flex-direction: column; /* Pour que la nav soit au-dessus du contenu */
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+    color: var(--text-primary);
+    font-family: 'Rajdhani', sans-serif;
+    overflow-x: hidden;
     min-height: 100vh;
-    overflow-x: hidden; /* Empêche le défilement horizontal indésirable */
 }
 
-/* --- Arrière-plan animé --- */
-.background-container {
-    position: fixed; /* Fixe le fond derrière tout le contenu */
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); /* Dégradé de base */
-    background-size: 400% 400%; /* Permet une animation de dégradé */
-    animation: gradientShift 15s ease infinite; /* Anime le dégradé */
-    /* Ancien z-index: -1; a été retiré */
-}
-
-@keyframes gradientShift {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
-
-/* Effets de particules ou nébuleuses (simulés avec des pseudo-éléments) */
-.background-container::before,
-.background-container::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none; /* Ceci est correct et nécessaire pour les pseudo-éléments */
-    opacity: 0.3;
-    animation: pulseGlow 20s infinite alternate; /* Animation de lumière subtile */
-}
-
-.background-container::before {
-    background: radial-gradient(circle at 20% 80%, rgba(139, 233, 253, 0.2), transparent 70%),
-                        radial-gradient(circle at 80% 20%, rgba(255, 121, 198, 0.2), transparent 70%);
-}
-
-.background-container::after {
-    background: radial-gradient(circle at 50% 50%, rgba(189, 147, 249, 0.1), transparent 80%);
-    filter: blur(50px); /* Flou pour un effet de nébuleuse */
-}
-
-@keyframes pulseGlow {
-    0% { transform: scale(1); opacity: 0.2; }
-    100% { transform: scale(1.1); opacity: 0.4; }
-}
-
-
-/* --- Barre de Navigation --- */
-.main-nav {
-    background-color: rgba(36, 36, 62, 0.8); /* Fond sombre semi-transparent */
-    backdrop-filter: blur(10px); /* Effet verre dépoli */
-    -webkit-backdrop-filter: blur(10px); /* Compatibilité Safari */
-    padding: 15px 40px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.4);
-    position: sticky; /* Rendre la barre collante en haut */
-    top: 0;
-    width: 100%;
-    z-index: 1000; /* Assure qu'elle est au-dessus du contenu */
-    box-sizing: border-box; /* Inclut padding dans la largeur */
-}
-
-.nav-brand a {
-    font-family: 'Orbitron', sans-serif; /* Police futuriste pour le titre */
-    font-size: 2em;
-    color: #8be9fd; /* Bleu clair */
-    text-decoration: none;
-    font-weight: bold;
-    letter-spacing: 2px;
-    transition: color 0.3s ease;
-}
-
-.nav-brand a:hover {
-    color: #f1fa8c; /* Jaune néon au survol */
-}
-
-.nav-links {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    align-items: center;
-}
-
-.nav-links li {
-    margin-left: 30px; /* Espace entre les éléments */
-    position: relative; /* Pour le menu déroulant */
-}
-
-.nav-links a {
-    color: #f8f8f2; /* Blanc cassé */
-    text-decoration: none;
-    font-size: 1.1em;
-    font-weight: 600;
-    padding: 5px 0;
-    transition: color 0.3s ease, border-bottom 0.3s ease;
-    border-bottom: 2px solid transparent; /* Ligne sous le lien au survol */
-}
-
-.nav-links a:hover,
-.nav-links a.active {
-    color: #bd93f9; /* Violet */
-    border-bottom: 2px solid #bd93f9;
-}
-
-/* Menu Déroulant (Dropdown) */
-.dropdown-content {
-    display: none;
-    position: absolute;
-    background-color: rgba(44, 44, 74, 0.95);
-    min-width: 160px;
-    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.6);
-    z-index: 1;
-    border-radius: 5px;
-    padding: 10px 0;
-    left: 50%; /* Centrer sous l'élément parent */
-    transform: translateX(-50%);
-    top: calc(100% + 10px); /* Espacement sous le bouton parent */
-}
-
-.dropdown-content a {
-    color: #f8f8f2;
-    padding: 12px 16px;
-    text-decoration: none;
-    display: block;
-    text-align: left;
-    border-bottom: none; /* Pas de ligne sous les éléments du dropdown */
-    font-size: 1em;
-}
-
-.dropdown-content a:hover {
-    background-color: #44475a;
-    color: #ff79c6; /* Rose au survol */
-    border-bottom: none;
-    border-radius: 3px;
-}
-
-.dropdown:hover .dropdown-content {
-    display: block;
-}
-
-/* --- Contenu Principal du Site --- */
-.content-wrapper {
-    flex-grow: 1; /* Permet au contenu de prendre l'espace restant */
-    padding: 30px 20px; /* Padding autour de tout le contenu */
-    padding-top: 100px; /* Ajustez si votre nav est plus haute */
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    box-sizing: border-box;
-}
-
-.container {
-    display: flex;
-    width: 100%;
-    max-width: 1400px;
-    gap: 20px;
-    /* Supprimez les styles de background-color, shadow, etc. car ils seront gérés par les sections internes */
-    background-color: transparent; /* Assurez-vous que le container n'a pas de fond */
-    box-shadow: none;
-    padding: 0; /* Assurez-vous que le container n'a pas de padding initial */
-}
-
-/* --- Styles existants du jeu (ajustés pour s'intégrer) --- */
-#game-area {
-    flex-grow: 1;
-    background-color: rgba(40, 42, 54, 0.85); /* Fond sombre semi-transparent */
-    backdrop-filter: blur(5px); /* Effet verre dépoli */
-    -webkit-backdrop-filter: blur(5px);
-    border-radius: 8px;
-    padding: 30px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-    min-height: 800px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-}
-
-.sidebar {
-    flex-shrink: 0;
-    width: 300px;
-    background-color: rgba(40, 42, 54, 0.85); /* Fond sombre semi-transparent */
-    backdrop-filter: blur(5px); /* Effet verre dépoli */
-    -webkit-backdrop-filter: blur(5px);
-    border-radius: 8px;
-    padding: 20px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-h1 {
-    font-family: 'Orbitron', sans-serif;
-    color: #8be9fd;
-    text-align: center;
-    margin-bottom: 25px;
-    font-size: 2.5em;
-    text-shadow: 0 0 10px rgba(139, 233, 253, 0.5); /* Effet lumineux */
-}
-
-h2 {
-    font-family: 'Orbitron', sans-serif;
-    color: #f1fa8c;
-    margin-top: 0;
-    margin-bottom: 15px;
-    font-size: 1.8em;
-    text-align: center;
-    text-shadow: 0 0 8px rgba(241, 250, 140, 0.4);
-}
-
-.screen {
-    display: none;
-    flex-direction: column;
-    flex-grow: 1;
-}
-
-.screen.active {
-    display: flex;
-}
-
-#player-name-input, #player-archetype-select, #game-mode-select, #action-input-field {
-    width: calc(100% - 20px);
-    padding: 12px;
-    margin-bottom: 15px;
-    border: 1px solid #6272a4;
-    border-radius: 5px;
-    background-color: #44475a;
-    color: #f8f8f2;
-    font-size: 1em;
-    box-sizing: border-box; /* Inclure padding dans la largeur */
-}
-
-button {
-    background-color: #bd93f9;
-    color: #282a36;
-    padding: 12px 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 1.1em;
-    font-weight: bold;
-    transition: background-color 0.2s ease, transform 0.1s ease;
-    width: 100%;
-    box-sizing: border-box;
-    text-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
-}
-
-button:hover {
-    background-color: #ff79c6;
-    transform: translateY(-2px); /* Léger effet de soulèvement */
-}
-
-#story-display {
-    background-color: rgba(68, 71, 90, 0.7); /* Fond semi-transparent pour le texte */
-    backdrop-filter: blur(3px); /* Léger flou pour le texte */
-    -webkit-backdrop-filter: blur(3px);
-    border-radius: 5px;
-    padding: 20px;
-    margin-bottom: 20px;
-    min-height: 400px;
-    overflow-y: auto;
-    line-height: 1.6;
-    white-space: pre-wrap;
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column-reverse; /* Pour que le nouveau texte apparaisse en bas */
-    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2); /* Ombre interne subtile */
-}
-#story-display p {
-    margin-top: 0;
-    margin-bottom: 1em;
-}
-
-.action-buttons button {
-    margin-top: 10px;
-    background-color: #50fa7b; /* Vert vif */
-    color: #282a36;
-}
-
-.action-buttons button:hover {
-    background-color: #bd93f9;
-}
-
-.action-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-top: 20px;
-}
-
-.action-input {
-    margin-top: 20px;
-}
-
-#action-input-field {
-    height: 80px;
-    resize: vertical;
-    margin-bottom: 10px;
-}
-
-.stats-box {
-    background-color: rgba(68, 71, 90, 0.7); /* Fond semi-transparent */
-    backdrop-filter: blur(3px);
-    -webkit-backdrop-filter: blur(3px);
-    border-radius: 5px;
-    padding: 15px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-}
-
-.stats-box ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.stats-box li {
-    margin-bottom: 8px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.stats-box li:last-child {
-    margin-bottom: 0;
-}
-
-.stats-box li span {
-    font-weight: bold;
-    color: #ff79c6; /* Rose */
-}
-
-#inventory-list li, #npcs-list li, #quests-list li, #events-list li {
-     margin-bottom: 5px;
-     font-size: 0.9em;
-     color: #f8f8f2; /* Texte des listes en blanc cassé */
-}
-
-
-/* --- Responsive Design Basique --- */
-@media (max-width: 1200px) {
-    .container {
-        flex-direction: column; /* Colonne sur les petits écrans */
-        align-items: center;
-    }
-    .sidebar {
-        width: 100%;
-        margin-top: 20px;
-    }
-    .main-nav {
-        padding: 15px 20px;
-        flex-direction: column; /* La navigation en colonne sur mobile */
-        align-items: flex-start;
-    }
-    .nav-links {
-        flex-direction: column;
-        width: 100%;
-        margin-top: 15px;
-        align-items: flex-start;
-    }
-    .nav-links li {
-        margin-left: 0;
-        margin-bottom: 10px;
-        width: 100%;
-    }
-    .nav-links a {
-        display: block;
-        width: 100%;
-        text-align: center;
-        padding: 10px 0;
-    }
-    .dropdown {
-        width: 100%;
-    }
-    .dropdown-content {
-        position: static; /* Positionnement normal dans le flux */
-        width: 100%;
-        transform: none;
-        box-shadow: none;
-        background-color: rgba(44, 44, 74, 0.95);
-        border-radius: 0;
-    }
-}
-
-@media (max-width: 768px) {
-    h1 { font-size: 2em; }
-    h2 { font-size: 1.5em; }
-    .main-nav { padding: 10px 15px; }
-    .nav-brand a { font-size: 1.5em; }
-    .nav-links li { margin-left: 15px; }
-    .content-wrapper { padding: 10px; }
-    #game-area, .sidebar { padding: 15px; }
-}
-
-/* --- Styles pour la Modal d'Alerte Personnalisée --- */
-.modal-overlay {
-    /* TRÈS IMPORTANT : Cache la modal par défaut */
-    display: none;
+/* Fond animé avec des gradients subtils */
+.animated-bg {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.7); /* Fond semi-transparent */
-    display: flex; /* Utilisé par JS pour afficher la modal */
+    z-index: -1;
+    background: 
+        radial-gradient(circle at 20% 80%, rgba(0, 217, 255, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(255, 107, 53, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(0, 255, 136, 0.05) 0%, transparent 50%);
+    animation: bgPulse 10s ease-in-out infinite alternate;
+}
+
+@keyframes bgPulse {
+    0% { opacity: 0.7; }
+    100% { opacity: 1; }
+}
+
+/* Header de l'application */
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: rgba(10, 10, 10, 0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border-color);
+    z-index: 1000;
+    padding: 1rem 2rem;
+}
+
+.nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.logo {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.8rem;
+    font-weight: 900;
+    background: linear-gradient(45deg, var(--accent-color), var(--accent-secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.user-name {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+}
+
+/* Conteneur principal */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 6rem 2rem 2rem;
+    min-height: 100vh;
+}
+
+/* Gestion des écrans (connexion, création, jeu) */
+.screen {
+    display: none;
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+.screen.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Style de l'écran de connexion */
+.login-screen {
+    text-align: center;
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.welcome-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 3rem;
+    font-weight: 900;
+    margin-bottom: 1rem;
+    background: linear-gradient(45deg, var(--accent-color), var(--accent-secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.welcome-subtitle {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    margin-bottom: 3rem;
+    line-height: 1.6;
+}
+
+/* Style des cartes pour les formulaires et informations */
+.card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 20px rgba(0, 217, 255, 0.2);
+}
+
+/* Styles des groupes de formulaires */
+.form-group {
+    margin-bottom: 1.5rem;
+    text-align: left;
+}
+
+.form-label {
+    display: block;
+    font-size: 1rem;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.form-input {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    background: rgba(26, 26, 26, 0.8);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 10px rgba(0, 217, 255, 0.3);
+}
+
+.form-textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.form-select {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2300d9ff' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem;
+}
+
+/* Styles des boutons */
+.btn {
+    display: inline-block;
+    padding: 0.8rem 2rem;
+    background: linear-gradient(45deg, var(--accent-color), var(--accent-secondary));
+    color: white;
+    text-decoration: none;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 217, 255, 0.4);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+.btn-secondary {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+}
+
+.btn-secondary:hover {
+    background: rgba(0, 217, 255, 0.1);
+    border-color: var(--accent-color);
+}
+
+/* Layout de l'écran de jeu */
+.game-layout {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 2rem;
+    height: calc(100vh - 8rem); /* Adapte la hauteur à la fenêtre */
+}
+
+.story-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.story-content {
+    flex: 1;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 2rem;
+    overflow-y: auto; /* Permet le défilement du texte de l'histoire */
+    backdrop-filter: blur(10px);
+}
+
+.story-entry {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.story-entry:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.story-text {
+    font-size: 1.1rem;
+    line-height: 1.7;
+    margin-bottom: 1rem;
+}
+
+.action-text {
+    color: var(--accent-color);
+    font-style: italic;
+    font-size: 0.95rem;
+}
+
+.action-panel {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.5rem;
+    backdrop-filter: blur(10px);
+}
+
+.action-input {
+    width: 100%;
+    padding: 1rem;
+    background: rgba(26, 26, 26, 0.8);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 1rem;
+    resize: vertical;
+    min-height: 100px;
+    margin-bottom: 1rem;
+}
+
+.quick-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.quick-action-btn {
+    padding: 0.5rem;
+    background: rgba(0, 217, 255, 0.1);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.quick-action-btn:hover {
+    background: rgba(0, 217, 255, 0.2);
+    border-color: var(--accent-color);
+}
+
+/* Panneau latéral (stats, inventaire) */
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.stats-panel, .inventory-panel {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.5rem;
+    backdrop-filter: blur(10px);
+}
+
+.panel-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.2rem;
+    color: var(--accent-color);
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+}
+
+.stat-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    color: var(--text-secondary);
+}
+
+.stat-value {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+/* Sélection de mode de jeu */
+.mode-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.mode-card {
+    background: var(--card-bg);
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.mode-card:hover,
+.mode-card.selected {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 20px rgba(0, 217, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+.mode-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.mode-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+}
+
+.mode-description {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+/* Indicateur de chargement (spinner) */
+.loading {
+    display: none;
+    text-align: center;
+    padding: 2rem;
+}
+
+.spinner {
+    border: 3px solid rgba(0, 217, 255, 0.3);
+    border-radius: 50%;
+    border-top: 3px solid var(--accent-color);
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Design adaptatif pour mobile */
+@media (max-width: 768px) {
+    .container {
+        padding: 6rem 1rem 2rem;
+    }
+
+    .game-layout {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr auto; /* L'histoire prend plus de place, la sidebar en dessous */
+    }
+
+    .welcome-title {
+        font-size: 2rem;
+    }
+
+    .mode-grid {
+        grid-template-columns: 1fr; /* Une seule colonne pour les modes */
+    }
+
+    .header {
+        padding: 1rem;
+    }
+
+    .nav {
+        flex-direction: column;
+        gap: 1rem;
+    }
+}
+
+/* Système d'alerte personnalisé (remplace alert()) */
+.alert-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 9999;
+    backdrop-filter: blur(5px);
+    display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 2000; /* Assure que la modal est au-dessus de tout le reste */
 }
 
-.modal-overlay.active {
-    display: flex; /* La classe 'active' est ajoutée par JS pour la montrer */
-}
-
-.modal-content {
-    background-color: #282a36; /* Couleur de fond sombre pour la modal */
-    padding: 30px;
-    border-radius: 8px;
-    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.6);
+.alert-modal {
+    background: var(--card-bg);
+    border: 1px solid var(--error-color);
+    border-radius: 12px;
+    padding: 2rem;
+    z-index: 10000;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 0 30px rgba(255, 68, 68, 0.3);
     max-width: 400px;
     width: 90%;
     text-align: center;
-    position: relative;
-    border: 1px solid #6272a4; /* Bordure subtile */
 }
 
-.modal-message {
-    font-size: 1.1em;
-    margin-bottom: 25px;
-    color: #f8f8f2; /* Texte clair */
+.alert-title {
+    color: var(--error-color);
+    font-family: 'Orbitron', monospace;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
 }
 
-.modal-button {
-    background-color: #bd93f9; /* Bouton violet */
-    color: #282a36;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 1em;
-    font-weight: bold;
-    transition: background-color 0.2s ease, transform 0.1s ease;
-    width: auto; /* Permet au bouton d'avoir une largeur auto */
-    margin-top: 15px;
+.alert-message {
+    color: var(--text-primary);
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
 }
 
-.modal-button:hover {
-    background-color: #ff79c6; /* Rose au survol */
-    transform: translateY(-1px);
-}
-
-.close-button {
-    position: absolute;
-    top: 10px;
-    right: 15px;
-    color: #f8f8f2;
-    font-size: 1.5em;
-    cursor: pointer;
-    transition: color 0.2s ease;
-}
-
-.close-button:hover {
-    color: #ff79c6;
-}
-
-/* Styles pour les types d'alerte */
-.modal-content.info { border-color: #8be9fd; } /* Bleu clair */
-.modal-content.success { border-color: #50fa7b; } /* Vert vif */
-.modal-content.error { border-color: #ff5555; } /* Rouge */
-
-/* Styles pour le footer */
-.main-footer {
-    background-color: rgba(36, 36, 62, 0.8);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    color: #f8f8f2;
-    text-align: center;
-    padding: 20px;
-    font-size: 0.9em;
-    margin-top: auto; /* Pousse le footer en bas de la page */
-    width: 100%;
-    box-sizing: border-box;
-    border-top: 1px solid rgba(139, 233, 253, 0.2);
-}
-
-.main-footer p {
-    margin: 5px 0;
-}
-
-.main-footer a {
-    color: #bd93f9;
-    text-decoration: none;
-    transition: color 0.2s ease;
-}
-
-.main-footer a:hover {
-    color: #ff79c6;
+.alert-modal .btn {
+    background: var(--error-color);
 }
