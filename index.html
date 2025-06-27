@@ -1043,7 +1043,18 @@
         // Si elles ne sont pas définies (par exemple, si vous exécutez le fichier HTML localement sans Canvas),
         // nous utilisons des valeurs par défaut.
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+
+        // Ce bloc est ajouté pour désactiver explicitement Firebase pour les tests locaux
+        // Quand vous voudrez réactiver Firebase, supprimez ce bloc et insérez votre vrai objet firebaseConfig
+        const firebaseConfig = {}; // Désactive Firebase
+        Object.defineProperty(window, "__firebase_config", {
+          get: () => undefined
+        });
+        Object.defineProperty(window, "__initial_auth_token", {
+          get: () => undefined
+        });
+        // Fin du bloc de désactivation Firebase
+
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
         const saveStatusElement = document.getElementById('saveStatus');
@@ -1095,14 +1106,16 @@
         // Fonction d'initialisation de Firebase
         async function initializeFirebase() {
             try {
+                // Vérifie si la configuration Firebase est vide (désactivée pour les tests locaux)
                 if (Object.keys(firebaseConfig).length === 0) {
                     console.warn("Configuration Firebase non disponible. Le stockage des données ne fonctionnera pas.");
                     saveStatusElement.textContent = "⚠️ Sauvegarde désactivée (local)";
                     saveStatusElement.classList.add('warning');
                     isFirebaseReady = false;
-                    return;
+                    return; // Arrête l'initialisation de Firebase ici
                 }
 
+                // Tente d'initialiser Firebase uniquement si une configuration est présente
                 try {
                     app = initializeApp(firebaseConfig);
                     db = getFirestore(app);
