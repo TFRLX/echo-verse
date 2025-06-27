@@ -787,6 +787,7 @@
                 db = getFirestore(app);
                 auth = getAuth(app);
 
+                // Callback de onAuthStateChanged explicitement async
                 onAuthStateChanged(auth, async (user) => {
                     if (user) {
                         userId = user.uid;
@@ -1285,9 +1286,9 @@ Assure-toi que toutes les clés de 'gameState' sont présentes, même si leurs v
         }
 
         // Attacher les écouteurs d'événements et démarrer l'initialisation après le chargement du DOM
-        document.addEventListener('DOMContentLoaded', async () => {
+        document.addEventListener('DOMContentLoaded', async () => { // Rendre le callback async
             // Initialiser Firebase dès que le DOM est prêt
-            await initializeFirebase();
+            await initializeFirebase(); // Attendre l'initialisation de Firebase
 
             // Attacher les écouteurs d'événements aux boutons
             document.getElementById('startGameButton').addEventListener('click', startGame);
