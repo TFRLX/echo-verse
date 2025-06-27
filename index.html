@@ -720,170 +720,149 @@
         </div>
     </div>
 
-    <script>
-        // Importations Firebase - Ne pas utiliser 'import' directement sans 'type="module"'
-        // Nous allons charger les scripts Firebase via CDN directement pour une compatibilité maximale
-        // Ces URLs sont normalement fournies par le CDN de Firebase
-        // Pour une utilisation locale sans 'type="module"', vous devriez inclure ces scripts via des balises <script src="...">
-        // au début du <body> ou dans le <head> si elles n'étaient pas déjà présentes.
-        // Puisque Canvas charge ses propres versions, nous allons simuler leur disponibilité ici.
-        // Si vous utilisez ce code en dehors de Canvas, vous devrez ajouter ces lignes au HTML:
-        /*
-        <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js"></script>
-        <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js"></script>
-        <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"></script>
-        */
+    <script type="module">
+        // Importations Firebase via modules ES6
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Les fonctions Firebase `initializeApp`, `getAuth`, `signInAnonymously`, etc.,
-        // seront disponibles globalement une fois les scripts ci-dessus chargés.
+        // Variables globales fournies par l'environnement Canvas.
+        // Pour le développement local, nous allons fournir des valeurs fictives si elles ne sont pas définies.
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'echo-verse-local-dev';
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-        document.addEventListener('DOMContentLoaded', async () => {
-            // Variables globales fournies par l'environnement Canvas.
-            // Pour le développement local, nous allons fournir des valeurs fictives si elles ne sont pas définies.
-            const appId = typeof __app_id !== 'undefined' ? __app_id : 'echo-verse-local-dev';
-            const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        // Configuration Firebase (récupérée de l'environnement ou par défaut pour le développement local)
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "YOUR_API_KEY", // Remplacez par votre clé API Firebase (ex: "AIzaSyC...")
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID_FROM_FIREBASE_SETTINGS"
+        };
 
-            // *** DÉBUT DE LA MODIFICATION POUR LE DÉVELOPPEMENT LOCAL ***
-            // Si vous avez un vrai projet Firebase pour le développement local,
-            // remplacez ces valeurs par les vôtres.
-            // Sinon, ces valeurs par défaut permettront à Firebase de s'initialiser.
-            const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_firebase_config) : {
-                apiKey: "YOUR_API_KEY", // Remplacez par votre clé API Firebase (ex: "AIzaSyC...")
-                authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-                projectId: "YOUR_PROJECT_ID",
-                storageBucket: "YOUR_PROJECT_ID.appspot.com",
-                messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-                appId: "YOUR_APP_ID_FROM_FIREBASE_SETTINGS" // Ceci n'est pas le même que 'appId' plus haut, c'est l'ID de votre application Firebase.
-            };
-            // *** FIN DE LA MODIFICATION POUR LE DÉVELOPPEMENT LOCAL ***
+        let app;
+        let db;
+        let auth;
+        let userId;
+        let authReady = false; // Indicateur pour s'assurer que l'authentification est prête
 
-            let app;
-            let db;
-            let auth;
-            let userId;
-            let authReady = false; // Indicateur pour s'assurer que l'authentification est prête
+        // État du jeu
+        let gameState = {
+            playerName: '',
+            currentLocation: 'Le Néant Inconnu',
+            health: 100,
+            energy: 100,
+            gold: 0,
+            inventory: [],
+            skills: [],
+            storyHistory: []
+        };
 
-            // État du jeu
-            let gameState = {
-                playerName: '',
-                currentLocation: 'Le Néant Inconnu',
-                health: 100,
-                energy: 100,
-                gold: 0,
-                inventory: [],
-                skills: [],
-                storyHistory: []
-            };
+        let isGameStarted = false; // Pour éviter de redémarrer le jeu plusieurs fois
 
-            let isGameStarted = false; // Pour éviter de redémarrer le jeu plusieurs fois
+        // Fonction pour afficher une alerte personnalisée (remplace alert())
+        function showAlert(title, message) {
+            document.getElementById('alertModalTitle').textContent = title;
+            document.getElementById('alertModalMessage').textContent = message;
+            document.getElementById('alertModal').style.display = 'flex';
+        }
 
-            // Fonction pour afficher une alerte personnalisée (remplace alert())
-            function showAlert(title, message) {
-                document.getElementById('alertModalTitle').textContent = title;
-                document.getElementById('alertModalMessage').textContent = message;
-                document.getElementById('alertModal').style.display = 'flex';
-            }
+        function hideAlert() {
+            document.getElementById('alertModal').style.display = 'none';
+        }
 
-            function hideAlert() {
-                document.getElementById('alertModal').style.display = 'none';
-            }
+        // Fonction d'initialisation de Firebase
+        async function initializeFirebase() {
+            try {
+                if (!firebaseConfig || Object.keys(firebaseConfig).length === 0 || firebaseConfig.apiKey === "YOUR_API_KEY") {
+                    console.warn("Firebase config manquante ou générique. Le stockage persistant ne fonctionnera pas localement.");
+                }
 
-            // Fonction d'initialisation de Firebase
-            async function initializeFirebase() {
-                try {
-                    // S'assurer que firebaseConfig est défini avant d'initialiser
-                    if (!firebaseConfig || Object.keys(firebaseConfig).length === 0 || firebaseConfig.apiKey === "YOUR_API_KEY") {
-                        console.warn("Firebase config manquante ou générique. Le stockage persistant ne fonctionnera pas localement.");
-                    }
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
 
-                    app = firebase.initializeApp(firebaseConfig); // Utilisation de firebase global
-                    db = firebase.firestore(app); // Utilisation de firestore global
-                    auth = firebase.auth(app); // Utilisation de auth global
-
-                    firebase.auth().onAuthStateChanged(async (user) => { // Utilisation de firebase.auth() global
-                        if (user) {
-                            userId = user.uid;
-                            console.log("Utilisateur connecté:", userId);
-                        } else if (initialAuthToken) {
-                            try {
-                                await firebase.auth().signInWithCustomToken(initialAuthToken); // Utilisation de firebase.auth() global
-                                console.log("Connecté avec un token personnalisé.");
-                                userId = firebase.auth().currentUser.uid;
-                            } catch (error) {
-                                console.warn("Échec de la connexion avec le token personnalisé, tentative de connexion anonyme:", error);
-                                await firebase.auth().signInAnonymously(); // Utilisation de firebase.auth() global
-                                userId = firebase.auth().currentUser.uid;
-                                console.log("Connecté anonymement après échec du token.");
-                            }
-                        } else {
-                            await firebase.auth().signInAnonymously(); // Utilisation de firebase.auth() global
-                            userId = firebase.auth().currentUser.uid;
-                            console.log("Connecté anonymement.");
+                // Écouteur d'état d'authentification Firebase
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        console.log("Utilisateur connecté:", userId);
+                    } else if (initialAuthToken) {
+                        try {
+                            await signInWithCustomToken(auth, initialAuthToken);
+                            console.log("Connecté avec un token personnalisé.");
+                            userId = auth.currentUser.uid;
+                        } catch (error) {
+                            console.warn("Échec de la connexion avec le token personnalisé, tentative de connexion anonyme:", error);
+                            await signInAnonymously(auth);
+                            userId = auth.currentUser.uid;
+                            console.log("Connecté anonymement après échec du token.");
                         }
-                        // S'assurer que userId est toujours défini, même si l'authentification échoue (pour le dev local)
-                        userId = userId || crypto.randomUUID();
-                        authReady = true;
-                        console.log("Firebase authReady:", authReady, "userId:", userId);
-
-                        // Après l'authentification, on peut essayer de charger l'état sauvegardé
-                        loadGameState();
-                    });
-
-                    console.log("Firebase initialisé.");
-                } catch (error) {
-                    console.error("Erreur d'initialisation de Firebase:", error);
-                    showAlert('Erreur', 'Impossible de connecter l\'application au service de stockage. Le jeu ne fonctionnera pas correctement.');
-                }
-            }
-
-
-            // Fonction pour générer l'histoire initiale
-            async function generateInitialStory() {
-                document.getElementById('loadingStory').style.display = 'block'; // Afficher le spinner
-
-                const prompt = `Crée une histoire de science-fiction immersive de type "choisissez votre propre aventure". Le joueur, ${gameState.playerName}, se réveille dans un vaisseau spatial abandonné. Décris l'environnement, les premières observations et la première décision cruciale qu'il doit prendre. Inclus des détails sur les sons, les lumières, et les sensations. Le ton doit être mystérieux et inviter à l'exploration. La réponse doit être un paragraphe cohérent.`;
-
-                try {
-                    let chatHistory = [];
-                    chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-                    const payload = { contents: chatHistory };
-                    const apiKey = ""; // Laisser vide, Canvas fournit la clé
-                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-
-                    const response = await fetch(apiUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-
-                    if (!response.ok) {
-                        const errorText = await response.text();
-                        throw new Error(`Erreur HTTP: ${response.status} - ${errorText}`);
-                    }
-
-                    const result = await response.json();
-                    if (result.candidates && result.candidates.length > 0 &&
-                        result.candidates[0].content && result.candidates[0].content.parts &&
-                        result.candidates[0].content.parts.length > 0) {
-                        const text = result.candidates[0].content.parts[0].text;
-                        document.getElementById('loadingStory').style.display = 'none'; // Cacher le spinner
-                        return text;
                     } else {
-                        document.getElementById('loadingStory').style.display = 'none'; // Cacher le spinner
-                        throw new Error("Aucune réponse valide de l'IA.");
+                        await signInAnonymously(auth);
+                        userId = auth.currentUser.uid;
+                        console.log("Connecté anonymement.");
                     }
-                } catch (error) {
-                    document.getElementById('loadingStory').style.display = 'none'; // Cacher le spinner
-                    console.error('Erreur lors de la génération de l\'histoire initiale:', error);
-                    throw error; // Propager l'erreur pour qu'elle soit gérée par l'appelant
-                }
+                    userId = userId || crypto.randomUUID(); // Fallback si userId n'est toujours pas défini
+                    authReady = true;
+                    console.log("Firebase authReady:", authReady, "userId:", userId);
+
+                    loadGameState(); // Tenter de charger l'état du jeu après l'authentification
+                });
+
+                console.log("Firebase initialisé.");
+            } catch (error) {
+                console.error("Erreur d'initialisation de Firebase:", error);
+                showAlert('Erreur', 'Impossible de connecter l\'application au service de stockage. Le jeu ne fonctionnera pas correctement.');
             }
+        }
 
-            // Fonction pour traiter l'action du joueur et générer la suite de l'histoire
-            async function processAction(action) {
-                document.getElementById('loadingAction').style.display = 'block'; // Afficher le spinner
+        // Fonction pour générer l'histoire initiale via l'API Gemini
+        async function generateInitialStory() {
+            document.getElementById('loadingStory').style.display = 'block';
 
-                const prompt = `Le joueur, ${gameState.playerName}, est actuellement à ${gameState.currentLocation}. Voici l'historique de l'histoire jusqu'à présent :
+            const prompt = `Crée une histoire de science-fiction immersive de type "choisissez votre propre aventure". Le joueur, ${gameState.playerName}, se réveille dans un vaisseau spatial abandonné. Décris l'environnement, les premières observations et la première décision cruciale qu'il doit prendre. Inclus des détails sur les sons, les lumières, et les sensations. Le ton doit être mystérieux et inviter à l'exploration. La réponse doit être un paragraphe cohérent.`;
+
+            try {
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                const payload = { contents: chatHistory };
+                const apiKey = "";
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Erreur HTTP: ${response.status} - ${errorText}`);
+                }
+
+                const result = await response.json();
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    return result.candidates[0].content.parts[0].text;
+                } else {
+                    throw new Error("Aucune réponse valide de l'IA.");
+                }
+            } catch (error) {
+                console.error('Erreur lors de la génération de l\'histoire initiale:', error);
+                throw error;
+            } finally {
+                document.getElementById('loadingStory').style.display = 'none';
+            }
+        }
+
+        // Fonction pour traiter l'action du joueur et générer la suite de l'histoire via l'API Gemini
+        async function processAction(action) {
+            document.getElementById('loadingAction').style.display = 'block';
+
+            const prompt = `Le joueur, ${gameState.playerName}, est actuellement à ${gameState.currentLocation}. Voici l'historique de l'histoire jusqu'à présent :
 ${gameState.storyHistory.map(entry => {
     if (entry.action) return `Action du joueur : "${entry.action}"\nRéponse IA : "${entry.story}"`;
     return `Début de l'histoire : "${entry.story}"`;
@@ -915,390 +894,361 @@ En tenant compte de l'état actuel du jeu et de l'historique, décris la conséq
 Assure-toi que toutes les clés de 'gameState' sont présentes, même si leurs valeurs restent inchangées.
 `;
 
-                try {
-                    let chatHistory = [];
-                    chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-                    const payload = {
-                        contents: chatHistory,
-                        generationConfig: {
-                            responseMimeType: "application/json",
-                            responseSchema: {
-                                type: "OBJECT",
-                                properties: {
-                                    "story": { "type": "STRING" },
-                                    "gameState": {
-                                        "type": "OBJECT",
-                                        "properties": {
-                                            "currentLocation": { "type": "STRING" },
-                                            "health": { "type": "NUMBER" },
-                                            "energy": { "type": "NUMBER" },
-                                            "gold": { "type": "NUMBER" },
-                                            "inventory": {
-                                                "type": "ARRAY",
-                                                "items": {
-                                                    "type": "OBJECT",
-                                                    "properties": {
-                                                        "name": { "type": "STRING" },
-                                                        "quantity": { "type": "NUMBER" }
-                                                    }
+            try {
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                const payload = {
+                    contents: chatHistory,
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: {
+                            type: "OBJECT",
+                            properties: {
+                                "story": { "type": "STRING" },
+                                "gameState": {
+                                    "type": "OBJECT",
+                                    "properties": {
+                                        "currentLocation": { "type": "STRING" },
+                                        "health": { "type": "NUMBER" },
+                                        "energy": { "type": "NUMBER" },
+                                        "gold": { "type": "NUMBER" },
+                                        "inventory": {
+                                            "type": "ARRAY",
+                                            "items": {
+                                                "type": "OBJECT",
+                                                "properties": {
+                                                    "name": { "type": "STRING" },
+                                                    "quantity": { "type": "NUMBER" }
                                                 }
-                                            },
-                                            "skills": {
-                                                "type": "ARRAY",
-                                                "items": { "type": "STRING" }
                                             }
                                         },
-                                        "required": ["currentLocation", "health", "energy", "gold", "inventory", "skills"]
-                                    }
-                                },
-                                "required": ["story", "gameState"]
-                            }
+                                        "skills": {
+                                            "type": "ARRAY",
+                                            "items": { "type": "STRING" }
+                                        }
+                                    },
+                                    "required": ["currentLocation", "health", "energy", "gold", "inventory", "skills"]
+                                }
+                            },
+                            "required": ["story", "gameState"]
                         }
-                    };
-
-                    const apiKey = ""; // Laisser vide, Canvas fournit la clé
-                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-
-                    const response = await fetch(apiUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-
-                    if (!response.ok) {
-                        const errorText = await response.text();
-                        throw new Error(`Erreur HTTP: ${response.status} - ${errorText}`);
                     }
-
-                    const result = await response.json();
-                    if (result.candidates && result.candidates.length > 0 &&
-                        result.candidates[0].content && result.candidates[0].content.parts &&
-                        result.candidates[0].content.parts.length > 0) {
-                        const jsonResponse = JSON.parse(result.candidates[0].content.parts[0].text);
-                        document.getElementById('loadingAction').style.display = 'none'; // Cacher le spinner
-                        return jsonResponse;
-                    } else {
-                        document.getElementById('loadingAction').style.display = 'none'; // Cacher le spinner
-                        throw new Error("Aucune réponse JSON valide de l'IA.");
-                    }
-                } catch (error) {
-                    document.getElementById('loadingAction').style.display = 'none'; // Cacher le spinner
-                    console.error('Erreur lors du traitement de l\'action:', error);
-                    showAlert('Erreur IA', `Impossible de générer la suite de l'histoire. Message: ${error.message}.`);
-                    throw error; // Propager l'erreur pour qu'elle soit gérée par l'appelant
-                }
-            }
-
-            // Met à jour l'interface utilisateur avec l'état actuel du jeu
-            function updateUI() {
-                document.getElementById('displayPlayerName').textContent = gameState.playerName;
-                document.getElementById('displayCurrentLocation').textContent = gameState.currentLocation;
-
-                document.getElementById('displayHealthValue').textContent = `${gameState.health}%`;
-                document.getElementById('displayHealthBar').style.width = `${gameState.health}%`;
-                if (gameState.health < 30) {
-                    document.getElementById('displayHealthBar').style.background = 'linear-gradient(90deg, #ff4444, #ff8888)'; // Rouge si bas
-                } else {
-                    document.getElementById('displayHealthBar').style.background = 'linear-gradient(90deg, var(--health-color), #88ff88)'; // Vert normal
-                }
-
-                document.getElementById('displayEnergyValue').textContent = `${gameState.energy}%`;
-                document.getElementById('displayEnergyBar').style.width = `${gameState.energy}%`;
-                if (gameState.energy < 30) {
-                    document.getElementById('displayEnergyBar').style.background = 'linear-gradient(90deg, #ff8800, #ffaa00)'; // Orange si bas
-                } else {
-                    document.getElementById('displayEnergyBar').style.background = 'linear-gradient(90deg, var(--energy-color), #88aaff)'; // Bleu normal
-                }
-
-
-                document.getElementById('displayGoldValue').textContent = gameState.gold;
-
-                const inventoryGrid = document.getElementById('inventoryGrid');
-                inventoryGrid.innerHTML = '';
-                const maxSlots = 6; // Nombre fixe de slots d'inventaire
-
-                gameState.inventory.forEach(item => {
-                    const itemSlot = document.createElement('div');
-                    itemSlot.className = 'inventory-slot filled';
-                    itemSlot.innerHTML = `<span>${item.name}</span><span class="inventory-item-count">${item.quantity}</span>`;
-                    inventoryGrid.appendChild(itemSlot);
-                });
-
-                // Remplir les slots restants avec des slots vides
-                for (let i = gameState.inventory.length; i < maxSlots; i++) {
-                    const emptySlot = document.createElement('div');
-                    emptySlot.className = 'inventory-slot';
-                    emptySlot.innerHTML = '<span>Vide</span>';
-                    inventoryGrid.appendChild(emptySlot);
-                }
-
-                const skillsList = document.getElementById('displaySkills');
-                skillsList.innerHTML = '';
-                if (gameState.skills && gameState.skills.length > 0) {
-                    gameState.skills.forEach(skill => {
-                        const li = document.createElement('li');
-                        li.textContent = skill;
-                        skillsList.appendChild(li);
-                    });
-                } else {
-                    const li = document.createElement('li');
-                    li.textContent = 'Aucune compétence pour le moment.';
-                    skillsList.appendChild(li);
-                }
-            }
-
-            // Met à jour l'état du jeu avec les nouvelles données et sauvegarde
-            async function updateGameState(newGameState) {
-                // Mettre à jour les statistiques de base
-                gameState.currentLocation = newGameState.currentLocation || gameState.currentLocation;
-                gameState.health = Math.max(0, Math.min(100, newGameState.health)); // S'assurer que la santé est entre 0 et 100
-                gameState.energy = Math.max(0, Math.min(100, newGameState.energy)); // S'assurer que l'énergie est entre 0 et 100
-                gameState.gold = Math.max(0, newGameState.gold); // L'or ne peut pas être négatif
-
-                // Mettre à jour l'inventaire : Fusionner ou remplacer
-                if (newGameState.inventory) {
-                    // Pour simplifier, nous allons remplacer l'inventaire existant
-                    // Une logique plus complexe pourrait fusionner les quantités.
-                    gameState.inventory = newGameState.inventory;
-                }
-
-                // Mettre à jour les compétences : Remplacer
-                if (newGameState.skills) {
-                    gameState.skills = newGameState.skills;
-                }
-
-                updateUI(); // Mettre à jour l'interface utilisateur
-
-                // Sauvegarder l'état du jeu dans Firestore
-                await saveGameState();
-            }
-
-            // Sauvegarde l'état du jeu dans Firestore
-            async function saveGameState() {
-                if (!authReady || !db || !userId) {
-                    console.warn("Firebase non prêt pour la sauvegarde. La sauvegarde ne sera pas effectuée.");
-                    return;
-                }
-                try {
-                    // Utiliser userId pour le chemin du document
-                    const userDocRef = db.collection(`artifacts/${appId}/users/${userId}/gameStates`).doc('currentGameState');
-                    await userDocRef.set(JSON.parse(JSON.stringify(gameState))); // Cloner pour éviter les problèmes de référence
-                    console.log("État du jeu sauvegardé !");
-                } catch (error) {
-                    console.error("Erreur lors de la sauvegarde de l'état du jeu:", error);
-                    showAlert('Erreur de Sauvegarde', 'Impossible de sauvegarder votre progression. Vérifiez votre connexion ou la console pour les détails.');
-                }
-            }
-
-            // Charge l'état du jeu depuis Firestore
-            async function loadGameState() {
-                if (!authReady || !db || !userId) {
-                    console.warn("Firebase non prêt pour le chargement. Tentative de chargement annulée.");
-                    return;
-                }
-                try {
-                    const userDocRef = db.collection(`artifacts/${appId}/users/${userId}/gameStates`).doc('currentGameState');
-                    const docSnap = await userDocRef.get();
-
-                    if (docSnap.exists) {
-                        gameState = docSnap.data();
-                        console.log("État du jeu chargé !");
-                        // S'assurer que storyHistory est un tableau, car il peut être vide ou null au début
-                        if (!gameState.storyHistory) {
-                            gameState.storyHistory = [];
-                        }
-                        updateUI(); // Mettre à jour l'interface après le chargement
-                        // Si un état est chargé, montrer l'écran de jeu directement
-                        document.getElementById('startScreen').style.display = 'none';
-                        document.getElementById('gameArea').style.display = 'block';
-                        isGameStarted = true; // Le jeu est considéré comme démarré si un état est chargé
-                    } else {
-                        console.log("Aucun état de jeu sauvegardé trouvé. Démarrage d'une nouvelle partie.");
-                        // Si pas de sauvegarde, le jeu commencera normalement par la fonction startGame()
-                    }
-                } catch (error) {
-                    console.error("Erreur lors du chargement de l'état du jeu:", error);
-                    showAlert('Erreur de Chargement', 'Impossible de charger votre progression. Une nouvelle partie va commencer.');
-                    // En cas d'erreur de chargement, réinitialiser l'état du jeu pour commencer une nouvelle partie
-                    resetGameStateData(); // Assurez-vous d'appeler la fonction de réinitialisation des données
-                }
-            }
-
-
-            // Démarre le jeu ou charge la partie sauvegardée
-            async function startGame() {
-                const playerNameInput = document.getElementById('playerNameInput');
-                const playerName = playerNameInput.value.trim();
-
-                if (!playerName) {
-                    showAlert('Erreur', 'Veuillez entrer votre nom de joueur pour commencer.');
-                    return;
-                }
-
-                gameState.playerName = playerName;
-                updateUI(); // Met à jour le nom du joueur dans l'UI
-
-                document.getElementById('startScreen').style.display = 'none';
-                document.getElementById('gameArea').style.display = 'block';
-                document.getElementById('loadingStory').style.display = 'block';
-
-                isGameStarted = true; // Marquer le jeu comme démarré
-
-                try {
-                    // Tenter de charger une partie sauvegardée d'abord
-                    // La fonction loadGameState appellera updateUI si une sauvegarde est trouvée
-                    await loadGameState();
-
-                    // Si loadGameState n'a pas trouvé de sauvegarde et le storyContent est vide,
-                    // alors générer une nouvelle histoire initiale.
-                    if (gameState.storyHistory.length === 0) {
-                        const initialStory = await generateInitialStory();
-                        displayStoryEntry(initialStory, null);
-                    }
-
-                } catch (error) {
-                    showAlert('Erreur', 'Impossible de démarrer l\'aventure. Veuillez réessayer.');
-                    console.error('Erreur lors du démarrage:', error);
-                } finally {
-                    document.getElementById('loadingStory').style.display = 'none';
-                }
-            }
-
-
-            // Effectuer une action
-            async function performAction() {
-                const action = document.getElementById('actionInput').value.trim();
-
-                if (!action) {
-                    showAlert('Erreur', 'Veuillez décrire votre action.');
-                    return;
-                }
-
-                document.getElementById('loadingAction').style.display = 'block';
-                document.getElementById('actionInput').value = ''; // Effacer l'input
-
-                try {
-                    const response = await processAction(action);
-                    displayStoryEntry(response.story, action);
-                    await updateGameState(response.gameState); // Attendre la mise à jour et la sauvegarde
-                } catch (error) {
-                    showAlert('Erreur', 'Erreur lors du traitement de votre action. Veuillez réessayer.');
-                    console.error('Erreur lors de l\'action:', error);
-                } finally {
-                    document.getElementById('loadingAction').style.display = 'none';
-                }
-            }
-
-            // Afficher une entrée d'histoire
-            function displayStoryEntry(story, action) {
-                const storyContent = document.getElementById('storyContent');
-                const storyEntryDiv = document.createElement('div');
-                storyEntryDiv.className = 'story-entry';
-
-                if (action) {
-                    const userActionP = document.createElement('p');
-                    userActionP.className = 'user-action';
-                    userActionP.textContent = `▶ Votre action : "${action}"`;
-                    storyEntryDiv.appendChild(userActionP);
-                }
-
-                const aiResponseP = document.createElement('p');
-                aiResponseP.className = 'ai-response';
-                aiResponseP.innerHTML = story.replace(/\n/g, '<br>'); // Remplace les retours à la ligne par des balises <br>
-                storyEntryDiv.appendChild(aiResponseP);
-
-                storyContent.appendChild(storyEntryDiv);
-                storyContent.scrollTop = storyContent.scrollHeight; // Défile vers le bas
-                gameState.storyHistory.push({ action: action, story: story }); // Ajouter à l'historique
-            }
-
-
-            // Réinitialise le jeu à son état initial
-            async function resetGame() {
-                // Afficher une alerte de confirmation personnalisée
-                showAlert('Réinitialiser le jeu', 'Êtes-vous sûr de vouloir réinitialiser l\'aventure ? Toute progression sera perdue localement et dans le cloud.');
-
-                // Attacher un écouteur d'événement au bouton de fermeture de la modale d'alerte pour gérer la confirmation.
-                // Note: C'est une simplification. Pour une vraie confirmation Oui/Non, il faudrait modifier la structure de la modale.
-                // Ici, on considère que cliquer sur "OK" dans l'alerte de réinitialisation équivaut à confirmer.
-                document.getElementById('alertModalCloseButton').addEventListener('click', async function confirmResetAction() {
-                    hideAlert(); // Cacher la modale d'alerte
-                    // Supprimer cet écouteur pour éviter les appels multiples si la modale est réutilisée
-                    document.getElementById('alertModalCloseButton').removeEventListener('click', confirmResetAction);
-
-                    // Réinitialiser l'état du jeu en mémoire
-                    resetGameStateData(); // Renommée pour éviter la confusion avec la fonction principale
-                    updateUI(); // Mettre à jour l'UI avec l'état réinitialisé
-
-                    // Supprimer la sauvegarde de l'utilisateur de Firestore
-                    if (authReady && db && userId) {
-                        try {
-                            const userDocRef = db.collection(`artifacts/${appId}/users/${userId}/gameStates`).doc('currentGameState');
-                            await userDocRef.delete();
-                            console.log("Sauvegarde du jeu supprimée de Firestore.");
-                            showAlert('Jeu Réinitialisé', 'L\'aventure a été réinitialisée et la sauvegarde supprimée. Vous pouvez commencer une nouvelle partie !');
-                        } catch (error) {
-                            console.error("Erreur lors de la suppression de la sauvegarde:", error);
-                            showAlert('Erreur', 'Impossible de supprimer la sauvegarde de Firestore. Veuillez réessayer.');
-                        }
-                    } else {
-                        showAlert('Jeu Réinitialisé', 'L\'aventure a été réinitialisée localement. La sauvegarde cloud n\'était pas active ou n\'a pas pu être supprimée.');
-                    }
-
-                    // Retour à l'écran de démarrage
-                    document.getElementById('startScreen').style.display = 'block';
-                    document.getElementById('gameArea').style.display = 'none';
-                    document.getElementById('playerNameInput').value = ''; // Vider le nom du joueur
-                    document.getElementById('storyContent').innerHTML = ''; // Vider l'historique
-                    document.getElementById('actionInput').value = ''; // Vider l'input d'action
-                    isGameStarted = false; // Marquer le jeu comme non démarré
-                });
-            }
-
-            // Fonction interne pour réinitialiser l'état du jeu en mémoire
-            function resetGameStateData() {
-                gameState = {
-                    playerName: '',
-                    currentLocation: 'Le Néant Inconnu',
-                    health: 100,
-                    energy: 100,
-                    gold: 0,
-                    inventory: [],
-                    skills: [],
-                    storyHistory: []
                 };
-                // Réinitialiser les éléments visuels qui ne sont pas couverts par updateUI directement
-                document.getElementById('displayCurrentLocation').textContent = 'Inconnu';
 
-                document.getElementById('displayHealthValue').textContent = '100%';
-                document.getElementById('displayHealthBar').style.width = '100%';
-                document.getElementById('displayHealthBar').style.background = 'linear-gradient(90deg, var(--health-color), #ff8888)'; // Réinitialise la couleur
+                const apiKey = "";
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
-                document.getElementById('displayEnergyValue').textContent = '100%';
-                document.getElementById('displayEnergyBar').style.width = '100%';
-                document.getElementById('displayEnergyBar').style.background = 'linear-gradient(90deg, var(--energy-color), #88aaff)'; // Réinitialise la couleur
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
 
-                document.getElementById('displayGoldValue').textContent = '0';
-
-                const inventoryGrid = document.getElementById('inventoryGrid');
-                inventoryGrid.innerHTML = '';
-                const maxSlots = 6;
-                for (let i = 0; i < maxSlots; i++) {
-                    const emptySlot = document.createElement('div');
-                    emptySlot.className = 'inventory-slot';
-                    emptySlot.innerHTML = '<span>Vide</span>';
-                    inventoryGrid.appendChild(emptySlot);
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Erreur HTTP: ${response.status} - ${errorText}`);
                 }
 
-                const skillsList = document.getElementById('displaySkills');
-                skillsList.innerHTML = '';
+                const result = await response.json();
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    return JSON.parse(result.candidates[0].content.parts[0].text);
+                } else {
+                    throw new Error("Aucune réponse JSON valide de l'IA.");
+                }
+            } catch (error) {
+                console.error('Erreur lors du traitement de l\'action:', error);
+                showAlert('Erreur IA', `Impossible de générer la suite de l'histoire. Message: ${error.message}.`);
+                throw error;
+            } finally {
+                document.getElementById('loadingAction').style.display = 'none';
+            }
+        }
+
+        // Met à jour l'interface utilisateur avec l'état actuel du jeu
+        function updateUI() {
+            document.getElementById('displayPlayerName').textContent = gameState.playerName;
+            document.getElementById('displayCurrentLocation').textContent = gameState.currentLocation;
+
+            document.getElementById('displayHealthValue').textContent = `${gameState.health}%`;
+            document.getElementById('displayHealthBar').style.width = `${gameState.health}%`;
+            if (gameState.health < 30) {
+                document.getElementById('displayHealthBar').style.background = 'linear-gradient(90deg, #ff4444, #ff8888)';
+            } else {
+                document.getElementById('displayHealthBar').style.background = 'linear-gradient(90deg, var(--health-color), #88ff88)';
+            }
+
+            document.getElementById('displayEnergyValue').textContent = `${gameState.energy}%`;
+            document.getElementById('displayEnergyBar').style.width = `${gameState.energy}%`;
+            if (gameState.energy < 30) {
+                document.getElementById('displayEnergyBar').style.background = 'linear-gradient(90deg, #ff8800, #ffaa00)';
+            } else {
+                document.getElementById('displayEnergyBar').style.background = 'linear-gradient(90deg, var(--energy-color), #88aaff)';
+            }
+
+            document.getElementById('displayGoldValue').textContent = gameState.gold;
+
+            const inventoryGrid = document.getElementById('inventoryGrid');
+            inventoryGrid.innerHTML = '';
+            const maxSlots = 6;
+
+            gameState.inventory.forEach(item => {
+                const itemSlot = document.createElement('div');
+                itemSlot.className = 'inventory-slot filled';
+                itemSlot.innerHTML = `<span>${item.name}</span><span class="inventory-item-count">${item.quantity}</span>`;
+                inventoryGrid.appendChild(itemSlot);
+            });
+
+            for (let i = gameState.inventory.length; i < maxSlots; i++) {
+                const emptySlot = document.createElement('div');
+                emptySlot.className = 'inventory-slot';
+                emptySlot.innerHTML = '<span>Vide</span>';
+                inventoryGrid.appendChild(emptySlot);
+            }
+
+            const skillsList = document.getElementById('displaySkills');
+            skillsList.innerHTML = '';
+            if (gameState.skills && gameState.skills.length > 0) {
+                gameState.skills.forEach(skill => {
+                    const li = document.createElement('li');
+                    li.textContent = skill;
+                    skillsList.appendChild(li);
+                });
+            } else {
                 const li = document.createElement('li');
                 li.textContent = 'Aucune compétence pour le moment.';
                 skillsList.appendChild(li);
             }
+        }
 
-            // Initialiser Firebase dès que le DOM est prêt
-            await initializeFirebase();
+        // Met à jour l'état du jeu avec les nouvelles données et sauvegarde
+        async function updateGameState(newGameState) {
+            gameState.currentLocation = newGameState.currentLocation || gameState.currentLocation;
+            gameState.health = Math.max(0, Math.min(100, newGameState.health));
+            gameState.energy = Math.max(0, Math.min(100, newGameState.energy));
+            gameState.gold = Math.max(0, newGameState.gold);
+
+            if (newGameState.inventory) {
+                gameState.inventory = newGameState.inventory;
+            }
+            if (newGameState.skills) {
+                gameState.skills = newGameState.skills;
+            }
+
+            updateUI();
+            await saveGameState();
+        }
+
+        // Sauvegarde l'état du jeu dans Firestore
+        async function saveGameState() {
+            if (!authReady || !db || !userId) {
+                console.warn("Firebase non prêt pour la sauvegarde. La sauvegarde ne sera pas effectuée.");
+                return;
+            }
+            try {
+                const userDocRef = doc(db, `artifacts/${appId}/users/${userId}/gameStates`, 'currentGameState');
+                await setDoc(userDocRef, JSON.parse(JSON.stringify(gameState)));
+                console.log("État du jeu sauvegardé !");
+            } catch (error) {
+                console.error("Erreur lors de la sauvegarde de l'état du jeu:", error);
+                showAlert('Erreur de Sauvegarde', 'Impossible de sauvegarder votre progression. Vérifiez votre connexion ou la console pour les détails.');
+            }
+        }
+
+        // Charge l'état du jeu depuis Firestore
+        async function loadGameState() {
+            if (!authReady || !db || !userId) {
+                console.warn("Firebase non prêt pour le chargement. Tentative de chargement annulée.");
+                return;
+            }
+            try {
+                const userDocRef = doc(db, `artifacts/${appId}/users/${userId}/gameStates`, 'currentGameState');
+                const docSnap = await getDoc(userDocRef);
+
+                if (docSnap.exists()) {
+                    gameState = docSnap.data();
+                    console.log("État du jeu chargé !");
+                    if (!gameState.storyHistory) {
+                        gameState.storyHistory = [];
+                    }
+                    updateUI();
+                    document.getElementById('startScreen').style.display = 'none';
+                    document.getElementById('gameArea').style.display = 'block';
+                    isGameStarted = true;
+                } else {
+                    console.log("Aucun état de jeu sauvegardé trouvé. Démarrage d'une nouvelle partie.");
+                }
+            } catch (error) {
+                console.error("Erreur lors du chargement de l'état du jeu:", error);
+                showAlert('Erreur de Chargement', 'Impossible de charger votre progression. Une nouvelle partie va commencer.');
+                resetGameStateData();
+            }
+        }
+
+        // Démarre le jeu ou charge la partie sauvegardée
+        async function startGame() {
+            const playerNameInput = document.getElementById('playerNameInput');
+            const playerName = playerNameInput.value.trim();
+
+            if (!playerName) {
+                showAlert('Erreur', 'Veuillez entrer votre nom de joueur pour commencer.');
+                return;
+            }
+
+            gameState.playerName = playerName;
+            updateUI();
+
+            document.getElementById('startScreen').style.display = 'none';
+            document.getElementById('gameArea').style.display = 'block';
+            document.getElementById('loadingStory').style.display = 'block';
+
+            isGameStarted = true;
+
+            try {
+                await loadGameState(); // Tente de charger avant de générer une nouvelle histoire
+
+                if (gameState.storyHistory.length === 0) { // Si aucune histoire n'a été chargée
+                    const initialStory = await generateInitialStory();
+                    displayStoryEntry(initialStory, null);
+                }
+            } catch (error) {
+                showAlert('Erreur', 'Impossible de démarrer l\'aventure. Veuillez réessayer.');
+                console.error('Erreur lors du démarrage:', error);
+            } finally {
+                document.getElementById('loadingStory').style.display = 'none';
+            }
+        }
+
+        // Effectuer une action
+        async function performAction() {
+            const action = document.getElementById('actionInput').value.trim();
+
+            if (!action) {
+                showAlert('Erreur', 'Veuillez décrire votre action.');
+                return;
+            }
+
+            document.getElementById('loadingAction').style.display = 'block';
+            document.getElementById('actionInput').value = '';
+
+            try {
+                const response = await processAction(action);
+                displayStoryEntry(response.story, action);
+                await updateGameState(response.gameState);
+            } catch (error) {
+                showAlert('Erreur', 'Erreur lors du traitement de votre action. Veuillez réessayer.');
+                console.error('Erreur lors de l\'action:', error);
+            } finally {
+                document.getElementById('loadingAction').style.display = 'none';
+            }
+        }
+
+        // Afficher une entrée d'histoire
+        function displayStoryEntry(story, action) {
+            const storyContent = document.getElementById('storyContent');
+            const storyEntryDiv = document.createElement('div');
+            storyEntryDiv.className = 'story-entry';
+
+            if (action) {
+                const userActionP = document.createElement('p');
+                userActionP.className = 'user-action';
+                userActionP.textContent = `▶ Votre action : "${action}"`;
+                storyEntryDiv.appendChild(userActionP);
+            }
+
+            const aiResponseP = document.createElement('p');
+            aiResponseP.className = 'ai-response';
+            aiResponseP.innerHTML = story.replace(/\n/g, '<br>');
+            storyEntryDiv.appendChild(aiResponseP);
+
+            storyContent.appendChild(storyEntryDiv);
+            storyContent.scrollTop = storyContent.scrollHeight;
+            gameState.storyHistory.push({ action: action, story: story });
+        }
+
+        // Réinitialise le jeu à son état initial
+        async function resetGame() {
+            showAlert('Réinitialiser le jeu', 'Êtes-vous sûr de vouloir réinitialiser l\'aventure ? Toute progression sera perdue localement et dans le cloud.');
+
+            // Cette fonction sera appelée quand l'utilisateur clique sur OK dans la modale d'alerte
+            // Nous utilisons un écouteur temporaire pour gérer cette interaction.
+            const handleConfirmReset = async function () {
+                hideAlert();
+                document.getElementById('alertModalCloseButton').removeEventListener('click', handleConfirmReset); // Supprimer l'écouteur après usage
+
+                resetGameStateData();
+                updateUI();
+
+                if (authReady && db && userId) {
+                    try {
+                        const userDocRef = doc(db, `artifacts/${appId}/users/${userId}/gameStates`, 'currentGameState');
+                        await deleteDoc(userDocRef);
+                        console.log("Sauvegarde du jeu supprimée de Firestore.");
+                        showAlert('Jeu Réinitialisé', 'L\'aventure a été réinitialisée et la sauvegarde supprimée. Vous pouvez commencer une nouvelle partie !');
+                    } catch (error) {
+                        console.error("Erreur lors de la suppression de la sauvegarde:", error);
+                        showAlert('Erreur', 'Impossible de supprimer la sauvegarde de Firestore. Veuillez réessayer.');
+                    }
+                } else {
+                    showAlert('Jeu Réinitialisé', 'L\'aventure a été réinitialisée localement. La sauvegarde cloud n\'était pas active ou n\'a pas pu être supprimée.');
+                }
+
+                document.getElementById('startScreen').style.display = 'block';
+                document.getElementById('gameArea').style.display = 'none';
+                document.getElementById('playerNameInput').value = '';
+                document.getElementById('storyContent').innerHTML = '';
+                document.getElementById('actionInput').value = '';
+                isGameStarted = false;
+            };
+
+            document.getElementById('alertModalCloseButton').addEventListener('click', handleConfirmReset);
+        }
+
+        // Fonction interne pour réinitialiser l'état du jeu en mémoire et l'UI associée
+        function resetGameStateData() {
+            gameState = {
+                playerName: '',
+                currentLocation: 'Le Néant Inconnu',
+                health: 100,
+                energy: 100,
+                gold: 0,
+                inventory: [],
+                skills: [],
+                storyHistory: []
+            };
+
+            document.getElementById('displayCurrentLocation').textContent = 'Inconnu';
+            document.getElementById('displayHealthValue').textContent = '100%';
+            document.getElementById('displayHealthBar').style.width = '100%';
+            document.getElementById('displayHealthBar').style.background = 'linear-gradient(90deg, var(--health-color), #ff8888)';
+
+            document.getElementById('displayEnergyValue').textContent = '100%';
+            document.getElementById('displayEnergyBar').style.width = '100%';
+            document.getElementById('displayEnergyBar').style.background = 'linear-gradient(90deg, var(--energy-color), #88aaff)';
+
+            document.getElementById('displayGoldValue').textContent = '0';
+
+            const inventoryGrid = document.getElementById('inventoryGrid');
+            inventoryGrid.innerHTML = '';
+            const maxSlots = 6;
+            for (let i = 0; i < maxSlots; i++) {
+                const emptySlot = document.createElement('div');
+                emptySlot.className = 'inventory-slot';
+                emptySlot.innerHTML = '<span>Vide</span>';
+                inventoryGrid.appendChild(emptySlot);
+            }
+
+            const skillsList = document.getElementById('displaySkills');
+            skillsList.innerHTML = '';
+            const li = document.createElement('li');
+            li.textContent = 'Aucune compétence pour le moment.';
+            skillsList.appendChild(li);
+        }
+
+        // Attacher les écouteurs d'événements et démarrer l'initialisation après le chargement du DOM
+        document.addEventListener('DOMContentLoaded', async () => {
+            await initializeFirebase(); // Assurez-vous que Firebase est initialisé avant d'attacher les écouteurs qui en dépendent.
 
             // Attacher les écouteurs d'événements aux boutons
             document.getElementById('startGameButton').addEventListener('click', startGame);
