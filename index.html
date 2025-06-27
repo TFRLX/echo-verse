@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Echo Verse - Aventures Infinies par IA</title>
+    <!-- Importation des polices Google Fonts pour un style cohérent -->
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         /* Styles CSS globaux et variables */
@@ -14,156 +15,402 @@
         }
 
         :root {
-            --primary-bg: #0a0a0a;
-            --secondary-bg: #1a1a1a;
-            --card-bg: rgba(30, 30, 30, 0.8);
-            --accent-color: #00d9ff;
-            --accent-secondary: #ff6b35;
-            --text-primary: #ffffff;
-            --text-secondary: #b0b0b0;
-            --border-color: rgba(0, 217, 255, 0.3);
-            --success-color: #00ff88;
-            --warning-color: #ffaa00;
-            --error-color: #ff4444;
+            /* Couleurs principales */
+            --primary-bg: #0a0a0a; /* Fond très sombre */
+            --secondary-bg: #1a1a1a; /* Fond des conteneurs */
+            --card-bg: rgba(30, 30, 30, 0.9); /* Fond des cartes avec transparence */
+            --accent-color: #00d9ff; /* Couleur d'accentuation principale (bleu cyan) */
+            --accent-secondary: #ff6b35; /* Couleur d'accentuation secondaire (orange) */
+            --success-color: #00ff88; /* Couleur pour le succès (vert vif) */
+            --warning-color: #ffaa00; /* Couleur pour les avertissements (orange) */
+            --error-color: #ff4444; /* Couleur pour les erreurs (rouge) */
+            --text-primary: #ffffff; /* Couleur du texte principal (blanc) */
+            --text-secondary: #b0b0b0; /* Couleur du texte secondaire (gris clair) */
+            --border-color: rgba(0, 217, 255, 0.3); /* Couleur des bordures avec transparence */
+
+            /* Couleurs spécifiques aux stats */
+            --health-color: #ff4444; /* Rouge pour la santé */
+            --energy-color: #4488ff; /* Bleu pour l'énergie */
+            --gold-color: #ffdd44; /* Jaune pour l'or */
+
+            /* Polices */
             --font-orbitron: 'Orbitron', sans-serif;
             --font-rajdhani: 'Rajdhani', sans-serif;
         }
 
         body {
-            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            /* Fond dégradé du corps */
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
             color: var(--text-primary);
             font-family: var(--font-rajdhani);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
-            overflow-y: auto; /* Permet le défilement vertical */
+            overflow-x: hidden; /* Empêche le défilement horizontal */
+            min-height: 100vh; /* Hauteur minimale pour que le fond couvre tout l'écran */
+            position: relative;
         }
 
-        .container {
-            background-color: var(--secondary-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            box-shadow: 0 0 30px rgba(0, 217, 255, 0.2);
-            padding: 30px;
-            max-width: 900px;
+        /* Fond animé (bulles lumineuses) */
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
+            height: 100%;
+            z-index: -2; /* En arrière-plan */
+            background:
+                radial-gradient(circle at 20% 80%, rgba(0, 217, 255, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 107, 53, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(0, 255, 136, 0.08) 0%, transparent 50%);
+            animation: bgPulse 15s ease-in-out infinite alternate; /* Animation de pulsation */
+        }
+
+        /* Animation des étoiles */
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1; /* Au-dessus de animated-bg */
+            background-image:
+                radial-gradient(2px 2px at 20px 30px, #eee, transparent), /* Petites étoiles */
+                radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.8), transparent), /* Étoiles moyennes */
+                radial-gradient(1px 1px at 90px 40px, #fff, transparent); /* Grosses étoiles */
+            background-repeat: repeat;
+            background-size: 200px 100px; /* Taille pour répéter les étoiles */
+            animation: twinkle 20s linear infinite; /* Animation de scintillement */
+        }
+
+        /* Keyframes pour les animations de fond */
+        @keyframes bgPulse {
+            0% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        @keyframes twinkle {
+            0% { transform: translateY(0px); }
+            100% { transform: translateY(-100px); } /* Défilement lent des étoiles */
+        }
+
+        /* Header (en-tête fixe) */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(10, 10, 10, 0.95); /* Fond semi-transparent */
+            backdrop-filter: blur(15px); /* Effet de flou derrière le header */
+            border-bottom: 1px solid var(--border-color);
+            z-index: 1000; /* Assure qu'il est au-dessus du contenu */
+            padding: 1rem 2rem;
+        }
+
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            font-family: var(--font-orbitron);
+            font-size: 1.8rem;
+            font-weight: 900;
+            background: linear-gradient(45deg, var(--accent-color), var(--accent-secondary));
+            -webkit-background-clip: text; /* Pour les navigateurs Webkit */
+            -webkit-text-fill-color: transparent; /* Pour les navigateurs Webkit */
+            background-clip: text; /* Pour les navigateurs modernes */
+            text-shadow: 0 0 20px rgba(0, 217, 255, 0.5); /* Ombre lumineuse */
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 1rem;
+            color: var(--text-primary);
+        }
+
+        .save-status {
+            padding: 0.5rem 1rem;
+            background: rgba(0, 255, 136, 0.2);
+            border: 1px solid var(--success-color);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: var(--success-color);
+            transition: all 0.3s ease;
+        }
+
+        .save-status.warning {
+            background: rgba(255, 170, 0, 0.2);
+            border-color: var(--warning-color);
+            color: var(--warning-color);
+        }
+
+        /* Container principal du contenu */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 6rem 2rem 2rem; /* Espace pour le header */
+            min-height: 100vh;
+        }
+
+        /* Écrans de jeu */
+        .screen {
+            display: none; /* Caché par défaut */
+            animation: fadeIn 0.6s ease-in-out; /* Animation d'apparition */
+        }
+
+        .screen.active {
+            display: block; /* Affiché quand actif */
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Écran d'accueil */
+        .home-section {
             text-align: center;
-            position: relative; /* Pour positionner les modales */
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 2rem;
         }
 
-        /* Titre du jeu */
-        h1 {
+        .welcome-title {
             font-family: var(--font-orbitron);
-            color: var(--accent-color);
-            font-size: 3em;
-            margin-bottom: 10px;
-            text-shadow: 0 0 15px rgba(0, 217, 255, 0.6);
+            font-size: 3.5rem;
+            font-weight: 900;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, var(--accent-color), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(0, 217, 255, 0.3);
+            animation: glow 3s ease-in-out infinite alternate; /* Animation de lueur */
         }
 
-        /* Sous-titre/description */
-        .subtitle {
+        @keyframes glow {
+            from { filter: drop-shadow(0 0 10px rgba(0, 217, 255, 0.5)); }
+            to { filter: drop-shadow(0 0 20px rgba(0, 217, 255, 0.8)); }
+        }
+
+        .welcome-subtitle {
+            font-size: 1.3rem;
             color: var(--text-secondary);
-            font-size: 1.1em;
-            margin-bottom: 20px;
-            line-height: 1.5;
+            margin-bottom: 2rem;
+            line-height: 1.6;
         }
 
-        /* Styles pour les sections du jeu (accueil, jeu principal, inventaire, etc.) */
-        .game-section {
-            display: none; /* Caché par défaut, affiché via JS */
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .game-section.active {
-            display: flex;
-        }
-
-        /* Section d'accueil */
-        #home-section input[type="text"] {
-            width: calc(100% - 20px);
-            padding: 15px;
-            margin: 20px 0;
+        /* Texte d'introduction pour les nouveaux joueurs */
+        .introduction-text {
+            font-size: 1.1rem;
+            color: var(--text-primary);
+            line-height: 1.7;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: var(--card-bg);
             border: 1px solid var(--border-color);
-            background-color: var(--card-bg);
-            color: var(--text-primary);
-            border-radius: 10px;
-            font-size: 1.1em;
-            outline: none;
-            transition: border-color 0.3s, box-shadow 0.3s;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            position: relative;
+            text-align: left; /* Texte aligné à gauche */
         }
 
-        #home-section input[type="text"]:focus {
+        .introduction-text::before {
+            content: "✨"; /* Icône décorative */
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--primary-bg);
+            padding: 0 1rem;
+            font-size: 1.5rem;
+        }
+
+        /* Styles des cartes (panneaux d'information) */
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(15px);
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+            text-align: left;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 217, 255, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .card:hover::before {
+            left: 100%; /* Effet de balayage au survol */
+        }
+
+        .card:hover {
             border-color: var(--accent-color);
-            box-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
+            box-shadow: 0 0 30px rgba(0, 217, 255, 0.3);
+            transform: translateY(-2px); /* Léger mouvement vers le haut */
         }
 
-        /* Boutons stylisés */
-        .btn {
-            background: linear-gradient(90deg, var(--accent-color) 0%, var(--accent-secondary) 100%);
+        /* Styles des formulaires */
+        .form-group {
+            margin-bottom: 1.5rem;
+            text-align: left;
+            position: relative;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 1rem;
             color: var(--text-primary);
-            padding: 15px 30px;
-            border: none;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 1rem 1.2rem;
+            background: rgba(26, 26, 26, 0.9);
+            border: 2px solid var(--border-color);
             border-radius: 10px;
-            font-size: 1.2em;
-            font-family: var(--font-orbitron);
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-family: var(--font-rajdhani);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 15px rgba(0, 217, 255, 0.4);
+            background: rgba(26, 26, 26, 1);
+        }
+
+        .form-textarea {
+            resize: vertical; /* Permet de redimensionner verticalement */
+            min-height: 100px;
+        }
+
+        .form-select {
+            appearance: none; /* Supprime le style par défaut du select */
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300D9FF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E"); /* Flèche personnalisée */
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1.2em;
+            padding-right: 2.5rem; /* Espace pour la flèche */
+        }
+
+        /* Styles des boutons */
+        .btn {
+            display: inline-block;
+            padding: 1rem 2.5rem;
+            background: linear-gradient(45deg, var(--accent-color), var(--accent-secondary));
+            color: white;
+            text-decoration: none;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 700;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(0, 217, 255, 0.3);
             text-transform: uppercase;
             letter-spacing: 1px;
-            display: inline-block;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%; /* Effet de brillance au survol */
         }
 
         .btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(0, 217, 255, 0.5);
+            transform: translateY(-3px); /* Léger mouvement vers le haut */
+            box-shadow: 0 10px 30px rgba(0, 217, 255, 0.5); /* Ombre plus prononcée */
         }
 
         .btn:active {
-            transform: translateY(0);
-            box-shadow: 0 3px 10px rgba(0, 217, 255, 0.2);
+            transform: translateY(-1px); /* Effet de pression */
         }
 
-        /* Boutons secondaires pour les actions */
-        .btn-secondary {
-            background: var(--card-bg);
-            border: 1px solid var(--accent-color);
-            color: var(--accent-color);
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
             box-shadow: none;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid var(--border-color);
+            color: var(--text-primary);
         }
 
         .btn-secondary:hover {
             background: rgba(0, 217, 255, 0.1);
-            color: var(--text-primary);
-            box-shadow: 0 0 10px rgba(0, 217, 255, 0.3);
+            border-color: var(--accent-color);
         }
 
-        /* Zone de l'histoire et du gameplay */
-        #gameplay-section {
-            text-align: left;
+        /* Layout du jeu principal */
+        .game-layout {
+            display: grid;
+            grid-template-columns: 1fr 320px; /* Colonne principale pour l'histoire, colonne latérale pour les stats */
+            gap: 2rem;
+            height: calc(100vh - 8rem); /* Hauteur calculée pour s'adapter à l'écran moins le header */
         }
 
-        #storyContent {
-            background-color: var(--card-bg);
-            border-radius: 15px;
-            padding: 25px;
-            max-height: 400px;
-            overflow-y: auto;
+        .story-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .story-content {
+            flex: 1; /* Prend l'espace disponible */
+            background: var(--card-bg);
             border: 1px solid var(--border-color);
-            box-shadow: inset 0 0 10px rgba(0, 217, 255, 0.1);
+            border-radius: 15px;
+            padding: 2rem;
+            overflow-y: auto; /* Défilement vertical pour l'histoire */
+            backdrop-filter: blur(15px);
+            position: relative;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: var(--text-primary);
         }
 
-        /* Entrées d'histoire individuelles */
         .story-entry {
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            animation: slideIn 0.5s ease-out; /* Animation d'apparition de chaque entrée */
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
         }
 
         .story-entry:last-child {
@@ -172,245 +419,592 @@
             padding-bottom: 0;
         }
 
-        .story-entry h3 {
+        .story-text {
+            margin-bottom: 1rem;
+        }
+
+        .action-text {
             color: var(--accent-color);
-            font-family: var(--font-orbitron);
-            margin-bottom: 10px;
-            font-size: 1.3em;
-        }
-
-        .story-entry p {
-            color: var(--text-secondary);
-            line-height: 1.6;
-            font-size: 1em;
-            margin-bottom: 5px;
-        }
-
-        .player-action {
             font-style: italic;
-            color: var(--accent-secondary);
-            margin-top: 10px;
-            padding-left: 10px;
-            border-left: 3px solid var(--accent-secondary);
+            font-size: 0.95rem;
+            background: rgba(0, 217, 255, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            border-left: 3px solid var(--accent-color);
+            display: block; /* S'assure que le bloc prend toute la largeur */
+            margin-top: 1rem;
         }
 
-
-        /* Zone d'action du joueur */
-        .action-area {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-            flex-wrap: wrap; /* Permet le retour à la ligne sur petits écrans */
-        }
-
-        .action-area input {
-            flex-grow: 1;
-            padding: 15px;
+        /* Panneau d'action (input + bouton) */
+        .action-panel {
+            background: var(--card-bg);
             border: 1px solid var(--border-color);
-            background-color: var(--card-bg);
-            color: var(--text-primary);
-            border-radius: 10px;
-            font-size: 1.1em;
-            outline: none;
-            transition: border-color 0.3s, box-shadow 0.3s;
-            min-width: 200px; /* Assure une taille minimale */
-        }
-
-        .action-area input:focus {
-            border-color: var(--accent-color);
-            box-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
-        }
-
-        .action-area button {
-            padding: 15px 25px;
-            white-space: nowrap; /* Empêche le texte du bouton de se couper */
-        }
-
-        /* Indicateur de chargement */
-        #loadingStory {
-            display: none; /* Caché par défaut */
-            color: var(--accent-color);
-            font-size: 1.2em;
-            margin-top: 20px;
-            animation: pulse 1.5s infinite alternate;
-        }
-
-        @keyframes pulse {
-            from {
-                opacity: 0.7;
-            }
-            to {
-                opacity: 1;
-            }
-        }
-
-        /* Section de l'état du jeu (compétences, inventaire, etc.) */
-        #gameStateSection {
-            background-color: var(--card-bg);
             border-radius: 15px;
-            padding: 20px;
-            border: 1px solid var(--border-color);
-            text-align: left;
-            margin-top: 20px;
-            max-height: 300px; /* Hauteur maximale pour le défilement */
-            overflow-y: auto; /* Permet le défilement */
+            padding: 1.5rem;
+            backdrop-filter: blur(15px);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
         }
 
-        #gameStateSection h3 {
-            color: var(--accent-color);
-            font-family: var(--font-orbitron);
-            margin-bottom: 15px;
-            font-size: 1.4em;
+        .quick-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.8rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .quick-action-btn {
+            padding: 0.8rem;
+            background: rgba(0, 217, 255, 0.1);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center; /* Centrer le contenu */
+            gap: 0.5rem;
             text-align: center;
         }
 
-        #gameStateSection .game-state-item {
-            margin-bottom: 10px;
-            padding-bottom: 5px;
-            border-bottom: 1px dashed rgba(255, 255, 255, 0.05);
+        .quick-action-btn:hover {
+            background: rgba(0, 217, 255, 0.2);
+            border-color: var(--accent-color);
+            transform: translateY(-1px);
         }
 
-        #gameStateSection .game-state-item strong {
-            color: var(--accent-secondary);
-            margin-right: 5px;
+        .action-input {
+            width: 100%;
+            padding: 1rem;
+            background: rgba(26, 26, 26, 0.9);
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            resize: vertical;
+            min-height: 120px;
+            margin-bottom: 1rem;
+            font-family: var(--font-rajdhani);
+            transition: all 0.3s ease;
         }
 
-        /* Overlay pour les modales (alertes personnalisées) */
-        .modal-overlay {
+        .action-input:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 15px rgba(0, 217, 255, 0.3);
+        }
+
+        /* Panneau latéral (stats et inventaire) */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .stats-panel, .inventory-panel {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 15px;
+            padding: 1.5rem;
+            backdrop-filter: blur(15px);
+        }
+
+        .panel-title {
+            font-family: var(--font-orbitron);
+            font-size: 1.2rem;
+            color: var(--accent-color);
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.5rem;
+        }
+
+        /* Barres de progression des stats */
+        .stat-item {
+            margin-bottom: 1rem;
+        }
+
+        .stat-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .stat-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .stat-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+            position: relative;
+        }
+
+        .stat-fill.health {
+            background: linear-gradient(90deg, var(--health-color), #ff8888);
+        }
+
+        .stat-fill.energy {
+            background: linear-gradient(90deg, var(--energy-color), #88aaff);
+        }
+
+        .stat-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 2s infinite; /* Effet de brillance sur la barre */
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .gold-display {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            background: rgba(255, 221, 68, 0.1);
+            border: 1px solid var(--gold-color);
+            border-radius: 8px;
+            padding: 0.8rem;
+            margin-top: 1rem;
+            color: var(--gold-color);
+        }
+
+        /* Inventaire */
+        .inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr); /* 3 colonnes pour les emplacements */
+            gap: 0.5rem;
+        }
+
+        .inventory-slot {
+            aspect-ratio: 1; /* Force les slots à être carrés */
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem; /* Taille de l'icône ou du texte */
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            color: var(--text-secondary); /* Couleur par défaut pour les slots vides */
+        }
+
+        .inventory-slot:hover {
+            background: rgba(0, 217, 255, 0.1);
+            border-color: var(--accent-color);
+        }
+
+        .inventory-slot.filled {
+            background: rgba(0, 217, 255, 0.2);
+            border-color: var(--accent-color);
+            color: var(--text-primary); /* Couleur pour les slots remplis */
+        }
+
+        .inventory-slot span {
+            font-size: 1.2rem; /* Taille du texte de l'objet */
+            text-align: center;
+            padding: 5px;
+            word-break: break-word; /* Gère les longs noms */
+        }
+
+
+        /* Styles des cartes de sélection de mode (archétype) */
+        .mode-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Responsive grid */
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .mode-card {
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            backdrop-filter: blur(15px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mode-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 217, 255, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .mode-card:hover::before,
+        .mode-card.selected::before {
+            left: 100%;
+        }
+
+        .mode-card:hover,
+        .mode-card.selected {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 25px rgba(0, 217, 255, 0.3);
+            transform: translateY(-5px);
+        }
+
+        .mode-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .mode-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+            font-family: var(--font-orbitron);
+        }
+
+        .mode-description {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        /* Indicateur de chargement */
+        .loading {
+            display: none; /* Caché par défaut */
+            text-align: center;
+            padding: 2rem;
+            color: var(--accent-color);
+            font-size: 1.2rem;
+        }
+
+        .spinner {
+            border: 4px solid rgba(0, 217, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid var(--accent-color);
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Notifications (petits messages en haut à droite) */
+        .notification {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            background: var(--card-bg);
+            border: 1px solid var(--success-color);
+            border-radius: 10px;
+            padding: 1rem 1.5rem;
+            color: var(--success-color);
+            font-weight: 600;
+            z-index: 10001;
+            backdrop-filter: blur(10px);
+            animation: slideInRight 0.5s ease-out; /* Animation d'apparition */
+            max-width: 300px;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+        }
+
+        .notification.error {
+            border-color: var(--error-color);
+            color: var(--error-color);
+            box-shadow: 0 0 20px rgba(255, 68, 68, 0.3);
+        }
+
+        .notification.warning {
+            border-color: var(--warning-color);
+            color: var(--warning-color);
+            box-shadow: 0 0 20px rgba(255, 170, 0, 0.3);
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Alertes (modales au centre de l'écran) */
+        .alert-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 9999;
+            backdrop-filter: blur(8px);
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 1000; /* Assure que la modale est au-dessus du reste */
+            animation: fadeIn 0.3s ease-out;
         }
 
-        .modal-content {
-            background-color: var(--secondary-bg);
-            border: 1px solid var(--border-color);
+        .alert-content {
+            background: var(--card-bg);
+            border: 2px solid var(--error-color);
             border-radius: 15px;
-            padding: 30px;
-            max-width: 400px;
+            padding: 2rem;
+            z-index: 10000;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 0 40px rgba(255, 68, 68, 0.4);
+            max-width: 450px;
             width: 90%;
+            animation: popIn 0.3s ease-out;
             text-align: center;
-            box-shadow: 0 0 30px rgba(0, 217, 255, 0.4);
         }
 
-        .modal-content h3 {
+        .alert-content.success { border-color: var(--success-color); box-shadow: 0 0 40px rgba(0, 255, 136, 0.4); }
+        .alert-content.warning { border-color: var(--warning-color); box-shadow: 0 0 40px rgba(255, 170, 0, 0.4); }
+
+
+        @keyframes popIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .alert-title {
             color: var(--error-color);
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
             font-family: var(--font-orbitron);
-            margin-bottom: 15px;
-            font-size: 1.5em;
-        }
-        .modal-content.success h3 {
-            color: var(--success-color);
-        }
-        .modal-content.warning h3 {
-            color: var(--warning-color);
         }
 
+        .alert-content.success .alert-title { color: var(--success-color); }
+        .alert-content.warning .alert-title { color: var(--warning-color); }
 
-        .modal-content p {
+        .alert-message {
             color: var(--text-primary);
-            margin-bottom: 25px;
-            line-height: 1.5;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+            font-size: 1rem;
         }
 
-        .modal-content button {
-            background: linear-gradient(90deg, var(--accent-color) 0%, var(--accent-secondary) 100%);
-            color: var(--text-primary);
-            padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
-            font-size: 1.1em;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .modal-content button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 217, 255, 0.3);
-        }
-
-        /* Styles spécifiques pour les petits écrans */
+        /* Responsive design pour les petits écrans */
         @media (max-width: 768px) {
-            h1 {
-                font-size: 2.2em;
-            }
-
-            .subtitle {
-                font-size: 1em;
-            }
-
             .container {
-                padding: 20px;
+                padding: 6rem 1rem 2rem;
             }
 
-            .btn {
-                width: 100%;
-                padding: 12px 20px;
+            .game-layout {
+                grid-template-columns: 1fr; /* Une seule colonne */
+                grid-template-rows: auto auto 1fr; /* Header, Sidebar, Story */
+                gap: 1rem;
+                height: auto; /* Permet à la hauteur de s'adapter au contenu */
             }
 
-            .action-area {
-                flex-direction: column;
+            .welcome-title {
+                font-size: 2.5rem;
             }
 
-            .action-area input {
-                width: 100%;
+            .mode-grid {
+                grid-template-columns: 1fr; /* Une seule colonne pour les archétypes */
             }
 
-            .action-area button {
-                width: 100%;
+            .header {
+                padding: 1rem;
             }
 
-            #storyContent {
-                max-height: 300px;
+            .nav {
+                flex-direction: column; /* Éléments du header en colonne */
+                gap: 1rem;
+            }
+
+            .quick-actions {
+                grid-template-columns: 1fr; /* Actions rapides en colonne */
+            }
+
+            .sidebar {
+                order: -1; /* Place la sidebar en haut sur mobile */
+                max-height: 50vh; /* Limite la hauteur de la sidebar sur mobile */
+                overflow-y: auto; /* Permet le défilement si nécessaire */
+            }
+
+            .story-content {
+                min-height: 400px; /* Hauteur minimale pour l'histoire */
             }
         }
     </style>
 </head>
 <body>
+    <div class="animated-bg"></div>
+    <div class="stars"></div>
+
+    <!-- Header -->
+    <header class="header">
+        <nav class="nav">
+            <div class="logo">Echo Verse</div>
+            <div class="user-info">
+                <div class="save-status" id="saveStatus">💾 Initialisation...</div>
+                <span class="user-name" id="userDisplay">Invité</span>
+            </div>
+        </nav>
+    </header>
+
     <div class="container">
-        <h1>Echo Verse</h1>
-        <p class="subtitle">Plongez dans des aventures infinies générées par l'Intelligence Artificielle. Chaque choix façonne votre destinée dans un univers narratif sans limites.</p>
+        <!-- Écran d'accueil -->
+        <div id="homeScreen" class="screen active">
+            <div class="home-section">
+                <h1 class="welcome-title">Echo Verse</h1>
+                <p class="welcome-subtitle">
+                    Aventures infinies générées par l'Intelligence Artificielle
+                </p>
 
-        <!-- Section d'accueil -->
-        <div id="home-section" class="game-section active">
-            <input type="text" id="playerNameInput" placeholder="Entrez votre nom d'aventurier">
-            <button class="btn" onclick="startGame()">COMMENCER L'AVENTURE</button>
-        </div>
+                <div class="introduction-text">
+                    <strong>Bienvenue, explorateur !</strong><br><br>
+                    Dans Echo Verse, vous n'êtes pas qu'un joueur, vous êtes le héros d'une histoire sans fin, créée et façonnée par une intelligence artificielle. Vos choix guident le récit, influencent votre destinée, et ouvrent des chemins inattendus. L'aventure n'attend que vous. Entrez votre nom, et préparez-vous à plonger dans l'inconnu.
+                </div>
 
-        <!-- Section de gameplay principal -->
-        <div id="gameplay-section" class="game-section">
-            <div id="storyContent">
-                <!-- L'histoire sera ajoutée ici dynamiquement -->
-            </div>
-            <div id="loadingStory">Chargement de l'histoire...</div>
-
-            <div class="action-area">
-                <input type="text" id="actionInput" placeholder="Décrivez votre prochaine action..." onkeypress="handleKeyPress(event)">
-                <button class="btn btn-secondary" onclick="performAction()">Agir</button>
-            </div>
-
-            <!-- Section de l'état du jeu (inventaire, compétences, etc.) -->
-            <div id="gameStateSection">
-                <h3>État de l'aventure</h3>
-                <div id="gameStateDetails">
-                    <div class="game-state-item"><strong>Joueur:</strong> <span id="displayPlayerName"></span></div>
-                    <div class="game-state-item"><strong>Lieu actuel:</strong> <span id="displayCurrentLocation">Inconnu</span></div>
-                    <div class="game-state-item"><strong>Inventaire:</strong> <span id="displayInventory">Vide</span></div>
-                    <div class="game-state-item"><strong>Santé:</strong> <span id="displayHealth">100%</span></div>
-                    <div class="game-state-item"><strong>Compétences:</strong> <span id="displaySkills">Aucune</span></div>
+                <div class="card">
+                    <div class="form-group">
+                        <label class="form-label" for="displayName">🎭 Nom de joueur</label>
+                        <input type="text" id="displayName" class="form-input" placeholder="Entrez votre nom de joueur" maxlength="20">
+                    </div>
+                    <button class="btn" onclick="login()">🚀 Commencer l'Aventure</button>
                 </div>
             </div>
-
-            <button class="btn btn-secondary" style="margin-top: 20px;" onclick="resetGame()">Recommencer l'aventure</button>
         </div>
 
+        <!-- Écran de création de personnage -->
+        <div id="characterScreen" class="screen">
+            <h2 class="welcome-title" style="text-align: center; margin-bottom: 2rem;">⚔️ Créez Votre Héros</h2>
+
+            <div class="card">
+                <div class="form-group">
+                    <label class="form-label" for="characterName">👤 Nom du personnage</label>
+                    <input type="text" id="characterName" class="form-input" placeholder="Ex: Aria Shadowblade" maxlength="25">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="characterArchetype">🎯 Archétype</label>
+                    <select id="characterArchetype" class="form-input form-select">
+                        <option value="">Choisissez un archétype</option>
+                        <option value="guerrier">⚔️ Guerrier - Expert du combat rapproché</option>
+                        <option value="mage">🔮 Mage - Maître des arts magiques</option>
+                        <option value="voleur">🗡️ Voleur - Spécialiste de la discrétion</option>
+                        <option value="ranger">🏹 Rôdeur - Gardien de la nature</option>
+                        <option value="clerc">✨ Clerc - Guérisseur divin</option>
+                        <option value="barde">🎵 Barde - Artiste aux mille talents</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="characterDescription">👁️ Description physique</label>
+                    <textarea id="characterDescription" class="form-input form-textarea" placeholder="Décrivez l'apparence de votre personnage..." maxlength="500"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="characterBackground">📖 Histoire personnelle (contexte)</label>
+                    <textarea id="characterBackground" class="form-input form-textarea" placeholder="Que sait-on de son passé ? D'où vient-il ?" maxlength="500"></textarea>
+                </div>
+
+                <button class="btn" onclick="createCharacter()">✔️ Démarrer l'Aventure !</button>
+            </div>
+        </div>
+
+        <!-- Écran de jeu principal -->
+        <div id="gameScreen" class="screen">
+            <div class="game-layout">
+                <!-- Panneau d'histoire et d'action -->
+                <div class="story-panel">
+                    <div id="storyContent" class="story-content">
+                        <!-- L'histoire générée par l'IA sera insérée ici -->
+                        <div class="loading" id="storyLoading">
+                            <div class="spinner"></div>
+                            <p>Génération de l'histoire...</p>
+                        </div>
+                    </div>
+
+                    <div class="action-panel">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label class="form-label" for="actionInput">✍️ Votre prochaine action</label>
+                            <textarea id="actionInput" class="action-input" placeholder="Décrivez ce que vous voulez faire..."></textarea>
+                        </div>
+                        <button class="btn" onclick="performAction()">Agir</button>
+                    </div>
+                </div>
+
+                <!-- Sidebar (statistiques et inventaire) -->
+                <div class="sidebar">
+                    <!-- Statistiques du personnage -->
+                    <div class="stats-panel card">
+                        <h3 class="panel-title">Statistiques de <span id="displayCharacterName"></span></h3>
+                        <div class="stat-item">
+                            <div class="stat-label">
+                                <span>❤️ Santé</span>
+                                <span id="displayHealthValue">100%</span>
+                            </div>
+                            <div class="stat-bar">
+                                <div id="displayHealthBar" class="stat-fill health" style="width: 100%;"></div>
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">
+                                <span>⚡ Énergie</span>
+                                <span id="displayEnergyValue">100%</span>
+                            </div>
+                            <div class="stat-bar">
+                                <div id="displayEnergyBar" class="stat-fill energy" style="width: 100%;"></div>
+                            </div>
+                        </div>
+                        <div class="gold-display">
+                            <span>💰 Or:</span>
+                            <span id="displayGoldValue">0</span>
+                        </div>
+                        <div class="game-state-item" style="margin-top: 1rem;">
+                            <strong>📍 Lieu:</strong> <span id="displayCurrentLocation">Inconnu</span>
+                        </div>
+                        <div class="game-state-item" style="margin-top: 0.5rem;">
+                            <strong>💡 Compétences:</strong> <span id="displaySkills">Aucune</span>
+                        </div>
+                    </div>
+
+                    <!-- Inventaire du personnage -->
+                    <div class="inventory-panel card">
+                        <h3 class="panel-title">🎒 Inventaire</h3>
+                        <div id="inventoryGrid" class="inventory-grid">
+                            <!-- Les objets de l'inventaire seront insérés ici dynamiquement -->
+                            <div class="inventory-slot"><span>?</span></div>
+                            <div class="inventory-slot"><span>?</span></div>
+                            <div class="inventory-slot"><span>?</span></div>
+                            <div class="inventory-slot"><span>?</span></div>
+                            <div class="inventory-slot"><span>?</span></div>
+                            <div class="inventory-slot"><span>?</span></div>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-secondary" onclick="resetGame()">🔁 Recommencer l'Aventure</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script type="module">
@@ -423,10 +1017,26 @@
         let app;
         let db;
         let auth;
-        let userId = 'anonymous'; // Default userId, will be updated after auth
-        let playerName = '';
-        let currentStoryId = null; // ID du document Firestore pour l'histoire actuelle
-        let isFirebaseReady = false; // Nouvelle variable pour suivre l'état de Firebase
+        let userId = 'anonymous'; // ID utilisateur Firebase
+        let appUserDisplayName = ''; // Nom de joueur affiché dans le header
+        let currentCharacterName = ''; // Nom du personnage actuel
+        let isFirebaseReady = false; // Statut de l'initialisation Firebase
+
+        // État du jeu géré localement (sera synchronisé avec Firebase)
+        let gameState = {
+            playerName: '', // Nom de joueur (le compte)
+            characterName: '', // Nom du personnage
+            archetype: '',
+            description: '',
+            background: '',
+            currentLocation: 'Un endroit inconnu',
+            inventory: [],
+            health: 100,
+            energy: 100,
+            gold: 0,
+            skills: [],
+            storyHTML: '' // HTML de l'histoire pour persistance
+        };
 
         // Variables Firebase globales disponibles via l'environnement Canvas
         // __app_id et __firebase_config sont des variables spéciales fournies par l'environnement Canvas.
@@ -436,18 +1046,63 @@
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
+        const saveStatusElement = document.getElementById('saveStatus');
+
+        // Fonction pour afficher une notification temporaire
+        function showNotification(message, type = 'success', duration = 3000) {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.classList.add('hide'); // Ajoute une classe pour l'animation de disparition
+                notification.addEventListener('animationend', () => notification.remove()); // Supprime après l'animation
+            }, duration);
+        }
+
+        // Fonction pour afficher une modale d'alerte personnalisée
+        function showAlert(title, message, type = 'error', onConfirmCallback = null) {
+            const overlay = document.createElement('div');
+            overlay.className = 'alert-overlay'; // Utilisez la classe pour l'overlay
+            overlay.innerHTML = `
+                <div class="alert-content ${type}">
+                    <h3 class="alert-title">${title}</h3>
+                    <p class="alert-message">${message}</p>
+                    ${onConfirmCallback ?
+                        `<button id="modalConfirmBtn" class="btn">Oui</button><button id="modalCancelBtn" class="btn btn-secondary" style="margin-left: 10px;">Non</button>` :
+                        `<button id="modalCloseBtn" class="btn">OK</button>`
+                    }
+                </div>
+            `;
+            document.body.appendChild(overlay);
+
+            if (onConfirmCallback) {
+                document.getElementById('modalConfirmBtn').onclick = () => {
+                    document.body.removeChild(overlay);
+                    onConfirmCallback();
+                };
+                document.getElementById('modalCancelBtn').onclick = () => {
+                    document.body.removeChild(overlay);
+                };
+            } else {
+                document.getElementById('modalCloseBtn').onclick = () => {
+                    document.body.removeChild(overlay);
+                };
+            }
+        }
+
         // Fonction d'initialisation de Firebase
         async function initializeFirebase() {
             try {
-                // Vérifie si la configuration Firebase est fournie et n'est pas vide
                 if (Object.keys(firebaseConfig).length === 0) {
                     console.warn("Configuration Firebase non disponible. Le stockage des données ne fonctionnera pas.");
-                    showAlert('Avertissement', 'Le stockage du jeu ne sera pas disponible car Firebase n\'est pas configuré.', 'warning');
-                    isFirebaseReady = false; // Firebase non prêt
-                    return; // Quitte si aucune configuration n'est fournie
+                    saveStatusElement.textContent = "⚠️ Sauvegarde désactivée (local)";
+                    saveStatusElement.classList.add('warning');
+                    isFirebaseReady = false;
+                    return;
                 }
 
-                // Tente d'initialiser l'application Firebase
                 try {
                     app = initializeApp(firebaseConfig);
                     db = getFirestore(app);
@@ -455,233 +1110,239 @@
                 } catch (initError) {
                     console.error("Erreur lors de l'initialisation de l'application Firebase:", initError);
                     showAlert('Erreur critique', 'Impossible d\'initialiser l\'application Firebase. Le stockage des données sera désactivé.', 'error');
-                    isFirebaseReady = false; // Firebase non prêt
-                    return; // Quitte si l'initialisation de l'application échoue
+                    saveStatusElement.textContent = "❌ Erreur Firebase";
+                    saveStatusElement.classList.add('error');
+                    isFirebaseReady = false;
+                    return;
                 }
 
+                // Gérer l'état d'authentification
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        document.getElementById('userDisplay').textContent = appUserDisplayName || 'Joueur'; // Affiche le nom de joueur du compte
+                        saveStatusElement.textContent = "✅ Sauvegarde cloud active";
+                        saveStatusElement.classList.remove('warning', 'error');
+                        isFirebaseReady = true;
+                        console.log("Utilisateur Firebase authentifié:", userId);
+
+                        // Si on est déjà sur l'écran de jeu et qu'on vient de s'authentifier
+                        // (ex: si l'authentification a pris du temps après la saisie du nom)
+                        if (document.getElementById('gameScreen').classList.contains('active') && currentCharacterName) {
+                            loadGame(currentCharacterName);
+                        }
+                    } else {
+                        userId = 'anonymous'; // Si non authentifié, utilise un ID temporaire
+                        document.getElementById('userDisplay').textContent = 'Invité';
+                        saveStatusElement.textContent = "⚠️ Sauvegarde locale active";
+                        saveStatusElement.classList.add('warning');
+                        isFirebaseReady = false;
+                        console.log("Aucun utilisateur Firebase authentifié (état actuel).");
+                    }
+                });
 
                 // Tentative d'authentification initiale
                 try {
                     if (initialAuthToken) {
                         console.log("Tentative de connexion avec jeton personnalisé...");
                         await signInWithCustomToken(auth, initialAuthToken);
-                        console.log("Connexion avec jeton personnalisé réussie.");
                     } else {
                         console.log("Aucun jeton personnalisé fourni, tentative de connexion anonyme...");
                         await signInAnonymously(auth);
-                        console.log("Connexion anonyme réussie.");
                     }
-                    isFirebaseReady = true; // Firebase prêt après authentification
                 } catch (authError) {
                     console.error("Erreur lors de la tentative d'authentification initiale:", authError);
-                    // Si l'erreur est liée à un jeton invalide ou à des revendications, tente une connexion anonyme
-                    if (authError.code === 'auth/invalid-custom-token' || authError.code === 'auth/invalid-claims') {
-                        showAlert('Erreur d\'authentification', 'Votre jeton de connexion est invalide ou expiré. Tentative de connexion anonyme...', 'warning');
-                        try {
-                            await signInAnonymously(auth);
-                            console.log("Reconnexion anonyme réussie après échec du jeton.");
-                            isFirebaseReady = true; // Firebase prêt après authentification anonyme
-                        } catch (anonAuthError) {
-                            console.error("Erreur de connexion anonyme:", anonAuthError);
-                            showAlert('Erreur grave', 'Impossible de se connecter au service d\'authentification Firebase. Le jeu ne pourra pas sauvegarder.');
-                            isFirebaseReady = false; // Firebase non prêt
-                        }
-                    } else {
-                        // Pour d'autres types d'erreurs d'authentification
-                        showAlert('Erreur d\'authentification', 'Impossible de se connecter au service Firebase. Le jeu pourrait ne pas fonctionner correctement.');
-                        isFirebaseReady = false; // Firebase non prêt
-                    }
+                    showAlert('Erreur d\'authentification', 'Impossible de se connecter. La sauvegarde ne fonctionnera pas.', 'warning');
+                    saveStatusElement.textContent = "⚠️ Sauvegarde limitée";
+                    saveStatusElement.classList.add('warning');
+                    isFirebaseReady = false;
                 }
-
-                // Maintenant, configurez l'écouteur d'état d'authentification
-                onAuthStateChanged(auth, (user) => {
-                    if (user) {
-                        userId = user.uid;
-                        console.log("Utilisateur Firebase authentifié:", userId);
-                        // Si le joueur a déjà un nom, tenter de charger sa partie
-                        // (playerName sera défini après que l'utilisateur ait cliqué sur "Commencer l'aventure")
-                        if (playerName && isFirebaseReady) { // Vérifie aussi isFirebaseReady
-                            loadGame();
-                        }
-                    } else {
-                        userId = 'anonymous'; // Retour à 'anonymous' si aucun utilisateur n'est authentifié
-                        console.log("Aucun utilisateur Firebase authentifié (état actuel).");
-                        // Si l'utilisateur se déconnecte, on met Firebase en non prêt pour la sauvegarde
-                        // à moins qu'une reconnexion anonyme ait réussi.
-                        // Cependant, isFirebaseReady reflète l'état de la dernière tentative réussie d'auth.
-                    }
-                });
 
                 console.log("Firebase initialisé et tentative d'authentification effectuée. isFirebaseReady:", isFirebaseReady);
 
             } catch (error) {
-                // Ce catch attrape les erreurs inattendues durant l'initialisation
                 console.error("Erreur critique lors de l'initialisation de Firebase (avant authentification):", error);
                 showAlert('Erreur critique', 'Impossible d\'initialiser Firebase. Le stockage des données sera désactivé.', 'error');
-                isFirebaseReady = false; // Firebase non prêt
+                saveStatusElement.textContent = "❌ Firebase non disponible";
+                saveStatusElement.classList.add('error');
+                isFirebaseReady = false;
             }
         }
 
         // Appelle l'initialisation de Firebase au chargement du script
         initializeFirebase();
 
-        // Fonction pour afficher une modale d'alerte personnalisée
-        function showAlert(title, message, type = 'error') {
-            const overlay = document.createElement('div');
-            overlay.className = 'modal-overlay';
-            overlay.innerHTML = `
-                <div class="modal-content ${type}">
-                    <h3>${title}</h3>
-                    <p>${message}</p>
-                    <button id="modalCloseBtn">OK</button>
-                </div>
-            `;
-            document.body.appendChild(overlay);
-
-            document.getElementById('modalCloseBtn').onclick = () => {
-                document.body.removeChild(overlay);
-            };
+        // Fonction pour changer d'écran
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
         }
 
         // Gérer la touche Entrée pour soumettre l'action
-        function handleKeyPress(event) {
-            if (event.key === 'Enter') {
+        document.getElementById('actionInput').addEventListener('keypress', (event) => {
+            if (event.key === 'Enter' && !event.shiftKey) { // Permet d'insérer des retours à la ligne avec Shift+Enter
+                event.preventDefault(); // Empêche le saut de ligne par défaut
                 performAction();
+            }
+        });
+
+
+        // Fonction pour l'écran d'accueil -> login (nom du joueur)
+        async function login() {
+            appUserDisplayName = document.getElementById('displayName').value.trim();
+            if (!appUserDisplayName) {
+                showAlert('Erreur', 'Veuillez entrer un nom de joueur.');
+                return;
+            }
+            document.getElementById('userDisplay').textContent = appUserDisplayName;
+            showScreen('characterScreen'); // Passe à l'écran de création de personnage
+        }
+
+        // Fonction pour l'écran de création de personnage -> démarrer le jeu
+        async function createCharacter() {
+            const characterNameInput = document.getElementById('characterName').value.trim();
+            const characterArchetype = document.getElementById('characterArchetype').value;
+            const characterDescription = document.getElementById('characterDescription').value.trim();
+            const characterBackground = document.getElementById('characterBackground').value.trim();
+
+            if (!characterNameInput || !characterArchetype) {
+                showAlert('Erreur', 'Veuillez au moins renseigner le nom et l\'archétype de votre personnage.');
+                return;
+            }
+
+            currentCharacterName = characterNameInput; // Définir le nom du personnage actuel
+
+            // Mettre à jour l'état du jeu global avec les infos du personnage
+            gameState.playerName = appUserDisplayName;
+            gameState.characterName = currentCharacterName;
+            gameState.archetype = characterArchetype;
+            gameState.description = characterDescription;
+            gameState.background = characterBackground;
+            gameState.currentLocation = 'Un lieu inconnu, au début de votre aventure.';
+            gameState.inventory = [];
+            gameState.health = 100;
+            gameState.energy = 100;
+            gameState.gold = 0;
+            gameState.skills = [];
+            gameState.storyHTML = ''; // Réinitialiser l'histoire HTML
+
+            document.getElementById('displayCharacterName').textContent = currentCharacterName;
+
+            showScreen('gameScreen'); // Passe à l'écran de jeu
+            await initializeGameSession(); // Lance la session de jeu (charge ou nouvelle partie)
+        }
+
+        // Initialise la session de jeu (tente de charger ou démarre une nouvelle aventure)
+        async function initializeGameSession() {
+            if (isFirebaseReady && db && userId && currentCharacterName) {
+                const gameDocRef = doc(db, `artifacts/${appId}/users/${userId}/characters`, currentCharacterName);
+                try {
+                    const docSnap = await getDoc(gameDocRef);
+                    if (docSnap.exists()) {
+                        console.log("Partie sauvegardée trouvée pour", currentCharacterName);
+                        await loadGame(currentCharacterName);
+                        showNotification('Partie chargée ! Reprenez votre aventure.', 'success');
+                    } else {
+                        console.log("Aucune partie sauvegardée trouvée pour", currentCharacterName, ". Démarrage d'une nouvelle aventure.");
+                        await startNewAdventure();
+                        showNotification('Nouvelle aventure commencée !', 'success');
+                    }
+                } catch (error) {
+                    console.error("Erreur lors de la vérification de la sauvegarde:", error);
+                    showAlert('Erreur de chargement', 'Impossible de vérifier la sauvegarde. Démarrage d\'une nouvelle aventure.');
+                    await startNewAdventure();
+                }
+            } else {
+                console.warn("Firebase non prêt ou personnage non défini. Démarrage d'une nouvelle aventure sans sauvegarde.");
+                showAlert('Avertissement', 'Le service de sauvegarde n\'est pas disponible. Votre progression ne sera pas sauvegardée.', 'warning');
+                await startNewAdventure();
             }
         }
 
         // Charger l'état du jeu depuis Firestore
-        async function loadGame() {
-            // Vérifie si Firebase est correctement initialisé et que l'userId est défini
-            if (!isFirebaseReady || !db || !userId || !playerName) {
-                console.log("Firebase non prêt ou PlayerName non défini pour charger le jeu. Le stockage est désactivé.");
-                // Si Firebase n'est pas prêt, démarrer une nouvelle aventure sans chargement
-                startNewAdventure();
+        async function loadGame(charName) {
+            if (!isFirebaseReady || !db || !userId || !charName) {
+                console.log("Firebase non prêt ou charName non défini pour charger le jeu.");
                 return;
             }
+            const gameDocRef = doc(db, `artifacts/${appId}/users/${userId}/characters`, charName);
 
-            const gameDocRef = doc(db, `artifacts/${appId}/users/${userId}/echoVerseGames`, playerName);
+            // Utilise onSnapshot pour une écoute en temps réel des changements
             onSnapshot(gameDocRef, (docSnap) => {
                 if (docSnap.exists()) {
                     const savedGameState = docSnap.data();
-                    console.log("Partie sauvegardée chargée:", savedGameState);
-                    // Restaurer l'état du jeu
-                    document.getElementById('storyContent').innerHTML = savedGameState.storyHTML;
-                    updateGameState(savedGameState.gameState);
-                    currentStoryId = savedGameState.currentStoryId; // Restaurer l'ID de l'histoire actuelle
-                    showAlert('Partie chargée', `Bienvenue de retour, ${playerName} ! Votre aventure a été rechargée.`, 'success');
+                    console.log("Données de sauvegarde reçues:", savedGameState);
+
+                    // Restaurer l'état du jeu global
+                    gameState = { ...gameState, ...savedGameState }; // Fusionne l'état sauvegardé avec l'état actuel
+                    
+                    document.getElementById('storyContent').innerHTML = gameState.storyHTML; // Restaurer l'HTML de l'histoire
+                    updateGameStateDisplay(); // Mettre à jour l'affichage
+                    document.getElementById('storyContent').scrollTop = document.getElementById('storyContent').scrollHeight; // Scroll to bottom
                 } else {
-                    console.log("Aucune partie sauvegardée trouvée pour", playerName);
-                    // Si aucune partie sauvegardée, démarrer une nouvelle aventure
-                    startNewAdventure();
+                    console.log("La partie n'existe plus ou a été supprimée pour", charName);
+                    // Si le document est supprimé, on pourrait revenir à l'écran de création ou d'accueil
+                    // Pour l'instant, ne fait rien de spécial si on était déjà en jeu.
+                    // Le `initializeGameSession` initial gère le cas de non-existence.
                 }
-                // Afficher la section de gameplay une fois le chargement (ou nouveau départ) effectué
-                document.getElementById('home-section').classList.remove('active');
-                document.getElementById('gameplay-section').classList.add('active');
             }, (error) => {
-                console.error("Erreur lors du chargement de la partie:", error);
-                showAlert('Erreur de chargement', 'Impossible de charger la partie. Démarrage d\'une nouvelle aventure.');
-                startNewAdventure(); // Démarrer une nouvelle aventure en cas d'erreur
+                console.error("Erreur lors de l'écoute de la partie:", error);
+                showAlert('Erreur de synchronisation', 'Impossible de maintenir la synchronisation avec la sauvegarde.', 'error');
             });
         }
 
         // Sauvegarder l'état du jeu dans Firestore
-        async function saveGame(storyHTML, gameState) {
-            // Vérifie si Firebase est correctement initialisé et que l'userId est défini
-            if (!isFirebaseReady || !db || !userId || !playerName) {
-                console.warn("Impossible de sauvegarder : Firebase non prêt ou PlayerName non défini. Le stockage est désactivé.");
+        async function saveGame() {
+            if (!isFirebaseReady || !db || !userId || !currentCharacterName) {
+                console.warn("Impossible de sauvegarder : Firebase non prêt ou personnage non défini.");
                 return;
             }
             try {
-                const gameDocRef = doc(db, `artifacts/${appId}/users/${userId}/echoVerseGames`, playerName);
-                await setDoc(gameDocRef, {
-                    playerName: playerName,
-                    storyHTML: storyHTML,
-                    gameState: gameState,
-                    lastUpdated: new Date(),
-                    currentStoryId: currentStoryId // Sauvegarder l'ID de l'histoire actuelle
-                });
-                console.log("Partie sauvegardée avec succès pour:", playerName);
+                // S'assurer que le storyHTML est à jour avant de sauvegarder
+                gameState.storyHTML = document.getElementById('storyContent').innerHTML;
+
+                const gameDocRef = doc(db, `artifacts/${appId}/users/${userId}/characters`, currentCharacterName);
+                await setDoc(gameDocRef, gameState); // Sauvegarde l'objet gameState complet
+                console.log("Partie sauvegardée avec succès pour:", currentCharacterName);
+                showNotification('Partie sauvegardée !', 'success', 2000);
             } catch (error) {
                 console.error("Erreur lors de la sauvegarde de la partie:", error);
                 showAlert('Erreur de sauvegarde', 'Impossible de sauvegarder votre progression.');
             }
         }
 
-        // Démarrer le jeu (appelé par le bouton "COMMENCER L'AVENTURE")
-        async function startGame() {
-            playerName = document.getElementById('playerNameInput').value.trim();
-            if (!playerName) {
-                showAlert('Erreur', 'Veuillez entrer un nom pour commencer votre aventure.');
-                return;
-            }
-
-            document.getElementById('displayPlayerName').textContent = playerName;
-
-            // Si Firebase est prêt, tente de charger/sauvegarder. Sinon, démarre sans sauvegarde.
-            if (isFirebaseReady) {
-                 loadGame(); // Tente de charger ou démarre une nouvelle partie si aucune n'est trouvée
-            } else {
-                // Si Firebase n'est pas configuré du tout ou n'a pas pu être initialisé,
-                // démarrer directement une nouvelle aventure sans sauvegarde.
-                console.log("Firebase non prêt, démarrage d'une nouvelle aventure sans sauvegarde.");
-                document.getElementById('home-section').classList.remove('active');
-                document.getElementById('gameplay-section').classList.add('active');
-                startNewAdventure();
-            }
-        }
-
         // Démarrer une nouvelle aventure
         async function startNewAdventure() {
-            document.getElementById('loadingStory').style.display = 'block';
-            document.getElementById('storyContent').innerHTML = ''; // Nettoie l'ancienne histoire
-            resetGameState(); // Réinitialise l'état du jeu
+            document.getElementById('storyLoading').style.display = 'block';
+            document.getElementById('storyContent').innerHTML = `<div class="loading" id="storyLoading"><div class="spinner"></div><p>Génération de l'histoire...</p></div>`; // Affiche le spinner
+            resetGameStateDisplay(); // Réinitialise l'affichage des stats
 
             try {
-                const initialStory = await generateInitialStory();
-                displayStoryEntry(initialStory, null);
-                // Sauvegarder l'état initial uniquement si Firebase est configuré et authentifié
-                if (isFirebaseReady) {
-                    saveGame(document.getElementById('storyContent').innerHTML, {
-                        playerName: playerName,
-                        currentLocation: 'Un endroit inconnu',
-                        inventory: [],
-                        health: 100,
-                        skills: []
-                    });
-                } else {
-                    console.warn("Firebase non prêt. La partie ne sera pas sauvegardée.");
-                }
+                const initialStoryResponse = await generateInitialStory();
+                gameState.storyHTML = ''; // Réinitialise pour la nouvelle histoire
+                displayStoryEntry(initialStoryResponse.story, null);
+                updateGameState(initialStoryResponse.gameState);
+                saveGame(); // Sauvegarde l'état initial
             } catch (error) {
                 showAlert('Erreur', 'Impossible de démarrer l\'aventure. Veuillez réessayer.');
                 console.error('Erreur lors du démarrage:', error);
+            } finally {
+                document.getElementById('storyLoading').style.display = 'none';
             }
-
-            document.getElementById('loadingStory').style.display = 'none';
         }
 
         // Réinitialiser le jeu (bouton "Recommencer l'aventure")
         async function resetGame() {
-            // Utilise la modale personnalisée au lieu de window.confirm()
-            showConfirmModal("Confirmation", "Êtes-vous sûr de vouloir recommencer ? Votre progression actuelle sera perdue.", async () => {
-                document.getElementById('storyContent').innerHTML = ''; // Efface l'histoire
-                document.getElementById('actionInput').value = ''; // Efface l'input
-                resetGameState(); // Réinitialise l'état du jeu
-
-                document.getElementById('home-section').classList.add('active'); // Retour à l'écran d'accueil
-                document.getElementById('gameplay-section').classList.remove('active');
-
-                // Conserver le nom du joueur dans l'input pour un nouveau départ rapide, mais effacer la variable
-                const tempPlayerName = playerName;
-                playerName = '';
-                currentStoryId = null; // Réinitialise l'ID de l'histoire
-
-                // Optionnel: Supprimer la sauvegarde Firestore pour ce joueur, seulement si Firebase est actif
-                if (isFirebaseReady && tempPlayerName) {
+            showAlert("Confirmation", "Êtes-vous sûr de vouloir recommencer ? Votre progression actuelle sera perdue.", 'warning', async () => {
+                // Supprimer la sauvegarde Firestore pour ce personnage, si Firebase est actif
+                if (isFirebaseReady && currentCharacterName) {
                     try {
-                        const gameDocRef = doc(db, `artifacts/${appId}/users/${userId}/echoVerseGames`, tempPlayerName);
+                        const gameDocRef = doc(db, `artifacts/${appId}/users/${userId}/characters`, currentCharacterName);
                         await deleteDoc(gameDocRef);
                         console.log("Ancienne sauvegarde supprimée.");
+                        showNotification('Ancienne sauvegarde supprimée.', 'success', 2000);
                     } catch (error) {
                         console.error("Erreur lors de la suppression de la sauvegarde:", error);
                         showAlert('Erreur de suppression', 'Impossible de supprimer l\'ancienne sauvegarde.');
@@ -689,43 +1350,52 @@
                 } else {
                     console.warn("Firebase non prêt. L'ancienne sauvegarde n'a pas pu être supprimée.");
                 }
+
+                // Réinitialiser l'état local et revenir à l'écran d'accueil
+                resetGameStateDisplay();
+                gameState = { // Réinitialiser complètement l'objet gameState
+                    playerName: appUserDisplayName, // Garde le nom du joueur du compte
+                    characterName: '',
+                    archetype: '',
+                    description: '',
+                    background: '',
+                    currentLocation: 'Un lieu inconnu, au début de votre aventure.',
+                    inventory: [],
+                    health: 100,
+                    energy: 100,
+                    gold: 0,
+                    skills: [],
+                    storyHTML: ''
+                };
+                document.getElementById('characterName').value = '';
+                document.getElementById('characterArchetype').value = '';
+                document.getElementById('characterDescription').value = '';
+                document.getElementById('characterBackground').value = '';
+                document.getElementById('storyContent').innerHTML = ''; // Efface l'histoire
+                document.getElementById('actionInput').value = ''; // Efface l'input
+
+                currentCharacterName = ''; // Réinitialise le personnage actuel
+                document.getElementById('displayCharacterName').textContent = '';
+
+                showScreen('homeScreen'); // Retour à l'écran d'accueil
                 showAlert('Aventure réinitialisée', 'Une nouvelle aventure vous attend !', 'success');
             });
-        }
-
-        // Ajout d'une modale de confirmation personnalisée
-        function showConfirmModal(title, message, onConfirmCallback) {
-            const overlay = document.createElement('div');
-            overlay.className = 'modal-overlay';
-            overlay.innerHTML = `
-                <div class="modal-content warning">
-                    <h3>${title}</h3>
-                    <p>${message}</p>
-                    <button id="modalConfirmBtn" class="btn">Oui</button>
-                    <button id="modalCancelBtn" class="btn btn-secondary" style="margin-left: 10px;">Non</button>
-                </div>
-            `;
-            document.body.appendChild(overlay);
-
-            document.getElementById('modalConfirmBtn').onclick = () => {
-                document.body.removeChild(overlay);
-                if (onConfirmCallback) {
-                    onConfirmCallback();
-                }
-            };
-            document.getElementById('modalCancelBtn').onclick = () => {
-                document.body.removeChild(overlay);
-            };
         }
 
 
         // Fonction pour générer l'histoire initiale via l'API Gemini
         async function generateInitialStory() {
-            const initialPrompt = `Tu es le maître de jeu d'une aventure textuelle RPG. Crée une introduction fascinante pour un jeu d'aventure. Le joueur s'appelle ${playerName}. Commence par un paragraphe descriptif, puis propose le lieu actuel et des éléments initiaux de son inventaire, sa santé et ses compétences.
-            Réponds au format JSON avec les clés suivantes : 'story' (texte de l'histoire), 'gameState' (objet avec 'currentLocation', 'inventory' (tableau de chaînes), 'health' (nombre), 'skills' (tableau de chaînes)).`
-            ;
+            const initialPrompt = `Tu es le maître de jeu d'une aventure textuelle RPG immersive. Le joueur s'appelle ${gameState.playerName}, et son personnage est ${gameState.characterName}.
+            Son archétype est "${gameState.archetype}".
+            Sa description physique : "${gameState.description || 'non spécifiée'}".
+            Son histoire personnelle/contexte : "${gameState.background || 'non spécifiée'}".
 
-            // Appel à l'API Gemini
+            Crée une introduction fascinante pour son aventure, en intégrant ces informations pour personnaliser le début. Le ton doit être épique, mystérieux ou aventureux, selon l'archétype et le contexte.
+            Propose le lieu actuel, des éléments initiaux de son inventaire (2-3 objets pertinents pour l'archétype), sa santé (entre 80 et 100), son énergie (entre 80 et 100) et une petite quantité d'or (entre 10 et 50).
+            Si l'archétype ou le contexte sont vides, utilise des valeurs par défaut pour un héros générique.
+
+            Réponds au format JSON avec les clés suivantes : 'story' (texte de l'histoire), 'gameState' (objet avec 'currentLocation', 'inventory' (tableau de chaînes), 'health' (nombre), 'energy' (nombre), 'gold' (nombre), 'skills' (tableau de chaînes)).`
+            ;
             return callGeminiAPI(initialPrompt);
         }
 
@@ -738,51 +1408,48 @@
                 return;
             }
 
-            document.getElementById('loadingStory').style.display = 'block';
-            document.getElementById('actionInput').value = '';
+            // Afficher le spinner de chargement dans la zone de l'histoire
+            document.getElementById('storyLoading').style.display = 'block';
+            document.getElementById('actionInput').value = ''; // Efface l'input
 
             try {
                 // Récupérer le contenu de l'histoire actuelle pour le contexte
                 const storyContentDiv = document.getElementById('storyContent');
-                // Prendre le texte de toutes les entrées d'histoire pour avoir un contexte complet
-                const storyContext = Array.from(storyContentDiv.children)
-                                          .map(entry => entry.innerText.trim())
-                                          .join('\n\n'); // Joindre avec des doubles sauts de ligne pour la clarté
+                const storyEntries = Array.from(storyContentDiv.querySelectorAll('.story-entry p, .story-entry .action-text'))
+                                          .map(element => element.textContent.trim())
+                                          .join('\n\n');
 
-                const prompt = `Le joueur s'appelle ${playerName}. L'histoire actuelle est : "${storyContext}".
+                const prompt = `Le joueur ${gameState.playerName}, incarnant ${gameState.characterName} (${gameState.archetype}), est actuellement à l'endroit suivant: "${gameState.currentLocation}".
+                Son inventaire est: ${gameState.inventory.length > 0 ? gameState.inventory.join(', ') : 'vide'}.
+                Sa santé est: ${gameState.health}%, son énergie est: ${gameState.energy}%, et il a: ${gameState.gold} pièces d'or.
+                Ses compétences sont: ${gameState.skills.length > 0 ? gameState.skills.join(', ') : 'aucune'}.
+
+                L'histoire actuelle est : "${storyEntries}".
                 Le joueur décide de : "${action}".
-                En tant que maître de jeu, continue l'histoire en tenant compte de cette action. Décris les conséquences de l'action du joueur et fais avancer l'intrigue.
-                Mets à jour l'état du jeu si nécessaire (lieu, inventaire, santé, compétences).
-                Réponds au format JSON avec les clés suivantes : 'story' (nouveau texte de l'histoire), 'gameState' (objet avec 'currentLocation', 'inventory' (tableau de chaînes), 'health' (nombre), 'skills' (tableau de chaînes)).`;
+
+                En tant que maître de jeu IA, continue l'histoire en tenant compte de cette action, des statistiques du personnage et du contexte. Décris les conséquences de l'action du joueur et fais avancer l'intrigue.
+                Mets à jour l'état du jeu si nécessaire (currentLocation, inventory (ajouts/retraits), health (pertes/gains, max 100, min 0), energy (pertes/gains, max 100, min 0), gold (gains/pertes), skills (ajouts/retraits)). Si la santé ou l'énergie tombe à 0, indique que le personnage est K.O. ou doit se reposer.
+
+                Réponds au format JSON avec les clés suivantes : 'story' (nouveau texte de l'histoire), 'gameState' (objet avec 'currentLocation', 'inventory' (tableau de chaînes), 'health' (nombre), 'energy' (nombre), 'gold' (nombre), 'skills' (tableau de chaînes)).`;
 
                 const response = await callGeminiAPI(prompt);
                 displayStoryEntry(response.story, action);
-                updateGameState(response.gameState);
-
-                // Sauvegarder l'état après chaque action, seulement si Firebase est configuré et authentifié
-                if (isFirebaseReady) {
-                    saveGame(document.getElementById('storyContent').innerHTML, response.gameState);
-                } else {
-                    console.warn("Firebase non prêt. La partie ne sera pas sauvegardée après cette action.");
-                }
-
+                updateGameState(response.gameState); // Met à jour l'état du jeu global et l'affichage
+                saveGame(); // Sauvegarde l'état après chaque action
 
             } catch (error) {
                 showAlert('Erreur', 'Erreur lors du traitement de votre action. Veuillez réessayer.');
                 console.error('Erreur lors de l\'action:', error);
+            } finally {
+                document.getElementById('storyLoading').style.display = 'none'; // Cache le spinner
             }
-
-            document.getElementById('loadingStory').style.display = 'none';
         }
 
         // Fonction générique pour appeler l'API Gemini
         async function callGeminiAPI(prompt) {
-            // Clé API vide pour que Canvas la fournisse au runtime
-            // Ne pas modifier cette ligne, la clé est injectée automatiquement par l'environnement Canvas.
-            const apiKey = "";
+            const apiKey = ""; // Clé API injectée par l'environnement Canvas
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
-            // Chat history pour le payload
             let chatHistory = [];
             chatHistory.push({ role: "user", parts: [{ text: prompt }] });
 
@@ -800,9 +1467,11 @@
                                     "currentLocation": { "type": "STRING" },
                                     "inventory": { "type": "ARRAY", "items": { "type": "STRING" } },
                                     "health": { "type": "NUMBER" },
+                                    "energy": { "type": "NUMBER" },
+                                    "gold": { "type": "NUMBER" },
                                     "skills": { "type": "ARRAY", "items": { "type": "STRING" } }
                                 },
-                                "required": ["currentLocation", "inventory", "health", "skills"]
+                                "required": ["currentLocation", "inventory", "health", "energy", "gold", "skills"]
                             }
                         },
                         "required": ["story", "gameState"]
@@ -839,27 +1508,26 @@
                 }
             } catch (error) {
                 console.error("Erreur lors de l'appel à l'API Gemini:", error);
-                throw error; // Rejette l'erreur pour qu'elle soit gérée par l'appelant
+                throw error;
             }
         }
 
-
         // Afficher une entrée d'histoire dans le journal
-        function displayStoryEntry(story, action) {
+        function displayStoryEntry(storyText, actionTaken) {
             const storyContentDiv = document.getElementById('storyContent');
             const newEntry = document.createElement('div');
             newEntry.className = 'story-entry';
 
-            // Ajoute l'action du joueur si elle existe
-            if (action) {
+            if (actionTaken) {
                 const actionPara = document.createElement('p');
-                actionPara.className = 'player-action';
-                actionPara.innerHTML = `&gt; ${action}`;
+                actionPara.className = 'action-text';
+                actionPara.textContent = `> ${actionTaken}`;
                 newEntry.appendChild(actionPara);
             }
 
             const storyPara = document.createElement('p');
-            storyPara.innerHTML = story.replace(/\n/g, '<br>'); // Remplace les retours à la ligne par des <br>
+            storyPara.className = 'story-text';
+            storyPara.innerHTML = storyText.replace(/\n/g, '<br>'); // Remplace les retours à la ligne par des <br>
             newEntry.appendChild(storyPara);
 
             storyContentDiv.appendChild(newEntry);
@@ -867,25 +1535,108 @@
             storyContentDiv.scrollTop = storyContentDiv.scrollHeight;
         }
 
-        // Mettre à jour l'affichage de l'état du jeu
-        function updateGameState(gameState) {
-            if (!gameState) return; // S'assurer que gameState n'est pas nul
+        // Met à jour l'état du jeu global et rafraîchit l'affichage
+        function updateGameState(newGameState) {
+            if (!newGameState) return;
 
+            // Assurer que les valeurs sont dans les limites [0, 100] pour santé et énergie
+            newGameState.health = Math.max(0, Math.min(100, newGameState.health));
+            newGameState.energy = Math.max(0, Math.min(100, newGameState.energy));
+            newGameState.gold = Math.max(0, newGameState.gold); // L'or ne peut pas être négatif
+
+            // Fusionne le nouvel état avec l'état actuel du jeu
+            Object.assign(gameState, newGameState);
+
+            updateGameStateDisplay();
+        }
+
+        // Met à jour l'affichage de l'état du jeu à partir de l'objet gameState global
+        function updateGameStateDisplay() {
+            document.getElementById('displayCharacterName').textContent = gameState.characterName;
             document.getElementById('displayCurrentLocation').textContent = gameState.currentLocation || 'Inconnu';
-            document.getElementById('displayInventory').textContent = gameState.inventory && gameState.inventory.length > 0 ? gameState.inventory.join(', ') : 'Vide';
-            document.getElementById('displayHealth').textContent = `${gameState.health || 100}%`;
+
+            // Santé
+            document.getElementById('displayHealthValue').textContent = `${gameState.health}%`;
+            document.getElementById('displayHealthBar').style.width = `${gameState.health}%`;
+            if (gameState.health <= 20) {
+                 document.getElementById('displayHealthBar').style.background = 'linear-gradient(90deg, #ff0000, #ff8888)';
+            } else if (gameState.health <= 50) {
+                 document.getElementById('displayHealthBar').style.background = 'linear-gradient(90deg, #ffaa00, #ffcc88)';
+            } else {
+                 document.getElementById('displayHealthBar').style.background = 'linear-gradient(90deg, var(--health-color), #ff8888)';
+            }
+
+
+            // Énergie
+            document.getElementById('displayEnergyValue').textContent = `${gameState.energy}%`;
+            document.getElementById('displayEnergyBar').style.width = `${gameState.energy}%`;
+            if (gameState.energy <= 20) {
+                document.getElementById('displayEnergyBar').style.background = 'linear-gradient(90deg, #ff00ff, #ff88ff)'; // Couleur faible énergie
+            } else if (gameState.energy <= 50) {
+                document.getElementById('displayEnergyBar').style.background = 'linear-gradient(90deg, #ffdd00, #ffee55)'; // Couleur moyenne énergie
+            } else {
+                document.getElementById('displayEnergyBar').style.background = 'linear-gradient(90deg, var(--energy-color), #88aaff)';
+            }
+
+
+            // Or
+            document.getElementById('displayGoldValue').textContent = gameState.gold;
+
+            // Inventaire
+            const inventoryGrid = document.getElementById('inventoryGrid');
+            inventoryGrid.innerHTML = ''; // Nettoie l'inventaire actuel
+
+            // Ajoute les objets de l'inventaire
+            gameState.inventory.forEach(item => {
+                const slot = document.createElement('div');
+                slot.className = 'inventory-slot filled';
+                slot.innerHTML = `<span>${item}</span>`;
+                inventoryGrid.appendChild(slot);
+            });
+
+            // Remplit les slots vides si l'inventaire n'est pas plein (max 6 slots pour l'exemple)
+            const maxSlots = 6;
+            for (let i = gameState.inventory.length; i < maxSlots; i++) {
+                const emptySlot = document.createElement('div');
+                emptySlot.className = 'inventory-slot';
+                emptySlot.innerHTML = '<span>Vide</span>';
+                inventoryGrid.appendChild(emptySlot);
+            }
+
+            // Compétences
             document.getElementById('displaySkills').textContent = gameState.skills && gameState.skills.length > 0 ? gameState.skills.join(', ') : 'Aucune';
         }
 
-        // Réinitialiser l'état du jeu à ses valeurs par défaut
-        function resetGameState() {
-            document.getElementById('displayPlayerName').textContent = '';
+        // Réinitialiser l'affichage de l'état du jeu (pour un nouveau personnage/début)
+        function resetGameStateDisplay() {
+            document.getElementById('displayCharacterName').textContent = '';
             document.getElementById('displayCurrentLocation').textContent = 'Inconnu';
-            document.getElementById('displayInventory').textContent = 'Vide';
-            document.getElementById('displayHealth').textContent = '100%';
+
+            document.getElementById('displayHealthValue').textContent = '100%';
+            document.getElementById('displayHealthBar').style.width = '100%';
+            document.getElementById('displayHealthBar').style.background = 'linear-gradient(90deg, var(--health-color), #ff8888)'; // Réinitialise la couleur
+
+            document.getElementById('displayEnergyValue').textContent = '100%';
+            document.getElementById('displayEnergyBar').style.width = '100%';
+            document.getElementById('displayEnergyBar').style.background = 'linear-gradient(90deg, var(--energy-color), #88aaff)'; // Réinitialise la couleur
+
+            document.getElementById('displayGoldValue').textContent = '0';
+
+            const inventoryGrid = document.getElementById('inventoryGrid');
+            inventoryGrid.innerHTML = '';
+            const maxSlots = 6;
+            for (let i = 0; i < maxSlots; i++) {
+                const emptySlot = document.createElement('div');
+                emptySlot.className = 'inventory-slot';
+                emptySlot.innerHTML = '<span>Vide</span>';
+                inventoryGrid.appendChild(emptySlot);
+            }
+
             document.getElementById('displaySkills').textContent = 'Aucune';
         }
 
+        // Assurez-vous que l'initialisation de Firebase est appelée au chargement
+        // Cela est déjà fait au début du script : initializeFirebase();
     </script>
 </body>
 </html>
