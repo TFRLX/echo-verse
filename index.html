@@ -426,6 +426,7 @@
         let userId = 'anonymous'; // Default userId, will be updated after auth
         let playerName = '';
         let currentStoryId = null; // ID du document Firestore pour l'histoire actuelle
+        let isFirebaseReady = false; // Nouvelle variable pour suivre l'état de Firebase
 
         // Variables Firebase globales disponibles via l'environnement Canvas
         // __app_id et __firebase_config sont des variables spéciales fournies par l'environnement Canvas.
@@ -442,12 +443,22 @@
                 if (Object.keys(firebaseConfig).length === 0) {
                     console.warn("Configuration Firebase non disponible. Le stockage des données ne fonctionnera pas.");
                     showAlert('Avertissement', 'Le stockage du jeu ne sera pas disponible car Firebase n\'est pas configuré.', 'warning');
+                    isFirebaseReady = false; // Firebase non prêt
                     return; // Quitte si aucune configuration n'est fournie
                 }
 
-                app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-                auth = getAuth(app);
+                // Tente d'initialiser l'application Firebase
+                try {
+                    app = initializeApp(firebaseConfig);
+                    db = getFirestore(app);
+                    auth = getAuth(app);
+                } catch (initError) {
+                    console.error("Erreur lors de l'initialisation de l'application Firebase:", initError);
+                    showAlert('Erreur critique', 'Impossible d\'initialiser l\'application Firebase. Le stockage des données sera désactivé.', 'error');
+                    isFirebaseReady = false; // Firebase non prêt
+                    return; // Quitte si l'initialisation de l'application échoue
+                }
+
 
                 // Tentative d'authentification initiale
                 try {
@@ -460,21 +471,25 @@
                         await signInAnonymously(auth);
                         console.log("Connexion anonyme réussie.");
                     }
+                    isFirebaseReady = true; // Firebase prêt après authentification
                 } catch (authError) {
                     console.error("Erreur lors de la tentative d'authentification initiale:", authError);
                     // Si l'erreur est liée à un jeton invalide ou à des revendications, tente une connexion anonyme
                     if (authError.code === 'auth/invalid-custom-token' || authError.code === 'auth/invalid-claims') {
-                        showAlert('Erreur d\'authentification', 'Votre jeton de connexion est invalide ou expiré. Tentative de connexion anonyme...');
+                        showAlert('Erreur d\'authentification', 'Votre jeton de connexion est invalide ou expiré. Tentative de connexion anonyme...', 'warning');
                         try {
                             await signInAnonymously(auth);
                             console.log("Reconnexion anonyme réussie après échec du jeton.");
+                            isFirebaseReady = true; // Firebase prêt après authentification anonyme
                         } catch (anonAuthError) {
                             console.error("Erreur de connexion anonyme:", anonAuthError);
                             showAlert('Erreur grave', 'Impossible de se connecter au service d\'authentification Firebase. Le jeu ne pourra pas sauvegarder.');
+                            isFirebaseReady = false; // Firebase non prêt
                         }
                     } else {
                         // Pour d'autres types d'erreurs d'authentification
                         showAlert('Erreur d\'authentification', 'Impossible de se connecter au service Firebase. Le jeu pourrait ne pas fonctionner correctement.');
+                        isFirebaseReady = false; // Firebase non prêt
                     }
                 }
 
@@ -485,20 +500,25 @@
                         console.log("Utilisateur Firebase authentifié:", userId);
                         // Si le joueur a déjà un nom, tenter de charger sa partie
                         // (playerName sera défini après que l'utilisateur ait cliqué sur "Commencer l'aventure")
-                        if (playerName) {
+                        if (playerName && isFirebaseReady) { // Vérifie aussi isFirebaseReady
                             loadGame();
                         }
                     } else {
                         userId = 'anonymous'; // Retour à 'anonymous' si aucun utilisateur n'est authentifié
                         console.log("Aucun utilisateur Firebase authentifié (état actuel).");
+                        // Si l'utilisateur se déconnecte, on met Firebase en non prêt pour la sauvegarde
+                        // à moins qu'une reconnexion anonyme ait réussi.
+                        // Cependant, isFirebaseReady reflète l'état de la dernière tentative réussie d'auth.
                     }
                 });
 
-                console.log("Firebase initialisé et tentative d'authentification effectuée.");
+                console.log("Firebase initialisé et tentative d'authentification effectuée. isFirebaseReady:", isFirebaseReady);
 
             } catch (error) {
+                // Ce catch attrape les erreurs inattendues durant l'initialisation
                 console.error("Erreur critique lors de l'initialisation de Firebase (avant authentification):", error);
                 showAlert('Erreur critique', 'Impossible d\'initialiser Firebase. Le stockage des données sera désactivé.', 'error');
+                isFirebaseReady = false; // Firebase non prêt
             }
         }
 
@@ -533,8 +553,8 @@
         // Charger l'état du jeu depuis Firestore
         async function loadGame() {
             // Vérifie si Firebase est correctement initialisé et que l'userId est défini
-            if (!db || !userId || !playerName) {
-                console.log("Firebase ou PlayerName non prêt pour charger le jeu. Le stockage est peut-être désactivé.");
+            if (!isFirebaseReady || !db || !userId || !playerName) {
+                console.log("Firebase non prêt ou PlayerName non défini pour charger le jeu. Le stockage est désactivé.");
                 // Si Firebase n'est pas prêt, démarrer une nouvelle aventure sans chargement
                 startNewAdventure();
                 return;
@@ -568,8 +588,8 @@
         // Sauvegarder l'état du jeu dans Firestore
         async function saveGame(storyHTML, gameState) {
             // Vérifie si Firebase est correctement initialisé et que l'userId est défini
-            if (!db || !userId || !playerName) {
-                console.warn("Impossible de sauvegarder : Firebase ou PlayerName non prêt. Le stockage est peut-être désactivé.");
+            if (!isFirebaseReady || !db || !userId || !playerName) {
+                console.warn("Impossible de sauvegarder : Firebase non prêt ou PlayerName non défini. Le stockage est désactivé.");
                 return;
             }
             try {
@@ -598,20 +618,13 @@
 
             document.getElementById('displayPlayerName').textContent = playerName;
 
-            // Si Firebase est configuré et authentifié, tente de charger/sauvegarder. Sinon, démarre sans sauvegarde.
-            if (db && auth.currentUser && auth.currentUser.uid === userId) {
+            // Si Firebase est prêt, tente de charger/sauvegarder. Sinon, démarre sans sauvegarde.
+            if (isFirebaseReady) {
                  loadGame(); // Tente de charger ou démarre une nouvelle partie si aucune n'est trouvée
-            } else if (Object.keys(firebaseConfig).length > 0) {
-                // Si Firebase est configuré mais l'authentification n'est pas encore prête, attendre l'état de Firebase
-                // Cette branche devrait être moins fréquente avec le initializeFirebase refactorisé
-                console.log("Firebase configuré mais authentification non prête. Attente de l'état d'authentification...");
-                showAlert('Info', 'Initialisation des services de sauvegarde en cours. Veuillez patienter.', 'warning');
-                // L'écouteur `onAuthStateChanged` dans `initializeFirebase` gérera l'appel à `loadGame()` ou `startNewAdventure()`
-                // une fois l'authentification établie.
-            }
-            else {
-                // Si Firebase n'est pas configuré du tout, démarrer directement une nouvelle aventure sans sauvegarde
-                console.log("Firebase non configuré, démarrage d'une nouvelle aventure sans sauvegarde.");
+            } else {
+                // Si Firebase n'est pas configuré du tout ou n'a pas pu être initialisé,
+                // démarrer directement une nouvelle aventure sans sauvegarde.
+                console.log("Firebase non prêt, démarrage d'une nouvelle aventure sans sauvegarde.");
                 document.getElementById('home-section').classList.remove('active');
                 document.getElementById('gameplay-section').classList.add('active');
                 startNewAdventure();
@@ -628,7 +641,7 @@
                 const initialStory = await generateInitialStory();
                 displayStoryEntry(initialStory, null);
                 // Sauvegarder l'état initial uniquement si Firebase est configuré et authentifié
-                if (db && auth.currentUser) {
+                if (isFirebaseReady) {
                     saveGame(document.getElementById('storyContent').innerHTML, {
                         playerName: playerName,
                         currentLocation: 'Un endroit inconnu',
@@ -637,7 +650,7 @@
                         skills: []
                     });
                 } else {
-                    console.warn("Firebase non prêt ou non configuré. La partie ne sera pas sauvegardée.");
+                    console.warn("Firebase non prêt. La partie ne sera pas sauvegardée.");
                 }
             } catch (error) {
                 showAlert('Erreur', 'Impossible de démarrer l\'aventure. Veuillez réessayer.');
@@ -664,7 +677,7 @@
                 currentStoryId = null; // Réinitialise l'ID de l'histoire
 
                 // Optionnel: Supprimer la sauvegarde Firestore pour ce joueur, seulement si Firebase est actif
-                if (db && userId && tempPlayerName) {
+                if (isFirebaseReady && tempPlayerName) {
                     try {
                         const gameDocRef = doc(db, `artifacts/${appId}/users/${userId}/echoVerseGames`, tempPlayerName);
                         await deleteDoc(gameDocRef);
@@ -673,8 +686,10 @@
                         console.error("Erreur lors de la suppression de la sauvegarde:", error);
                         showAlert('Erreur de suppression', 'Impossible de supprimer l\'ancienne sauvegarde.');
                     }
+                } else {
+                    console.warn("Firebase non prêt. L'ancienne sauvegarde n'a pas pu être supprimée.");
                 }
-                showAlert('Aventure réinitialisée', 'Une nouvelle aventure vous attend !', 'warning');
+                showAlert('Aventure réinitialisée', 'Une nouvelle aventure vous attend !', 'success');
             });
         }
 
@@ -745,10 +760,10 @@
                 updateGameState(response.gameState);
 
                 // Sauvegarder l'état après chaque action, seulement si Firebase est configuré et authentifié
-                if (db && auth.currentUser) {
+                if (isFirebaseReady) {
                     saveGame(document.getElementById('storyContent').innerHTML, response.gameState);
                 } else {
-                    console.warn("Firebase non prêt ou non configuré. La partie ne sera pas sauvegardée après cette action.");
+                    console.warn("Firebase non prêt. La partie ne sera pas sauvegardée après cette action.");
                 }
 
 
