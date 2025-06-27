@@ -740,10 +740,9 @@
             projectId: "YOUR_PROJECT_ID",
             storageBucket: "YOUR_PROJECT_ID.appspot.com",
             messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID" // Ceci n'est pas le même que 'appId' plus haut, c'est l'ID de votre application Firebase.
+            appId: "YOUR_APP_ID_FROM_FIREBASE_SETTINGS" // Ceci n'est pas le même que 'appId' plus haut, c'est l'ID de votre application Firebase.
         };
         // *** FIN DE LA MODIFICATION POUR LE DÉVELOPPEMENT LOCAL ***
-
 
         let app;
         let db;
@@ -776,12 +775,12 @@
             document.getElementById('alertModal').style.display = 'none';
         }
 
+        // Fonction d'initialisation de Firebase déplacée au début du script
         async function initializeFirebase() {
             try {
                 // S'assurer que firebaseConfig est défini avant d'initialiser
                 if (!firebaseConfig || Object.keys(firebaseConfig).length === 0 || firebaseConfig.apiKey === "YOUR_API_KEY") {
                     console.warn("Firebase config manquante ou générique. Le stockage persistant ne fonctionnera pas localement.");
-                    showAlert('Attention', 'La configuration Firebase est manquante ou générique. La sauvegarde et le chargement des données ne fonctionneront pas localement. Veuillez configurer Firebase pour un fonctionnement complet.');
                 }
 
                 app = initializeApp(firebaseConfig);
@@ -813,12 +812,6 @@
                     authReady = true;
                     console.log("Firebase authReady:", authReady, "userId:", userId);
 
-                    // Si l'authentification est prête et que le jeu n'a pas encore démarré
-                    if (authReady && !isGameStarted) {
-                        // On ne démarre pas le jeu automatiquement ici,
-                        // mais on attend que l'utilisateur clique sur "COMMENCER L'AVENTURE".
-                        // C'est juste pour s'assurer que Firebase est prêt avant toute interaction.
-                    }
                     // Après l'authentification, on peut essayer de charger l'état sauvegardé
                     loadGameState();
                 });
@@ -1078,12 +1071,8 @@ Assure-toi que toutes les clés de 'gameState' sont présentes, même si leurs v
                 const userDocRef = doc(db, `artifacts/${appId}/users/${userId}/gameStates`, 'currentGameState');
                 await setDoc(userDocRef, JSON.parse(JSON.stringify(gameState))); // Cloner pour éviter les problèmes de référence
                 console.log("État du jeu sauvegardé !");
-                document.getElementById('saveStatus').textContent = 'Sauvegarde active';
-                document.getElementById('saveStatus').style.backgroundColor = '#00D9FF';
             } catch (error) {
                 console.error("Erreur lors de la sauvegarde de l'état du jeu:", error);
-                document.getElementById('saveStatus').textContent = 'Sauvegarde désactivée [erreur]';
-                document.getElementById('saveStatus').style.backgroundColor = '#FF4444';
                 showAlert('Erreur de Sauvegarde', 'Impossible de sauvegarder votre progression. Vérifiez votre connexion ou la console pour les détails.');
             }
         }
@@ -1106,25 +1095,19 @@ Assure-toi que toutes les clés de 'gameState' sont présentes, même si leurs v
                         gameState.storyHistory = [];
                     }
                     updateUI(); // Mettre à jour l'interface après le chargement
-                    document.getElementById('saveStatus').textContent = 'Sauvegarde active';
-                    document.getElementById('saveStatus').style.backgroundColor = '#00D9FF';
                     // Si un état est chargé, montrer l'écran de jeu directement
                     document.getElementById('startScreen').style.display = 'none';
                     document.getElementById('gameArea').style.display = 'block';
                     isGameStarted = true; // Le jeu est considéré comme démarré si un état est chargé
                 } else {
                     console.log("Aucun état de jeu sauvegardé trouvé. Démarrage d'une nouvelle partie.");
-                    document.getElementById('saveStatus').textContent = 'Sauvegarde désactivée [locale]';
-                    document.getElementById('saveStatus').style.backgroundColor = '#b0b0b0';
                     // Si pas de sauvegarde, le jeu commencera normalement par la fonction startGame()
                 }
             } catch (error) {
                 console.error("Erreur lors du chargement de l'état du jeu:", error);
-                document.getElementById('saveStatus').textContent = 'Sauvegarde désactivée [erreur]';
-                document.getElementById('saveStatus').style.backgroundColor = '#FF4444';
                 showAlert('Erreur de Chargement', 'Impossible de charger votre progression. Une nouvelle partie va commencer.');
                 // En cas d'erreur de chargement, réinitialiser l'état du jeu pour commencer une nouvelle partie
-                resetGameState();
+                resetGameStateData(); // Assurez-vous d'appeler la fonction de réinitialisation des données
             }
         }
 
@@ -1222,40 +1205,41 @@ Assure-toi que toutes les clés de 'gameState' sont présentes, même si leurs v
             // Afficher une alerte de confirmation personnalisée
             showAlert('Réinitialiser le jeu', 'Êtes-vous sûr de vouloir réinitialiser l\'aventure ? Toute progression sera perdue localement et dans le cloud.');
 
-            // Pour une vraie confirmation avec oui/non, il faudrait modifier la modale showAlert
-            // et attendre un clic sur un bouton "Confirmer" ou "Annuler" dans la modale.
-            // Pour l'instant, on procède à la réinitialisation après que l'utilisateur ait cliqué sur OK.
-            // Une amélioration future pourrait inclure des boutons "Confirmer" et "Annuler" dans la modale.
+            // Attacher un écouteur d'événement au bouton de fermeture de la modale d'alerte pour gérer la confirmation.
+            // Note: C'est une simplification. Pour une vraie confirmation Oui/Non, il faudrait modifier la structure de la modale.
+            // Ici, on considère que cliquer sur "OK" dans l'alerte de réinitialisation équivaut à confirmer.
+            document.getElementById('alertModalCloseButton').addEventListener('click', async function confirmResetAction() {
+                hideAlert(); // Cacher la modale d'alerte
+                // Supprimer cet écouteur pour éviter les appels multiples si la modale est réutilisée
+                document.getElementById('alertModalCloseButton').removeEventListener('click', confirmResetAction);
 
-            // Réinitialiser l'état du jeu en mémoire
-            resetGameStateData(); // Renommée pour éviter la confusion avec la fonction principale
-            updateUI(); // Mettre à jour l'UI avec l'état réinitialisé
+                // Réinitialiser l'état du jeu en mémoire
+                resetGameStateData(); // Renommée pour éviter la confusion avec la fonction principale
+                updateUI(); // Mettre à jour l'UI avec l'état réinitialisé
 
-            // Supprimer la sauvegarde de l'utilisateur de Firestore
-            if (authReady && db && userId) {
-                try {
-                    const userDocRef = doc(db, `artifacts/${appId}/users/${userId}/gameStates`, 'currentGameState');
-                    await deleteDoc(userDocRef);
-                    console.log("Sauvegarde du jeu supprimée de Firestore.");
-                    showAlert('Jeu Réinitialisé', 'L\'aventure a été réinitialisée et la sauvegarde supprimée. Vous pouvez commencer une nouvelle partie !');
-                    document.getElementById('saveStatus').textContent = 'Sauvegarde désactivée [locale]';
-                    document.getElementById('saveStatus').style.backgroundColor = '#b0b0b0';
-                } catch (error) {
-                    console.error("Erreur lors de la suppression de la sauvegarde:", error);
-                    showAlert('Erreur', 'Impossible de supprimer la sauvegarde de Firestore. Veuillez réessayer.');
+                // Supprimer la sauvegarde de l'utilisateur de Firestore
+                if (authReady && db && userId) {
+                    try {
+                        const userDocRef = doc(db, `artifacts/${appId}/users/${userId}/gameStates`, 'currentGameState');
+                        await deleteDoc(userDocRef);
+                        console.log("Sauvegarde du jeu supprimée de Firestore.");
+                        showAlert('Jeu Réinitialisé', 'L\'aventure a été réinitialisée et la sauvegarde supprimée. Vous pouvez commencer une nouvelle partie !');
+                    } catch (error) {
+                        console.error("Erreur lors de la suppression de la sauvegarde:", error);
+                        showAlert('Erreur', 'Impossible de supprimer la sauvegarde de Firestore. Veuillez réessayer.');
+                    }
+                } else {
+                    showAlert('Jeu Réinitialisé', 'L\'aventure a été réinitialisée localement. La sauvegarde cloud n\'était pas active ou n\'a pas pu être supprimée.');
                 }
-            } else {
-                showAlert('Jeu Réinitialisé', 'L\'aventure a été réinitialisée localement. La sauvegarde cloud n\'était pas active ou n\'a pas pu être supprimée.');
-            }
 
-
-            // Retour à l'écran de démarrage
-            document.getElementById('startScreen').style.display = 'block';
-            document.getElementById('gameArea').style.display = 'none';
-            document.getElementById('playerNameInput').value = ''; // Vider le nom du joueur
-            document.getElementById('storyContent').innerHTML = ''; // Vider l'historique
-            document.getElementById('actionInput').value = ''; // Vider l'input d'action
-            isGameStarted = false; // Marquer le jeu comme non démarré
+                // Retour à l'écran de démarrage
+                document.getElementById('startScreen').style.display = 'block';
+                document.getElementById('gameArea').style.display = 'none';
+                document.getElementById('playerNameInput').value = ''; // Vider le nom du joueur
+                document.getElementById('storyContent').innerHTML = ''; // Vider l'historique
+                document.getElementById('actionInput').value = ''; // Vider l'input d'action
+                isGameStarted = false; // Marquer le jeu comme non démarré
+            });
         }
 
         // Fonction interne pour réinitialiser l'état du jeu en mémoire
@@ -1293,12 +1277,17 @@ Assure-toi que toutes les clés de 'gameState' sont présentes, même si leurs v
                 inventoryGrid.appendChild(emptySlot);
             }
 
-            document.getElementById('displaySkills').textContent = 'Aucune';
+            const skillsList = document.getElementById('displaySkills');
+            skillsList.innerHTML = '';
+            const li = document.createElement('li');
+            li.textContent = 'Aucune compétence pour le moment.';
+            skillsList.appendChild(li);
         }
 
-        // Assurez-vous que l'initialisation de Firebase est appelée au chargement du DOM
-        document.addEventListener('DOMContentLoaded', () => {
-            initializeFirebase();
+        // Attacher les écouteurs d'événements et démarrer l'initialisation après le chargement du DOM
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Initialiser Firebase dès que le DOM est prêt
+            await initializeFirebase();
 
             // Attacher les écouteurs d'événements aux boutons
             document.getElementById('startGameButton').addEventListener('click', startGame);
